@@ -1,0 +1,24 @@
+{
+  "format_version": "1.20.80",
+  "minecraft:item": {
+    "description": {
+      "identifier": "tnt_coin:gui",
+      "menu_category": {
+        "category": "items"
+      }
+    },
+    "components": {
+      "minecraft:display_name": {
+        "value": "§b§kii§r§cTNT §eCOIN§d§kii§r\n§7(§9Right Click to Start§7)"
+      },
+      "minecraft:icon": "tnt_coin",
+      "minecraft:max_stack_size": 1,
+      "minecraft:allow_off_hand": true,
+      "minecraft:glint": true,
+      "minecraft:cooldown": {
+        "category": "gui",
+        "duration": 0.1
+      }
+    }
+  }
+}

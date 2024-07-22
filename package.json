@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0",
+  "name": "tnt-coin",
+  "description": "TNT Coin is a Minecraft mini-game designed for Bedrock/Pocket Edition players, inspired by a popular trend on TikTok live streams.",
+  "type": "module",
+  "main": "scripts/index.js",
+  "scripts": {},
+  "keywords": [
+    "minecraft",
+    "tiktok",
+    "tnt"
+  ],
+  "author": "Rqinix",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@minecraft/server": "^1.11.0",
+    "@minecraft/server-ui": "^1.1.0"
+  }
+}
