@@ -33,7 +33,7 @@ export function iterateBlocks(
 */
 export function applyToBlocks(
     startingPosition: Vector3,
-    callback: (blockPosition: Vector3) => void,
+    callback: (blockLocation: Vector3) => void,
     width: number,
     height: number,
     relativeLocation: Vector3,
