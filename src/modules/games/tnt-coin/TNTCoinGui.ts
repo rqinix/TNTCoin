@@ -151,8 +151,9 @@ export class TNTCoinGUI extends TNTCoin {
         .button('Stop Filling', this.fillStop.bind(this), 'textures/tnt-coin-gui/stop_fill.png')
         .button('Clear Blocks', async () => await this.clearFilledBlocks(), 'textures/tnt-coin-gui/trash.png')
         .button('Teleport', this.teleportPlayer.bind(this), 'textures/tnt-coin-gui/ender_pearl.png')
-        .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin-gui/settings.png')
         .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin-gui/clock.png')
+        .button('Play Sound', this.showPlaySoundForm.bind(this), 'textures/tnt-coin-gui/record_cat.png')
+        .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin-gui/settings.png')
         .button('Quit', async () => await this.quitGame(), 'textures/tnt-coin-gui/left.png')
 
         .show();
@@ -328,6 +329,27 @@ export class TNTCoinGUI extends TNTCoin {
             .show((response) => {
                 this.timerDuration = parseInt(response[0].toString());
                 this._feedback.success('Timer settings have been updated.', { sound: 'random.levelup' });
+            });
+    }
+
+    private showPlaySoundForm(): void {
+        const sounds = [
+            {
+                name: 'Anvil',
+                sound: 'random.anvil_use'
+            },
+            {
+                name: 'Totem',
+                sound: 'random.totem'
+            }
+        ]
+
+        new ModalForm(this._player, 'Play Sound')
+            .dropdown('Sounds: ', sounds.map(sound => sound.name), 0)
+
+            .show((response) => {
+                const sound = sounds[response[0] as number].sound;
+                this._feedback.playSound(sound);
             });
     }
 }
