@@ -15,10 +15,7 @@ export function rotateCamera360(player: Player, timeoutId: string, structurePosi
     let angle = 0;
 
     const updateCamera = () => {
-        if(!taskManager.has(timeoutId)) {
-            console.warn(`Timeout with id ${timeoutId} does not exist.`);
-            return;
-        }
+        if(!taskManager.has(timeoutId)) return;
 
         const radians = toRadians(angle);
         const x = structurePosition.x + radius * Math.cos(radians);
@@ -39,7 +36,6 @@ export function rotateCamera360(player: Player, timeoutId: string, structurePosi
         if (taskManager.has(timeoutId)) {
             player.camera.setCamera('minecraft:free', cameraOptions);
             taskManager.addTimeout(timeoutId, updateCamera, tickInterval);
-            console.warn('Camera updated');
         }
     };
 
