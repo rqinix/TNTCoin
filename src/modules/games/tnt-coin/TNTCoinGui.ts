@@ -141,7 +141,7 @@ export class TNTCoinGUI extends TNTCoin {
     * Shows the in-game form to the player.
     */
     private showInGameForm(): void {
-        new ActionForm(this._player, 'TNT Coin Game')
+        new ActionForm(this._player, '§b§kii§r§c§lTNT §eCOIN§d§kii')
 
         .body(`[§bWINS§f]: ${this.wins < 0 ? '§c' : '§a' }${this.wins}§f/§a${this.winMax}§f`)
 
@@ -152,7 +152,7 @@ export class TNTCoinGUI extends TNTCoin {
         .button('Clear Blocks', async () => await this.clearFilledBlocks(), 'textures/tnt-coin-gui/trash.png')
         .button('Teleport', this.teleportPlayer.bind(this), 'textures/tnt-coin-gui/ender_pearl.png')
         .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin-gui/settings.png')
-        .button('Timer', this.showTimerForm.bind(this))
+        .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin-gui/clock.png')
         .button('Quit', async () => await this.quitGame(), 'textures/tnt-coin-gui/left.png')
 
         .show();
