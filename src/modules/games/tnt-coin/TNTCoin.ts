@@ -258,10 +258,7 @@ export class TNTCoin extends TNTCoinStructure {
      * Rotates the player's camera 360 degrees around the structure.
      */
     private cameraRotate360(): void {
-        if (taskManager.has(this.cameraTimeoutId)) {
-            console.warn('already rotating...');
-            return;
-        };
+        if (!this.doesCameraRotate) return;
         rotateCamera360(
             this._player, 
             this.cameraTimeoutId, 
