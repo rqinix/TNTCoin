@@ -77,7 +77,7 @@ export class Countdown {
 
         this._countdownTime--;
 
-        this._timeoutId = `${this._player.name}:countdown.${Date.now()}`;
+        this._timeoutId = `${this._player.name}:countdown`;
         taskManager.addTimeout(this._timeoutId, () => this.countdownStep({ 
             onEnd: events.onEnd, 
             onCancelled:  events.onCancelled 
