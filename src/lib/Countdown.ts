@@ -3,6 +3,7 @@ import { PlayerFeedback } from "./PlayerFeedback";
 import { taskManager } from "./TaskManager";
 
 export class Countdown {
+    private readonly _player: Player;
     private readonly _feedback: PlayerFeedback;
     private _defaultCountdownTime: number;
     private _countdownTime: number;
@@ -18,6 +19,7 @@ export class Countdown {
     constructor(defaultCountdown: number, player: Player) {
         this._defaultCountdownTime = defaultCountdown;
         this._countdownTime = defaultCountdown;
+        this._player = player;
         this._feedback = new PlayerFeedback(player);
     }
     
@@ -75,7 +77,7 @@ export class Countdown {
 
         this._countdownTime--;
 
-        this._timeoutId = `countdown_${Date.now()}`;
+        this._timeoutId = `${this._player.name}:countdown.${Date.now()}`;
         taskManager.addTimeout(this._timeoutId, () => this.countdownStep({ 
             onEnd: events.onEnd, 
             onCancelled:  events.onCancelled 
@@ -89,7 +91,7 @@ export class Countdown {
     public pause(onCancelled?: () => void): void {
         this._isCountingDown = false;
         if (this._timeoutId) {
-            taskManager.clearTimeout(this._timeoutId);
+            taskManager.clearTask(this._timeoutId);
             this._timeoutId = undefined;
         }
         if (onCancelled) onCancelled();
@@ -103,7 +105,7 @@ export class Countdown {
         this._isCountingDown = false;
         this._countdownTime = this._defaultCountdownTime;
         if (this._timeoutId) {
-            taskManager.clearTimeout(this._timeoutId);
+            taskManager.clearTask(this._timeoutId);
             this._timeoutId = undefined;
         }
         if (onCancelled) onCancelled();
