@@ -146,15 +146,15 @@ export class TNTCoinGUI extends TNTCoin {
         .body(`[§bWINS§f]: ${this.wins < 0 ? '§c' : '§a' }${this.wins}§f/§a${this.winMax}§f`)
 
         .button('Summon TNT', this.summonTNT.bind(this), 'textures/tnt-coin-gui/tnt.png')
-        .button('Summon Entity', async () => await this.showSummonEntityForm(), 'textures/tnt-coin-gui/npc.png')
-        .button('Fill Blocks', async () => await this.fill(), 'textures/tnt-coin-gui/brush.png')
+        .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin-gui/npc.png')
+        .button('Fill Blocks', this.fill.bind(this), 'textures/tnt-coin-gui/brush.png')
         .button('Stop Filling', this.fillStop.bind(this), 'textures/tnt-coin-gui/stop_fill.png')
-        .button('Clear Blocks', async () => await this.clearFilledBlocks(), 'textures/tnt-coin-gui/trash.png')
+        .button('Clear Blocks', this.clearFilledBlocks.bind(this), 'textures/tnt-coin-gui/trash.png')
         .button('Teleport', this.teleportPlayer.bind(this), 'textures/tnt-coin-gui/ender_pearl.png')
         .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin-gui/clock.png')
         .button('Play Sound', this.showPlaySoundForm.bind(this), 'textures/tnt-coin-gui/record_cat.png')
         .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin-gui/settings.png')
-        .button('Quit', async () => await this.quitGame(), 'textures/tnt-coin-gui/left.png')
+        .button('Quit', this.quitGame.bind(this), 'textures/tnt-coin-gui/left.png')
 
         .show();
     }

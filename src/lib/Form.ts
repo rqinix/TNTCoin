@@ -52,7 +52,7 @@ abstract class Form {
 class ActionForm extends Form {
     private _body: string;
 
-    public button(label: string, callback?: () => void, iconPath?: string): ActionForm {
+    public button(label: string, callback?: () => Promise<void> | void, iconPath?: string): ActionForm {
         this.addComponent({ type: 'button', label, iconPath, callback });
         return this;
     }
@@ -73,7 +73,7 @@ class ActionForm extends Form {
         system.run(async () => {
             const response = await form.show(this.player);
             if (!response.canceled && this.components[response.selection]?.callback) {
-                this.components[response.selection].callback!(response.selection);
+                await Promise.resolve(this.components[response.selection].callback!(response.selection));
             }
         })
     }

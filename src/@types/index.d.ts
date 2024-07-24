@@ -7,7 +7,7 @@ interface FormComponent {
     min?: number;
     max?: number;
     step?: number;
-    callback?: (response: any) => void;
+    callback?: (response: any) => Promise<void> | void;
     iconPath?: string;
 }
 
