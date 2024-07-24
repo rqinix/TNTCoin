@@ -8,7 +8,6 @@ import { PlayerFeedback } from "../../../lib/PlayerFeedback";
 import { floorVector3 } from "../../../utilities/math/floorVector";
 import { fill } from "../../../utilities/blocks/fill";
 import { clearBlocks } from "../../../utilities/blocks/clearing";
-// import { applyToBlocks, isBlockAir, isBlockOnBoundary, isBlockOnPerimeter, iterateBlocks } from "../../../utilities/blocks";
 import { getRelativeBlockLocation } from "../../../utilities/blocks/relative";
 import { applyToBlocks, iterateBlocks } from "../../../utilities/blocks/iteration";
 import { isBlockAir, isBlockOnBoundary, isBlockOnPerimeter } from "../../../utilities/blocks/state";
