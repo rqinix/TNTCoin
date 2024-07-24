@@ -138,8 +138,10 @@ export class TNTCoin extends TNTCoinStructure {
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
     protected async cleanGameSession(): Promise<void> {
+        taskManager.clearTasks([this.taskFillCheckId, this.taskCameraId]);
         this.cameraClear();
-        taskManager.clearTasks([this.taskFillCheckId, this.taskCameraId,]);
+        this._countdown.reset();
+        this.timerStop();
         this.fillStop();
         await this.clearFilledBlocks();
         await this.clearProtedtedStructure();
@@ -301,7 +303,7 @@ export class TNTCoin extends TNTCoinStructure {
         const TIMER_START_SOUND = 'random.orb';
 
         this._timer.toggleActionBar(true);
-        this._timer.start(this.timerDuration, async () => await this.onLose.bind(this));
+        this._timer.start(this.timerDuration, this.onLose.bind(this));
         this._feedback.playSound(TIMER_START_SOUND);
     }
 
@@ -334,10 +336,8 @@ export class TNTCoin extends TNTCoinStructure {
      * Returns the player to their normal perspective
      */
     private cameraClear(): void {
-        if (taskManager.has(this.taskCameraId)) {
-            taskManager.clearTask(this.taskCameraId);
-            this._player.camera.clear();
-        }
+        taskManager.clearTask(this.taskCameraId);
+        this._player.camera.clear();
     }
     
     /**
@@ -352,14 +352,11 @@ export class TNTCoin extends TNTCoinStructure {
             y: this.structureCenter.y + 1, 
             z: this.structureCenter.z 
         });
-
-        const location = this._player.location;
-        
         this._dimension.spawnParticle(
             TELEPORT_PARTICLE, {
-                x: location.x,
-                y: location.y + 1,
-                z: location.z,
+                x: this._player.location.x,
+                y: this._player.location.y + 1,
+                z: this._player.location.z,
             }
         );
         this._feedback.playSound(TELEPORT_SOUND);
