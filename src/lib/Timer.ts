@@ -41,18 +41,19 @@ export class Timer {
 
     /**
      * Runs the timer and updates the remaining time.
-     * @param {() => void} onEnd Callback function when the timer ends.
+     * @param {() => Promise<void> | void} onEnd Callback function when the timer ends.
      */
-    private runTimer(onEnd: () => void): void {
+    private async runTimer(onEnd: () => Promise<void> | void): Promise<void> {
+        const tickInterval = 20;
         if (this.remainingTime > 0) {
             this.updateActionBar();
             taskManager.addTimeout(this.timeoutId, () => {
                 this.remainingTime--;
                 this.runTimer(onEnd);
-            }, 20);
+            }, tickInterval);
         } else {
             this.isRunning = false;
-            onEnd();
+            await Promise.resolve(onEnd());
         }
     }
 
