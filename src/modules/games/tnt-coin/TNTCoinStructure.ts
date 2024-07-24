@@ -46,14 +46,14 @@ export class TNTCoinStructure {
     /**
      * Get the width of the structure
      */
-    public get structureWidth(): number {
+    protected get structureWidth(): number {
         return this.structureProperties.width;
     }
 
     /**
      * Get the height of the structure
      */
-    public get structureHeight(): number {
+    protected get structureHeight(): number {
         return this.structureProperties.height;
     }
 
@@ -61,7 +61,7 @@ export class TNTCoinStructure {
      * Get the center of the structure
      * @returns {Vector3} the center of the structure
      */
-    public get structureCenter(): Vector3 {
+    protected get structureCenter(): Vector3 {
         const { centerLocation, width } = this.structureProperties;
         const x = centerLocation.x + Math.floor(width / 2);
         const y = centerLocation.y;
@@ -73,7 +73,7 @@ export class TNTCoinStructure {
      * Set the structure properties
      * @param {string} newProperties the new properties
      */
-    public set structureProperties(newProperties: string) {
+    protected set structureProperties(newProperties: string) {
         try {
             this._player.setDynamicProperty(this._structureKey, newProperties);
         } catch (error) {
@@ -128,7 +128,7 @@ export class TNTCoinStructure {
      * Get the structure properties
      * @returns {StructureProperties} the structure properties
      */
-    public get structureProperties(): StructureProperties {
+    protected get structureProperties(): StructureProperties {
         try {
             const data = this._player.getDynamicProperty(this._structureKey) as string;
             if (!data) {
@@ -142,20 +142,13 @@ export class TNTCoinStructure {
     }
 
     /**
-    * Get the structure key.
-    */
-    public get structureKey(): string {
-        return this._structureKey;
-    }
-
-    /**
     * Generates a random location within or above the bounds of the structure.
     * @param {number} offset The offset from the edges to avoid.
     * @param {boolean} useRandomHeight If `true`, generates a random Y within the structure. If `false`, uses the top of the structure plus `5` blocks.
     * @returns {Vector3} A random location within or above the structure's bounds.
     * @remarks the default value of `useRandomHeight` is `true`.
     */
-    public randomLocation(offset: number, useRandomHeight: boolean = true): Vector3 {
+    protected randomLocation(offset: number, useRandomHeight: boolean = true): Vector3 {
         const { centerLocation, width, height } = this.structureProperties;
         const { x, y, z } = centerLocation;
         const randomX = x + offset + Math.floor(Math.random() * (width - 2 * offset));
@@ -173,7 +166,7 @@ export class TNTCoinStructure {
     * Generate protected structure.
     * @returns {Promise<void>} a promise that resolves when the protected structure is generated.
     */
-    public async generateProtectedStructure(): Promise<void> {
+    protected async generateProtectedStructure(): Promise<void> {
         this._airBlockLocations.clear();
 
         let protectedBlocks: Array<{ 
@@ -199,10 +192,11 @@ export class TNTCoinStructure {
     private async generateProtectedBlocks(
         blocks: { blockName: string; blockLocation: Vector3 }[],
     ): Promise<void> {
+        const chunkSize = 100;
         for (const block of blocks) {
             try {
                 await fill(
-                    this._dimension, block.blockName, [block.blockLocation], 100,
+                    this._dimension, block.blockName, [block.blockLocation], chunkSize,
                     { 
                         onSetBlock: (location) => this._protectedBlockLocations.add(JSON.stringify(location)), 
                     }
@@ -247,7 +241,7 @@ export class TNTCoinStructure {
     * Clear the protected structure
     * @returns {Promise<void>} a promise that resolves when the protected structure is cleared.
     */
-    public async clearProtedtedStructure(): Promise<void> {
+    protected async clearProtedtedStructure(): Promise<void> {
         try {
             const blocksToClear = Array.from(this._protectedBlockLocations)
                 .map((location) => JSON.parse(location));
@@ -262,7 +256,7 @@ export class TNTCoinStructure {
     * Fills the empty locations within the structure.
     * @returns {Promise<void>} A promise that resolves when the filling is complete.
     */
-    public async fill(): Promise<void> {
+    protected async fill(): Promise<void> {
         if (this._isFilling) {
             this._feedback.warning("Already filling blocks.", { sound: 'item.shield.block' });
             return;
@@ -273,6 +267,10 @@ export class TNTCoinStructure {
         }
 
         this._isFilling = true;
+        
+        const ON_SET_BLOCK_SOUND = 'block.bamboo.place';
+        const ON_SET_BLOCK_PARTICLE = 'minecraft:wind_explosion_emitter';
+        const ON_COMPLETE_SOUND = 'random.levelup';
 
         try {
             await fill(
@@ -284,10 +282,10 @@ export class TNTCoinStructure {
                     setFilling: (isFilling: boolean) => (this._isFilling = isFilling),
                     onSetBlock: (blockLocation) => {
                         const { x, y, z } = blockLocation;
-                        this._dimension.spawnParticle('minecraft:wind_explosion_emitter', {x, y: y + 1, z});
-                        this._player.playSound('block.bamboo.place');
+                        this._dimension.spawnParticle(ON_SET_BLOCK_PARTICLE, { x, y: y + 1, z });
+                        this._player.playSound(ON_SET_BLOCK_SOUND);
                     },
-                    onComplete: () => this._player.playSound('random.levelup'),
+                    onComplete: () => this._player.playSound(ON_COMPLETE_SOUND),
                 }
             );
         } catch (error) {
@@ -298,7 +296,7 @@ export class TNTCoinStructure {
     /**
     * Stops the filling process.
     */
-    public fillStop(): void{
+    protected fillStop(): void{
         if (this._isFilling) this._isFilling = false;
     }
     
@@ -306,11 +304,13 @@ export class TNTCoinStructure {
     * Clears all filled blocks.
     * @returns {Promise<void>} A promise that resolves when all filled blocks have been cleared.
     */
-    public async clearFilledBlocks(): Promise<void> {
+    protected async clearFilledBlocks(): Promise<void> {
         if (!this._filledBlockLocations.size) return;
+        const SOUND = 'mob.wither.break_block';
+        
         try {
             await clearBlocks(this._dimension, this.blocksToClear, 100);
-            this._feedback.playSound('mob.wither.break_block');
+            this._feedback.playSound(SOUND);
         } catch (error) {
             console.error(`Failed to clear filled blocks: `, error);
             this._feedback.error("Failed to clear blocks.");
