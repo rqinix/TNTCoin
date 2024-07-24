@@ -19,11 +19,13 @@ export class TNTCoin extends TNTCoinStructure {
     private _wins: number = 0;
     private _winMax: number = 10;
 
-    private cameraTimeoutId: string;
     private doesCameraRotate: boolean = true;
     private cameraHeight: number = 12;
-
+    
     private _timerDuration: number = 180;
+
+    private taskCameraId: string;
+    private taskFillCheckId: string;
     
     /**
      * Creates a new TNTCoin game instance.
@@ -34,7 +36,8 @@ export class TNTCoin extends TNTCoinStructure {
         this._gameKey = 'TNTCoinGameState';
         this._countdown = new Countdown(10, player);
         this._timer = new Timer(player);
-        this.cameraTimeoutId = `camera-${player.name}`;
+        this.taskFillCheckId = `${player.name}:fillcheck`;
+        this.taskCameraId = `${player.name}:camera`;
     }
     
     protected get gameSettings(): GameSettings {
@@ -136,7 +139,7 @@ export class TNTCoin extends TNTCoinStructure {
     */
     protected async cleanGameSession(): Promise<void> {
         this.cameraClear();
-        taskManager.clearAll();
+        taskManager.clearTasks([this.taskFillCheckId, this.taskCameraId,]);
         this.fillStop();
         await this.clearFilledBlocks();
         await this.clearProtedtedStructure();
@@ -147,7 +150,7 @@ export class TNTCoin extends TNTCoinStructure {
     * Starts listening for the structure being fully filled. Starts the countdown when it is filled.
     */
     protected startFillListener(): void {
-        taskManager.addInterval('fillcheck', async () => {
+        taskManager.addInterval(this.taskFillCheckId, async () => {
             if (!this.isPlayerInGame) return;
             const isStructureFilled = this.isStructureFilled();
     
@@ -319,7 +322,7 @@ export class TNTCoin extends TNTCoinStructure {
         if (!this.doesCameraRotate) return;
         rotateCamera360(
             this._player, 
-            this.cameraTimeoutId, 
+            this.taskCameraId,
             floorVector3(this.structureCenter), 
             this.structureWidth, 
             this.structureHeight + this.cameraHeight, 
@@ -331,8 +334,8 @@ export class TNTCoin extends TNTCoinStructure {
      * Returns the player to their normal perspective
      */
     private cameraClear(): void {
-        if (taskManager.has(this.cameraTimeoutId)) {
-            taskManager.clearTimeout(this.cameraTimeoutId);
+        if (taskManager.has(this.taskCameraId)) {
+            taskManager.clearTask(this.taskCameraId);
             this._player.camera.clear();
         }
     }
