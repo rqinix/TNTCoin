@@ -86,44 +86,6 @@ export class TaskManager {
     public getTimeouts(): Map<string, number> {
         return this.timeouts;
     }
-    
-    /**
-    * Clears a specific interval by its identifier.
-    * @param {number} id The identifier of the interval to be cleared
-    */
-    public clearInterval(id: string): void {
-        if (this.intervals.has(id)) {
-            system.clearRun(this.intervals.get(id)!);
-            this.intervals.delete(id);
-        }
-    }
-
-    /**
-     * Clears a specific timeout by its identifier.
-     * @param {number} id The identifier of the timeout to be cleared.
-     */
-    public clearTimeout(id: string): void {
-        if (this.timeouts.has(id)) {
-            system.clearRun(this.timeouts.get(id)!);
-            this.timeouts.delete(id);
-        }
-    }
-    
-    /**
-    * Clears all intervals.
-    */
-    public clearAlIntervals(): void {
-        this.intervals.forEach((intervalId) => system.clearRun(intervalId));
-        this.intervals.clear();
-    }
-
-    /**
-     * Clears all timeouts.
-     */
-    public clearAllTimeouts(): void {
-        this.timeouts.forEach((timeoutId) => system.clearRun(timeoutId));
-        this.timeouts.clear();
-    }
 
     /**
      * Runs an interval.
@@ -144,11 +106,35 @@ export class TaskManager {
     }
 
     /**
+     * Clears an interval or timeout by its identifier.
+     * @param {number} id The identifier of the interval or timeout.
+     */
+    public clearTask(id: string ): void {
+        if (this.intervals.has(id)) {
+            system.clearRun(this.intervals.get(id)!);
+            this.intervals.delete(id);
+        } else if (this.timeouts.has(id)) {
+            system.clearRun(this.timeouts.get(id)!);
+            this.timeouts.delete(id);
+        }
+    }
+
+    /**
+     * Clears multiple intervals or timeouts by their identifiers.
+     * @param {number[]} ids The identifiers of the intervals or timeouts.
+     */
+    public clearTasks(ids: string[]): void {
+        ids.forEach((id) => this.clearTask(id));
+    }
+
+    /**
      * Clears all intervals and timeouts.
      */
     public clearAll(): void {
-        this.clearAlIntervals();
-        this.clearAllTimeouts();
+        this.intervals.forEach((intervalId) => system.clearRun(intervalId));
+        this.timeouts.forEach((timeoutId) => system.clearRun(timeoutId));
+        this.intervals.clear();
+        this.timeouts.clear();
     }
 
     /**
