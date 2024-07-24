@@ -49,16 +49,23 @@ world.beforeEvents.playerBreakBlock.subscribe(event => {
 world.beforeEvents.explosion.subscribe(event => {
     const impactedBlocks = event.getImpactedBlocks();
     const players = world.getAllPlayers();
+    
+    const allProtectedLocations = new Set<string>();
     for (const player of players) {
         const game = INGAME_PLAYERS.get(player.name);
         if (game && game.isPlayerInGame) {
-            event.setImpactedBlocks(impactedBlocks.filter((block) => {
-                const blockLocation = JSON.stringify(floorVector3(block.location));
-                return !game.protectedBlockLocations.has(blockLocation);
-            }));
+            for (const location of game.protectedBlockLocations) {
+                allProtectedLocations.add(location);
+            }
         }
     }
+    
+    event.setImpactedBlocks(impactedBlocks.filter((block) => {
+        const blockLocation = JSON.stringify(floorVector3(block.location));
+        return !allProtectedLocations.has(blockLocation);
+    }));
 });
+
 
 /**
  * Loads the game state for players who are in a game.
