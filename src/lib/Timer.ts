@@ -14,7 +14,7 @@ export class Timer {
      * @param {Player} player The player for whom the timer is created.
      */
     constructor(player: Player) {
-        this.timeoutId = `timer-${player.name}`;
+        this.timeoutId = `${player.name}:timer`;
         this.isRunning = false;
         this.player = player;
         this.displayOnActionBar = false;
@@ -60,7 +60,7 @@ export class Timer {
      * Stops the timer.
      */
     public stop(): void {
-        taskManager.clearTimeout(this.timeoutId);
+        taskManager.clearTask(this.timeoutId);
         this.isRunning = false;
         this.remainingTime = this.duration;
         this.clearActionBar();
