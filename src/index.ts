@@ -21,7 +21,7 @@ world.beforeEvents.itemUse.subscribe((event) => {
     const usedItem = event.itemStack.typeId;
     if (usedItem === GUI_ITEM) {
         const game = INGAME_PLAYERS.get(player.name) ?? new TNTCoinGUI(player);
-        game.show();
+        game.showGui();
     }
 });
 
@@ -30,13 +30,15 @@ world.beforeEvents.itemUse.subscribe((event) => {
  */
 world.beforeEvents.playerBreakBlock.subscribe(event => {
     const block = event.block;
-    const player = event.player;
-    const game = INGAME_PLAYERS.get(player.name);
-    if (game && game.isPlayerInGame) {
-        const blockLocation = JSON.stringify(floorVector3(block.location));
-        if (game.protectedBlockLocations.has(blockLocation)) {
-            event.cancel = true;
-            system.run(() => player.playSound("item.shield.block"));
+    const players = world.getAllPlayers();
+    for (const player of players) {
+        const game = INGAME_PLAYERS.get(player.name);
+        if (game && game.isPlayerInGame) {
+            const blockLocation = JSON.stringify(floorVector3(block.location));
+            if (game.protectedBlockLocations.has(blockLocation)) {
+                event.cancel = true;
+                system.run(() => player.playSound("item.shield.block"));
+            }
         }
     }
 });

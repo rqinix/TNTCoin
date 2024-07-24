@@ -89,7 +89,7 @@ export class TNTCoinGUI extends TNTCoin {
     /**
     * Shows the GUI to the player.
     */
-    public show(): void {
+    public showGui(): void {
         if (INGAME_PLAYERS.has(this._player.name) && this.isPlayerInGame) {
             this.showInGameForm();
         } else {
