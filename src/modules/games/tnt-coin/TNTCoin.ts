@@ -1,4 +1,4 @@
-import { Player, Vector3 } from "@minecraft/server";
+import { Player, system, Vector3 } from "@minecraft/server";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 import { Countdown } from "../../../lib/Countdown";
 import { taskManager } from "../../../lib/TaskManager";
@@ -37,7 +37,7 @@ export class TNTCoin extends TNTCoinStructure {
         this.cameraTimeoutId = `camera-${player.name}`;
     }
     
-    public get gameSettings(): GameSettings {
+    protected get gameSettings(): GameSettings {
         return {
             winMax: this._winMax,
             fillBlockName: this._fillBlockName,
@@ -49,7 +49,7 @@ export class TNTCoin extends TNTCoinStructure {
         };
     }
 
-    public set gameSettings(settings: GameSettings) {
+    protected set gameSettings(settings: GameSettings) {
         this._winMax = settings.winMax;
         this._fillBlockName = settings.fillBlockName;
         this._fillTickInterval = settings.fillTickInteval;
@@ -67,31 +67,31 @@ export class TNTCoin extends TNTCoinStructure {
         this._isPlayerInGame = value;
     }
 
-    public get isWin(): boolean {
+    protected get isWin(): boolean {
         return this._wins >= this._winMax;
     }
 
-    public get wins(): number {
+    protected get wins(): number {
         return this._wins;
     }
 
-    public set wins(value: number) {
+    protected set wins(value: number) {
         this._wins = value;
     }
 
-    public get winMax(): number {
+    protected get winMax(): number {
         return this._winMax;
     }
 
-    public set winMax(value: number) {
+    protected set winMax(value: number) {
         this._winMax = value;
     }
 
-    public set timerDuration(value: number) {
+    protected set timerDuration(value: number) {
         this._timerDuration = value;
     }
 
-    public get timerDuration(): number {
+    protected get timerDuration(): number {
         return this._timerDuration;
     }
 
@@ -134,7 +134,7 @@ export class TNTCoin extends TNTCoinStructure {
     * Cleans up the game session by stopping all activities and clearing blocks.
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
-    public async cleanGameSession(): Promise<void> {
+    protected async cleanGameSession(): Promise<void> {
         this.cameraClear();
         taskManager.clearAll();
         this.fillStop();
@@ -146,13 +146,13 @@ export class TNTCoin extends TNTCoinStructure {
     /**
     * Starts listening for the structure being fully filled. Starts the countdown when it is filled.
     */
-    public startFillListener(): void {
+    protected startFillListener(): void {
         taskManager.addInterval('fillcheck', async () => {
             if (!this.isPlayerInGame) return;
             const isStructureFilled = this.isStructureFilled();
     
             if (this.isWin) {
-                this.onWin();
+                await this.onWin();
                 this.resetWin();
                 this.saveGameState();
             }
@@ -178,51 +178,113 @@ export class TNTCoin extends TNTCoinStructure {
     * handles the event when the countdown is cancelled
     */
     private onCountdownCancelled(): void {
-        this._feedback.setTitle('§cOHHH NOOOO!!!§r');
-        this._feedback.playSound('random.totem');
+        const TITLE = '§cOHHH NOOOO!!!§r'
+        const SOUND = 'random.totem';
+
+        this._feedback.setTitle(TITLE);
+        this._feedback.playSound(SOUND);
     }
 
     /**
      * Handles the event when the countdown ends.
-     * @returns {Promise<void>} A promise that resolves when the countdown end event is complete
      */
-    private async onCountdownEnd(): Promise<void> {
-        await this.clearFilledBlocks();
-        this.cameraClear();
-        taskManager.runTimeout(() => {
-            this.onWin();
-        }, 20);
+    private onCountdownEnd(): void {
+        system.run(async () => await this.onWin());
     }
 
     /** 
      * Handles the event when the player wins.
+     * @returns {Promise<void>} A promise that resolves when the player wins.
      */
-    private onWin(): void {
-        this.wins++;
-        this.cameraClear();
-        this.timerRestart();
+    private async onWin(): Promise<void> {
+        if (this._wins >= this._winMax) {
+            await this.onMaxWin();
+            return;
+        }
+
+        this.incrementWin();
+
+        const TITLE = `§a${this._wins}§f/§a${this._winMax}`;
+        const SUBTITLE = '§eYou win!§r';
+        const SOUND = 'random.levelup';
+
+        this._feedback.setTitle(TITLE);
+        this._feedback.setSubtitle(SUBTITLE);
+        this._feedback.playSound(SOUND);
         this.summonEntity('fireworks_rocket', () => this.randomLocation(2), 20);
-        this._feedback.setTitle(`§a${this._wins}§f/§a${this._winMax}`);
-        this._feedback.setSubtitle('§eYou win!§r');
-        this._feedback.playSound('random.levelup');
+
+        await this.restartGame();
     }
 
     /**
      * Handles the event when the player loses.
+     * @returns {Promise<void>} A promise that resolves when the player loses.
      */
-    private onLose(): void {
+    private async onLose(): Promise<void> {
+        this.decrementWin();
+
+        const TITLE = `§c${this._wins}§f/§a${this._winMax}`;
+        const SUBTITLE = '§cYou lose!§r';
+        const SOUND = 'random.totem';
+
+        this._feedback.setTitle(TITLE);
+        this._feedback.setSubtitle(SUBTITLE);
+        this._feedback.playSound(SOUND);
+
+        await this.restartGame();
+    }
+
+    /**
+     * Handles the event when the player reaches the maximum number of wins.
+     * @returns {Promise<void>} A promise that resolves when the player reaches the maximum number of wins.
+     */
+    private async onMaxWin(): Promise<void> {
+        const TITLE = `§a${this._wins}§f/§a${this._winMax}§r\n§eCongratulations!§r`;
+        const SUBTITLE = '§eYou have won the game!§r';
+        const SOUND = 'random.levelup';
+
+        this._feedback.setTitle(TITLE);
+        this._feedback.setSubtitle(SUBTITLE);
+        this._feedback.playSound(SOUND);
+
+        await this.restartGame();
+    }
+
+    /**
+     * Increments the win count.
+     */
+    private incrementWin(): void {
+        this._wins++;
+    }
+
+    /**
+     * Decrements the win count.
+     */
+    private decrementWin(): void {
         this._wins--;
+    }
+
+    /**
+    * reset the win count
+    */
+    private resetWin(): void {
+        this._wins = 0;
+    }
+
+    /**
+     * Restarts the game.
+     * @returns {Promise<void>} A promise that resolves when the game is restarted.
+     */
+    private async restartGame(): Promise<void> {
+        await this.clearFilledBlocks();
         this.cameraClear();
         this.timerRestart();
-        this._feedback.setTitle(`§c${this._wins}§f/§a${this._winMax}`);
-        this._feedback.setSubtitle('§cYou lose!§r');
-        this._feedback.playSound('random.totem');
     }
 
     /**
      * Restarts the game timer.
      */
-    public timerRestart(): void {
+    protected timerRestart(): void {
         if (this._timer.isDisplayOnActionBar) {
             this._timer.reset();
             this.timerStart();
@@ -232,26 +294,22 @@ export class TNTCoin extends TNTCoinStructure {
     /**
      * Starts the game timer.
      */
-    public timerStart(): void {
+    protected timerStart(): void {
+        const TIMER_START_SOUND = 'random.orb';
+
         this._timer.toggleActionBar(true);
-        this._timer.start(this.timerDuration, this.onLose.bind(this));
-        this._feedback.playSound('random.orb');
+        this._timer.start(this.timerDuration, async () => await this.onLose.bind(this));
+        this._feedback.playSound(TIMER_START_SOUND);
     }
 
     /**
      * Stops the timer.
      */
-    public timerStop(): void {
+    protected timerStop(): void {
+        const SOUND = 'random.orb';
+        
         this._timer.stop();
-        this._feedback.playSound('random.orb');
-    }
-
-
-    /**
-    * reset the win count
-    */
-    private resetWin(): void {
-        this._wins = 0;
+        this._feedback.playSound(SOUND);
     }
 
     /**
@@ -276,33 +334,38 @@ export class TNTCoin extends TNTCoinStructure {
         if (taskManager.has(this.cameraTimeoutId)) {
             taskManager.clearTimeout(this.cameraTimeoutId);
             this._player.camera.clear();
-            console.warn('camera cleared');
         }
     }
     
     /**
     * teleport the player to the center of structure
     */
-    public teleportPlayer(): void {
+    protected teleportPlayer(): void {
+        const TELEPORT_SOUND = 'mob.shulker.teleport';
+        const TELEPORT_PARTICLE = 'minecraft:eyeofender_death_explode_particle';
+
         this._player.teleport({ 
             x: this.structureCenter.x, 
             y: this.structureCenter.y + 1, 
             z: this.structureCenter.z 
         });
-        this._feedback.playSound('mob.shulker.teleport');
+
         const location = this._player.location;
+        
         this._dimension.spawnParticle(
-            'minecraft:eyeofender_death_explode_particle', {
-            x: location.x,
-            y: location.y + 1,
-            z: location.z,
-        });
+            TELEPORT_PARTICLE, {
+                x: location.x,
+                y: location.y + 1,
+                z: location.z,
+            }
+        );
+        this._feedback.playSound(TELEPORT_SOUND);
     }
     
     /**
     * Summon a TNT.
     */
-    public summonTNT(): void {
+    protected summonTNT(): void {
         this._dimension.spawnEntity('tnt_minecart', this.randomLocation(2, false));
     }
     
@@ -312,7 +375,7 @@ export class TNTCoin extends TNTCoinStructure {
      * @param {Vector3 | (() => Vector3)} location The location to summon the entity at.
      * @param {number} amount The number of entities to summon.
      */
-    public summonEntity(
+    protected summonEntity(
         entityName: string, 
         location: Vector3 | (() => Vector3), 
         amount: number 
@@ -322,7 +385,7 @@ export class TNTCoin extends TNTCoinStructure {
             try {
                 this._dimension.spawnEntity(entityName, entityLocation);
             } catch (error) {
-                this._feedback.error(`Failed to summon ${entityName}.`, { sound: "mob.wither.death" });
+                this._feedback.error(`Failed to summon ${entityName}.`, { sound: "item.shield.block" });
             }
         }
     }
