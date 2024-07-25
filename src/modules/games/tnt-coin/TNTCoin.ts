@@ -1,4 +1,4 @@
-import { Player, system, Vector3 } from "@minecraft/server";
+import { Player, system, Vector3, world } from "@minecraft/server";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 import { Countdown } from "../../../lib/Countdown";
 import { taskManager } from "../../../lib/TaskManager";
@@ -153,28 +153,34 @@ export class TNTCoin extends TNTCoinStructure {
     */
     protected startFillListener(): void {
         taskManager.addInterval(this.taskFillCheckId, async () => {
-            if (!this.isPlayerInGame) return;
-            const isStructureFilled = this.isStructureFilled();
-    
-            if (this.isWin) {
-                await this.onWin();
-                this.resetWin();
-                this.saveGameState();
-            }
-    
-            if (!isStructureFilled) {
-                if (this._countdown.isCountingDown) {
-                    this.cameraClear();
-                    this._countdown.pause();
+            try {
+                if (!this.isPlayerInGame) return;
+
+                const isStructureFilled = this.isStructureFilled();
+        
+                if (this.isWin) {
+                    await this.onWin();
+                    this.resetWin();
+                    this.saveGameState();
                 }
-            } else {
-                if (!this._countdown.isCountingDown) {
-                    this.cameraRotate360();
-                    this._countdown.start({
-                        onCancelled: this.onCountdownCancelled.bind(this),
-                        onEnd: this.onCountdownEnd.bind(this),
-                    });
+        
+                if (!isStructureFilled) {
+                    if (this._countdown.isCountingDown) {
+                        this.cameraClear();
+                        this._countdown.pause();
+                    }
+                } else {
+                    if (!this._countdown.isCountingDown) {
+                        this.cameraRotate360();
+                        this._countdown.start({
+                            onCancelled: this.onCountdownCancelled.bind(this),
+                            onEnd: this.onCountdownEnd.bind(this),
+                        });
+                    }
                 }
+            } catch (error) {
+                taskManager.clearTask(this.taskFillCheckId);
+                console.error(`Failed to check fill status. Cleared task ${this.taskFillCheckId}: ${error}`);
             }
         }, 20);
     }
