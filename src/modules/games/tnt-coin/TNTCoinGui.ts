@@ -1,4 +1,4 @@
-import { Player } from "@minecraft/server";
+import { BlockPermutation, Player } from "@minecraft/server";
 import { TNTCoin } from "./TNTCoin";
 import { floorVector3 } from "../../../utilities/math/floorVector";
 import { getStructureCenter } from "../../../utilities/structure/getStructureCenter";
@@ -77,7 +77,7 @@ export class TNTCoinGUI extends TNTCoin {
      * Load the game
      * @returns {Promise<void>} a promise that resolves when the game has been successfully loaded.
      */
-    public async  loadGame(): Promise<void> { 
+    public async loadGame(): Promise<void> { 
         try {
             this.loadGameState();
             await this.startGame();
@@ -102,17 +102,39 @@ export class TNTCoinGUI extends TNTCoin {
     */
     private showStructureConfigForm(): void {
         new ModalForm(this._player, "TNT COIN - Structure Configuration")
-
+    
         .textField("Base Block Type:", "Enter the block type for the base", "minecraft:quartz_block")
         .textField("Side Block Type:", "Enter the block type for the sides", "minecraft:glass")
         .textField("Width:", "Enter the width", "12")
         .textField("Height:", "Enter the height", "12")
-
+    
         .show(async (response) => {
             const baseBlockName = response[0].toString().trim();
             const sideBlockName = response[1].toString().trim();
-            const width = parseInt(response[2].toString().trim());
-            const height = parseInt(response[3].toString().trim());
+            const widthStr = response[2].toString().trim();
+            const heightStr = response[3].toString().trim();
+    
+            if (isNaN(Number(widthStr)) || isNaN(Number(heightStr))) {
+                this._feedback.error("Width and height must be numeric values.", { sound: 'item.shield.block' });
+                return;
+            }
+    
+            const width = parseInt(widthStr);
+            const height = parseInt(heightStr);
+    
+            try {
+                BlockPermutation.resolve(baseBlockName);
+                BlockPermutation.resolve(sideBlockName);
+            } catch (error) {
+                this._feedback.error(`Invalid block names: ${error.message}`, { sound: 'item.shield.block' });
+                return;
+            }
+    
+            if (width < 5 || height < 5) {
+                this._feedback.error("The width and height must be at least 5.", { sound: 'item.shield.block' });
+                return;
+            }
+    
             const centerLocation = floorVector3(getStructureCenter(this._player, width));
             const newStructureProperties: StructureProperties = {
                 centerLocation,
@@ -123,17 +145,10 @@ export class TNTCoinGUI extends TNTCoin {
                     sideBlockName 
                 },
             };
-            if (width >= 5 && height >= 5) {
-                this.setupGame();
-                this.structureProperties = JSON.stringify(newStructureProperties);
-                try {
-                    await this.startGame();
-                } catch (error) {
-                    this._feedback.error("Failed to generate structure.", { sound: 'item.shield.block' });
-                }
-            } else {
-                this._feedback.error("The width and height must be at least 5.", { sound: 'item.shield.block' });
-            }
+    
+            this.setupGame();
+            this.structureProperties = JSON.stringify(newStructureProperties);
+            await this.startGame();
         });
     }
     
