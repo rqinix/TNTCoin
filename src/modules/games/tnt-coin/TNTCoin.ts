@@ -134,18 +134,27 @@ export class TNTCoin extends TNTCoinStructure {
     }
 
     /**
+     * Restarts the game.
+     * @returns {Promise<void>} A promise that resolves when the game is restarted.
+     */
+    private async restartGame(): Promise<void> {
+        await this.clearFilledBlocks();
+        this.cameraClear();
+        this.timerRestart();
+    }
+
+    /**
     * Cleans up the game session by stopping all activities and clearing blocks.
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
     protected async cleanGameSession(): Promise<void> {
-        taskManager.clearTasks([this.taskFillCheckId, this.taskCameraId]);
         this.cameraClear();
         this._countdown.reset();
         this.timerStop();
         this.fillStop();
+        taskManager.clearTasks([this.taskFillCheckId, this.taskCameraId]);
         await this.clearFilledBlocks();
         await this.clearProtedtedStructure();
-        this._feedback.playSound('random.levelup');
     }
     
     /**
@@ -154,7 +163,7 @@ export class TNTCoin extends TNTCoinStructure {
     protected startFillListener(): void {
         taskManager.addInterval(this.taskFillCheckId, async () => {
             try {
-                if (!this.isPlayerInGame) return;
+                if (!this.isPlayerInGame) throw new Error('Player is not in game.');
 
                 const isStructureFilled = this.isStructureFilled();
         
@@ -180,7 +189,7 @@ export class TNTCoin extends TNTCoinStructure {
                 }
             } catch (error) {
                 taskManager.clearTask(this.taskFillCheckId);
-                console.error(`Failed to check fill status. Cleared task ${this.taskFillCheckId}: ${error}`);
+                throw new Error(`Failed to check fill status. Cleared task ${this.taskFillCheckId}: ${error}`);
             }
         }, 20);
     }
@@ -283,16 +292,6 @@ export class TNTCoin extends TNTCoinStructure {
     }
 
     /**
-     * Restarts the game.
-     * @returns {Promise<void>} A promise that resolves when the game is restarted.
-     */
-    private async restartGame(): Promise<void> {
-        await this.clearFilledBlocks();
-        this.cameraClear();
-        this.timerRestart();
-    }
-
-    /**
      * Restarts the game timer.
      */
     protected timerRestart(): void {
@@ -317,6 +316,7 @@ export class TNTCoin extends TNTCoinStructure {
      * Stops the timer.
      */
     protected timerStop(): void {
+        if (!this._timer.isDisplayOnActionBar) return;
         const SOUND = 'random.orb';
         
         this._timer.stop();
