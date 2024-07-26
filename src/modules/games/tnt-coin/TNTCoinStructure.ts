@@ -166,21 +166,29 @@ export class TNTCoinStructure {
     * @returns {Promise<void>} a promise that resolves when the protected structure is generated.
     */
     protected async generateProtectedStructure(): Promise<void> {
-        this._airBlockLocations.clear();
-
         let protectedBlocks: Array<{ 
             blockName: string; 
             blockLocation: Vector3 
         }> = [];
 
-        this.iterateProtectedBlockLocations(
-            { x: 0, y: 0, z: 0 }, 
-            (blockLocation, blockName) => {
-                protectedBlocks.push({ blockName, blockLocation });
-            }
-        );
+        const heightMinRange = this._dimension.heightRange.min;
+        const heightMaxRange = this._dimension.heightRange.max;
 
-        await this.generateProtectedBlocks(protectedBlocks);
+        try {
+            this.iterateProtectedBlockLocations(
+                { x: 0, y: 0, z: 0 }, 
+                (blockLocation, blockName) => {
+                    if (blockLocation.y < heightMinRange || blockLocation.y > heightMaxRange) {
+                        throw new Error('Block out of bounds.');
+                    } else {
+                        protectedBlocks.push({ blockName, blockLocation });
+                    }
+                }
+            );
+            await this.generateProtectedBlocks(protectedBlocks);
+        } catch (error) {
+            throw error;
+        }
     }
     
     /**
@@ -201,8 +209,7 @@ export class TNTCoinStructure {
                     }
                 );
             } catch (error) {
-                console.error(`Failed to generate ${block.blockName} blocks: `, error);
-                this._feedback.error(`Failed to generate ${block.blockName} blocks.`);
+                throw error;
             }
         }
     } 
@@ -216,6 +223,8 @@ export class TNTCoinStructure {
         startingPosition: Vector3,
         handleBlock: (blockLocation: Vector3, blockName: string) => void,
     ): void {
+        this._airBlockLocations.clear();
+
         const { width, height, centerLocation, blockOptions } = this.structureProperties;
         const { baseBlockName, sideBlockName } = blockOptions;
 
@@ -232,7 +241,7 @@ export class TNTCoinStructure {
                 }
             }, width, height);
         } catch (error) {
-            console.error('Failed to iterate protected block locations: ', error);
+            throw error;
         }
     }
     
@@ -241,13 +250,17 @@ export class TNTCoinStructure {
     * @returns {Promise<void>} a promise that resolves when the protected structure is cleared.
     */
     protected async clearProtedtedStructure(): Promise<void> {
+        if (!this._protectedBlockLocations.size) return;
+
+        const blocksToClear = Array.from(this._protectedBlockLocations)
+            .map((location) => JSON.parse(location));
+
         try {
-            const blocksToClear = Array.from(this._protectedBlockLocations)
-                .map((location) => JSON.parse(location));
             await clearBlocks(this._dimension, blocksToClear, 100);
             this._protectedBlockLocations.clear();
+            this._feedback.playSound('mob.wither.break_block');
         } catch (error) {
-            console.error(`Error on clearing protected blocks: `, error);
+            throw new Error(`Failed to clear protected structure: ${error}`);
         }
     }
     
@@ -321,8 +334,8 @@ export class TNTCoinStructure {
     * @returns {boolean} `true` if the structure is fully filled, `false` otherwise.
     */
     protected isStructureFilled(): boolean {
-        const { width, height, centerLocation } = this.structureProperties;
         this._filledBlockLocations.clear();
+        const { width, height, centerLocation } = this.structureProperties;
         try {
             applyToBlocks({ x: 1, y: 1, z: 1 }, (blockLocation) => {
                 if (!isBlockAir(this._dimension, blockLocation)) 
