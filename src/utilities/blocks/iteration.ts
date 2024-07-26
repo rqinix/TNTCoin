@@ -14,10 +14,16 @@ export function iterateBlocks(
     width: number, 
     height: number
 ): void {
-    for (let blockZ = startingPosition.z; blockZ < width; blockZ++) {
-        for (let blockX = startingPosition.x; blockX < width; blockX++) {
-            for (let blockY = startingPosition.y; blockY < height; blockY++) {
-                callback({ x: blockX, y: blockY, z: blockZ });
+    let isError = false;
+    for (let blockZ = startingPosition.z; blockZ < width && !isError; blockZ++) {
+        for (let blockX = startingPosition.x; blockX < width && !isError; blockX++) {
+            try {
+                for (let blockY = startingPosition.y; blockY < height && !isError; blockY++) {
+                    callback({ x: blockX, y: blockY, z: blockZ });
+                }
+            } catch (error) {
+                isError = true;
+                throw error;
             }
         }
     }
