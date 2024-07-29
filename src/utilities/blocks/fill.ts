@@ -1,4 +1,4 @@
-import { BlockPermutation, Dimension, Vector3 } from "@minecraft/server";
+import { Block, BlockPermutation, Dimension, Player, Vector3 } from "@minecraft/server";
 import { batch } from "../batch";
 
 const defaultFillSettings = {
@@ -36,18 +36,28 @@ export async function fill(
     } = {}
 ): Promise<void> {
     const options = { ...defaultFillSettings, ...fillSettings };
-    
+
+    if (!BlockPermutation.resolve(blockName)) throw new Error(`Invalid block name: ${blockName}`);
+
     const setBlock = (blockLocation: Vector3): void => {
         if (!options.isFilling()) return;
-        
-        const blockAtLocation = dimension.getBlock(blockLocation);
-        if (!blockAtLocation) return;
-        
+
+        let blockAtLocation: Block | undefined;
+
+        try {
+            blockAtLocation = dimension.getBlock(blockLocation);
+            if (!blockAtLocation) throw new Error(`Block at location ${blockLocation} is undefined.`);
+        } catch (error) {
+            console.error(`Failed to get block at location ${blockLocation}: ${error.message}`);
+            throw new Error(`Failed to get block at location ${blockLocation}. Original error: ${error.stack}`);
+        }
+
         try {
             const permutation = BlockPermutation.resolve(blockName);
             blockAtLocation.setPermutation(permutation);
         } catch (error) {
-            console.error(`Failed to fill block with ${blockName}: ${error}.`);
+            console.error(`Failed to set block permutation at location ${blockLocation}: ${error.message}`);
+            throw new Error(`Failed to set block permutation at location ${blockLocation}.`);
         }
         
         options.onSetBlock(blockLocation);
@@ -69,6 +79,7 @@ export async function fill(
             options.setFilling(false);
         }
     } catch (error) {
-        console.error(`Failed to fill blocks: ${error}`);
+        console.error(`Failed to fill blocks: ${error.message}`);
+        throw new Error(`Failed to fill blocks: ${error.message}`);
     }
 }
