@@ -27,13 +27,32 @@ export function isBlockOnBoundary(y: number, height: number): boolean {
 
 /**
 * checks if a given block location is on the border of a structure
-* @param {Vector3} blockLocation the location of the block to check 
+* @param {{ x: number, z: number }} blockLocation the location of the block to check
 * @param {number} width the width of the structure
 * @returns {boolean} `true` if the block is on the border, `false` otherwise
 */
-export function isBlockOnBorder(blockLocation: Vector3, width: number): boolean {
-    const { x, y, z } = blockLocation;
-    return x === 0 || y === 0 || z === 0 || x === (width - 1) || z === (width - 1);
+export function isBlockOnBorder(blockLocation: { x: number, z: number }, width: number): boolean {
+    const { x, z } = blockLocation;
+    return x === 0 || z === 0 || x === (width - 1) || z === (width - 1);
+}
+
+/**
+ * checks if the given y-coordinate is on the bottom layer of a structure
+ * @param {number} y the y-coordinate of the block
+ * @returns {boolean} `true` if the block is on the floor, `false` otherwise
+ */
+export function isBlockOnBottomLayer(y: number): boolean {
+    return y === 0;
+}
+
+/**
+ * check the given y-coordinate is on the top layer of a structure
+ * @param {number} y the y-coordinate of the block
+ * @param height the height of the structure
+ * @returns `true` if the block is on the top layer, `false` otherwise
+ */
+export function isBlockOnTopLayer(y: number, height: number): boolean {
+    return y === (height - 1);
 }
 
 /**
@@ -44,8 +63,8 @@ export function isBlockOnBorder(blockLocation: Vector3, width: number): boolean 
 * @returns {boolean} `true` if the block is on the top edge, `false` otherwise
 */
 export function isBlockOnTopEdge(blockLocation: Vector3, width: number, height: number): boolean {
-    const { x, z } = blockLocation;
-    return x === (height - 1) && (x === 0 || x ===(width - 1) || z === 0 || z === (width - 1));
+    const { x, y, z } = blockLocation;
+    return isBlockOnTopLayer(y, height) && isBlockOnBorder({ x, z }, width);
 }
 
 /**
@@ -61,5 +80,5 @@ export function isBlockOnPerimeter(
     width: number, 
     height: number
 ): boolean {
-    return isBlockOnBorder(blockLocation, width) || isBlockOnTopEdge(blockLocation, width, height);
+    return isBlockOnBorder({ x: blockLocation.x, z: blockLocation.z }, width) || isBlockOnTopEdge(blockLocation, width, height);
 }
