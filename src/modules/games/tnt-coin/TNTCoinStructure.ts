@@ -1,5 +1,4 @@
 import {
-    world,
     Player,
     Vector3,
     Dimension,
@@ -10,7 +9,7 @@ import { fill } from "../../../utilities/blocks/fill";
 import { clearBlocks } from "../../../utilities/blocks/clearing";
 import { getRelativeBlockLocation } from "../../../utilities/blocks/relative";
 import { applyToBlocks, iterateBlocks } from "../../../utilities/blocks/iteration";
-import { isBlockAir, isBlockOnBoundary, isBlockOnPerimeter } from "../../../utilities/blocks/state";
+import { isBlockAir, isBlockOnBorder, isBlockOnBoundary, isBlockOnBottomLayer, isBlockOnPerimeter } from "../../../utilities/blocks/state";
 
 
 /**
@@ -29,6 +28,7 @@ export class TNTCoinStructure {
     private _protectedBlockLocations = new Set<string>();
     private _airBlockLocations = new Set<string>();
     private _filledBlockLocations = new Set<string>();
+    private _barrierBlockLocations = new Set<string>();
 
     
     /**
@@ -232,8 +232,9 @@ export class TNTCoinStructure {
             iterateBlocks(startingPosition, (blockLocation) => {
                 const blockPosition = JSON.stringify(getRelativeBlockLocation(centerLocation, blockLocation));
                 const blockName = isBlockOnBoundary(blockLocation.y, height) ? baseBlockName : sideBlockName;
-
-                if (isBlockOnPerimeter(blockLocation, width, height)) {
+                const isOnPerimeter = isBlockOnPerimeter(blockLocation, width, height);
+                const isOnBottomLayer = isBlockOnBottomLayer(blockLocation.y);
+                if (isOnPerimeter || isOnBottomLayer) {
                     handleBlock(JSON.parse(blockPosition), blockName);
                     this._protectedBlockLocations.add(blockPosition);
                 } else {
@@ -242,6 +243,55 @@ export class TNTCoinStructure {
             }, width, height);
         } catch (error) {
             throw error;
+        }
+    }
+
+    /**
+     * Generate barrier blocks on top of the structure.
+     */
+    public async generateBarriers(): Promise<void> {
+        let barrierBlocks: Vector3[] = [];
+        const { width, height, centerLocation } = this.structureProperties;
+        const barrierHeight = 7;
+
+        iterateBlocks({ x: 0, y: 0, z: 0 }, (blockLocation) => {
+            const isOnPerimeter = isBlockOnBorder(blockLocation, width);
+            const isTopLayer = blockLocation.y === (barrierHeight - 1);
+            if (isOnPerimeter || isTopLayer) {
+                const absoluteLocation = {
+                    x: centerLocation.x + blockLocation.x,
+                    y: centerLocation.y + height + blockLocation.y,
+                    z: centerLocation.z + blockLocation.z
+                };
+                barrierBlocks.push(absoluteLocation);
+                this._protectedBlockLocations.add(JSON.stringify(absoluteLocation));
+            }
+        }, width, barrierHeight);
+
+        try {
+            await fill(this._dimension, 'minecraft:barrier', barrierBlocks, 100, {
+                onSetBlock: (location) => this._barrierBlockLocations.add(JSON.stringify(location)),
+            });
+        } catch (error) {
+            console.error('Failed to generate barriers:', error);
+        }
+    }
+
+    /**
+     * Clear barrier blocks around the structure.
+     */
+    public async clearBarriers(): Promise<void> {
+        try {
+            const blocksToClear = Array.from(this._barrierBlockLocations)
+                .map(location => JSON.parse(location));
+            await clearBlocks(this._dimension, blocksToClear, 100);
+            blocksToClear.forEach(location => {
+                this._protectedBlockLocations
+                    .delete(JSON.stringify(location));
+            });
+            this._barrierBlockLocations.clear();
+        } catch (error) {
+            console.error('Failed to clear barriers:', error);
         }
     }
     
