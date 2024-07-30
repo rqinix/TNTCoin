@@ -19,8 +19,9 @@ export class TNTCoin extends TNTCoinStructure {
     private _wins: number = 0;
     private _winMax: number = 10;
 
-    private doesCameraRotate: boolean = true;
-    private cameraHeight: number = 12;
+    private _useBarriers: boolean = false;
+
+    private _doesCameraRotate: boolean = true;
     
     private _timerDuration: number = 180;
 
@@ -42,24 +43,28 @@ export class TNTCoin extends TNTCoinStructure {
     
     protected get gameSettings(): GameSettings {
         return {
+            wins: this._wins,
             winMax: this._winMax,
             fillBlockName: this._fillBlockName,
             fillTickInteval: this._fillTickInterval,
             fillBlocksPerTick: this._fillBlocksPerTick,
             defaultCountdownTime: this._countdown.defaultCountdownTime,
             countdownTickInterval: this._countdown.tickInterval,
-            doesCameraRotate: this.doesCameraRotate,
+            doesCameraRotate: this._doesCameraRotate,
+            useBarriers: this._useBarriers,
         };
     }
 
     protected set gameSettings(settings: GameSettings) {
+        this._wins = settings.wins;
         this._winMax = settings.winMax;
         this._fillBlockName = settings.fillBlockName;
         this._fillTickInterval = settings.fillTickInteval;
         this._fillBlocksPerTick = settings.fillBlocksPerTick;
         this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
         this._countdown.tickInterval = settings.countdownTickInterval;
-        this.doesCameraRotate = settings.doesCameraRotate;
+        this._doesCameraRotate = settings.doesCameraRotate;
+        this._useBarriers = settings.useBarriers;
     }
 
     public get isPlayerInGame(): boolean {
@@ -231,6 +236,7 @@ export class TNTCoin extends TNTCoinStructure {
         this._feedback.setTitle(TITLE);
         this._feedback.setSubtitle(SUBTITLE);
         this._feedback.playSound(SOUND);
+        this._dimension.spawnParticle('minecraft:totem_particle', this._player.location);
         this.summonEntity('fireworks_rocket', () => this.randomLocation(2), 20);
 
         await this.restartGame();
@@ -327,13 +333,13 @@ export class TNTCoin extends TNTCoinStructure {
      * Rotates the player's camera 360 degrees around the structure.
      */
     private cameraRotate360(): void {
-        if (!this.doesCameraRotate) return;
+        if (!this._doesCameraRotate) return;
         rotateCamera360(
             this._player, 
             this.taskCameraId,
             floorVector3(this.structureCenter), 
             this.structureWidth, 
-            this.structureHeight + this.cameraHeight, 
+            this.structureHeight + 12, 
             5
         );
     }
@@ -391,9 +397,9 @@ export class TNTCoin extends TNTCoinStructure {
             try {
                 this._dimension.spawnEntity(entityName, entityLocation);
             } catch (error) {
-                this._feedback.error(`Failed to summon ${entityName}.`, { sound: "item.shield.block" });
+                this._feedback.error(`Failed to summon ${amount} ${entityName}.`, { sound: "item.shield.block" });
+                break;
             }
         }
     }
 }
-    
