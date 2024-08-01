@@ -3,6 +3,7 @@ import { TNTCoin } from "./TNTCoin";
 import { floorVector3 } from "../../../utilities/math/floorVector";
 import { getStructureCenter } from "../../../utilities/structure/getStructureCenter";
 import { ActionForm, ModalForm } from "../../../lib/Form";
+import { SOUNDS } from "../../../config";
 
 /**
  * A map of player names in-game with a TNTCoinGUI instance.
@@ -37,12 +38,19 @@ export class TNTCoinGUI extends TNTCoin {
      * Start the game
      */
     private async startGame(): Promise<void> {
-        await this.generateProtectedStructure();
-        this.startFillListener();
-        this.teleportPlayer();
-        this._feedback.playSound('random.anvil_use');
-        this._feedback.playSound('random.levelup');
-        this.saveGame();
+        try {
+            await this.generateProtectedStructure();
+            if (this.gameSettings.useBarriers) await this.generateBarriers();
+            this.saveGame();
+            this.teleportPlayer();
+            this.startFillListener();
+            this._feedback.playSound('random.anvil_use');
+            this._feedback.playSound('random.levelup');
+        } catch (error) {
+            this._feedback.error(`Failed to start game. ${error.message}`, { sound: 'item.shield.block' });
+            this.quitGame();
+            throw error;
+        }
     }
     
     /**
@@ -54,7 +62,6 @@ export class TNTCoinGUI extends TNTCoin {
             await this.cleanGameSession();
             this._player.setDynamicProperty(this._structureKey, null);
             this._player.setDynamicProperty(this._gameKey, null);
-            this._feedback.playSound('mob.wither.break_block');
             this.isPlayerInGame = false;
             INGAME_PLAYERS.delete(this._player.name);
         } catch (error) {
@@ -103,10 +110,10 @@ export class TNTCoinGUI extends TNTCoin {
     private showStructureConfigForm(): void {
         new ModalForm(this._player, "TNT COIN - Structure Configuration")
     
-        .textField("Base Block Type:", "Enter the block type for the base", "minecraft:quartz_block")
-        .textField("Side Block Type:", "Enter the block type for the sides", "minecraft:glass")
-        .textField("Width:", "Enter the width", "12")
-        .textField("Height:", "Enter the height", "12")
+        .textField("string", "Base Block Type:", "Enter the block type for the base", "minecraft:quartz_block")
+        .textField("string", "Side Block Type:", "Enter the block type for the sides", "minecraft:glass")
+        .textField("number", "Width:", "Enter the width", "12")
+        .textField("number", "Height:", "Enter the height", "12")
     
         .show(async (response) => {
             const baseBlockName = response[0].toString().trim();
@@ -156,9 +163,12 @@ export class TNTCoinGUI extends TNTCoin {
     * Shows the in-game form to the player.
     */
     private showInGameForm(): void {
-        new ActionForm(this._player, '§b§kii§r§c§lTNT §eCOIN§d§kii')
+        new ActionForm(this._player, '§1§kii§r§c§lTNT §6COIN§r§5§kii§r')
 
-        .body(`[§bWINS§f]: ${this.wins < 0 ? '§c' : '§a' }${this.wins}§f/§a${this.winMax}§f`)
+        .body(
+            `[§bWINS§f]: ${this.wins < 0 ? '§c' : '§a' }${this.wins}§f/§a${this.winMax}§f\n` +
+            `[§bBLOCKS TO FILL§f]: §a${this.airBlockLocations.length}§f\n`
+        )
 
         .button('Summon TNT', this.summonTNT.bind(this), 'textures/tnt-coin-gui/tnt.png')
         .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin-gui/npc.png')
@@ -183,103 +193,90 @@ export class TNTCoinGUI extends TNTCoin {
             return;
         }
 
-        const settings = { ...this.gameSettings };
+        const oldSettings = { ...this.gameSettings };
+        const newSettings = { ...this.gameSettings };
+
         new ModalForm(this._player, 'Game Settings')
-        
-        .textField(
-            "[§eWIN§r] Set Wins",
-            "Enter the amount of wins:",
-            this.wins.toString(),
-            (value) => {
-                this.wins = parseInt(value);
-            }
-        )
-        .textField(
-            "[§eWIN§r] Max Win",
-            "Enter the max win:",
-            settings.winMax.toString(),
-            (value) => {
-                if (parseInt(value) < 1) {
-                    settings.winMax = 1;
-                    return;
-                }
-                settings.winMax = parseInt(value);
-            }
-        )
-        .textField(
-            '[§eCOUNTDOWN§r] Starting count value:', 
-            'Enter the starting count for the countdown', 
-            settings.defaultCountdownTime.toString(), 
-            (value) => {
-                if (parseInt(value) < 1) {
-                    settings.defaultCountdownTime = 1;
-                    return;
-                }
-                settings.defaultCountdownTime = parseInt(value);
-            }
-        )
-        .textField(
-            '[§eCOUNTDOWN§r] Delay in Ticks:', 
-            'Enter the countdown delay in ticks', 
-            settings.countdownTickInterval.toString(), 
-            (value) => {
-                if (parseInt(value) < 0) {
-                    settings.countdownTickInterval = 0;
-                    return;
-                }
-                settings.countdownTickInterval = parseInt(value);
-            }
-        )
-        .textField(
-            '[§eFILL§r] Block Name:', 
-            'Enter the block name to fill', 
-            settings.fillBlockName, 
-            (value) => {
-                settings.fillBlockName = value;
-            }
-        )
-        .textField(
-            '[§eFILL§r] Delay in Ticks:', 
-            'Enter the delay in ticks to fill blocks', 
-            settings.fillTickInteval.toString(), 
-            (value) => {
-                if (parseInt(value) < 0) {
-                    settings.fillTickInteval = 0;
-                    return;
-                }
-                settings.fillTickInteval = parseInt(value);
-            }
-        )
-        .textField(
-            '[§eFILL§r] Amount of Blocks per tick:', 
-            'Enter the amount of blocks to fill per tick', 
-            settings.fillBlocksPerTick.toString(), 
-            (value) => {
-                if (parseInt(value) < 1) {
-                    settings.fillBlocksPerTick = 1;
-                    return;
-                }
-                settings.fillBlocksPerTick = parseInt(value);
-            }
+        .toggle(
+            '[§eStructure§r] Use Barriers',
+            oldSettings.useBarriers
         )
         .toggle(
             '[§eCamera§r] Rotate Camera', 
-            settings.doesCameraRotate, 
-            (value) => {
-                settings.doesCameraRotate = value;
-            }
+            oldSettings.doesCameraRotate
+        )
+        .textField(
+            "number",
+            "[§eWIN§r] Set Wins",
+            "Enter the amount of wins:",
+            oldSettings.wins.toString()
+        )
+        .textField(
+            "number",
+            "[§eWIN§r] Max Win",
+            "Enter the max win:",
+            oldSettings.winMax.toString()
+        )
+        .textField(
+            "number",
+            '[§eCOUNTDOWN§r] Starting count value:', 
+            'Enter the starting count for the countdown', 
+            oldSettings.defaultCountdownTime.toString()
+        )
+        .textField(
+            "number",
+            '[§eCOUNTDOWN§r] Delay in Ticks:', 
+            'Enter the countdown delay in ticks', 
+            oldSettings.countdownTickInterval.toString()
+        )
+        .textField(
+            "string",
+            '[§eFILL§r] Block Name:', 
+            'Enter the block name to fill', 
+            oldSettings.fillBlockName
+        )
+        .textField(
+            "number",
+            "[§eFILL§r] Delay in Ticks:", 
+            "Enter the delay in ticks to fill blocks", 
+            oldSettings.fillTickInteval.toString()
+        )
+        .textField(
+            "number",
+            "[§eFILL§r] Amount of Blocks per tick:", 
+            'Enter the amount of blocks to fill per tick', 
+            oldSettings.fillBlocksPerTick.toString()
         )
 
-        .show(() => {
-            this.gameSettings = settings;
-            this.saveGame();
-            this._feedback.success('Settings have been updated.', { sound: 'random.levelup' });
+        .show((values) => {
+            newSettings.useBarriers = values[0] as boolean;
+            newSettings.doesCameraRotate = values[1] as boolean;
+            newSettings.wins = parseInt(values[2].toString());
+            newSettings.winMax = parseInt(values[3].toString());
+            newSettings.defaultCountdownTime = parseInt(values[4].toString());
+            newSettings.countdownTickInterval = parseInt(values[5].toString());
+            newSettings.fillTickInteval = parseInt(values[7].toString());
+            newSettings.fillBlocksPerTick = parseInt(values[8].toString());
+
+            try {
+                if (BlockPermutation.resolve(values[6].toString())) {
+                    newSettings.fillBlockName = values[6].toString();
+                }
+            } catch (error) {
+                this._feedback.error(`Invalid block name: ${error.message}`, { sound: 'item.shield.block' });
+            }
+
+            const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
+            if (isSettingsChanged) {
+                this.gameSettings = newSettings;
+                this.saveGame();
+                this._feedback.playSound('random.levelup');
+                console.warn('Game settings have been updated.');
+            }
         });
     }
     
     private async showSummonEntityForm(): Promise<void> {
-        let defaultEntityName = 'tnt_minecart';
-        let defaultSelection = 0;
         new ModalForm(this._player, 'Summon Entity')
 
         .dropdown('Location', [
@@ -287,13 +284,24 @@ export class TNTCoinGUI extends TNTCoin {
             'Random (On Top)',
             'Center',
         ], 0)
-        .textField("Entity Name:", "Enter the entity name", "tnt_minecart")
-        .textField("Amount:", "Enter the amount of entities to summon", "1")
+        .textField(
+            "string",
+            "Entity Name:", 
+            "Enter the entity name", 
+            "tnt_minecart",
+        )
+        .textField(
+            "number",
+            "Amount:", 
+            "Enter the amount of entities to summon", 
+            "1"
+        )
 
         .show((response) => {
             const location = response[0] as number;
             const entityName = response[1] as string;
             let amount = response[2] as number;
+
             const center = { 
                 x: this.structureCenter.x, 
                 y: this.structureCenter.y + 1, 
@@ -338,32 +346,28 @@ export class TNTCoinGUI extends TNTCoin {
 
     private showTimerConfigForm(): void {
         new ModalForm(this._player, 'Timer Configuration')
-        
-            .textField('Time in Seconds:', 'Enter the time in seconds', this.timerDuration.toString())
+
+            .textField(
+                'number',
+                'Time in Seconds:', 
+                'Enter the time in seconds', 
+                this.timerDuration.toString()
+            )
 
             .show((response) => {
                 this.timerDuration = parseInt(response[0].toString());
-                this._feedback.success('Timer settings have been updated.', { sound: 'random.levelup' });
+                this._feedback.success(
+                    'Timer settings have been updated.', 
+                    { sound: 'random.levelup' }
+                );
             });
     }
 
     private showPlaySoundForm(): void {
-        const sounds = [
-            {
-                name: 'Anvil',
-                sound: 'random.anvil_use'
-            },
-            {
-                name: 'Totem',
-                sound: 'random.totem'
-            }
-        ]
-
         new ModalForm(this._player, 'Play Sound')
-            .dropdown('Sounds: ', sounds.map(sound => sound.name), 0)
-
+            .dropdown('Sounds: ', SOUNDS.map(sound => sound.name), 0)
             .show((response) => {
-                const sound = sounds[response[0] as number].sound;
+                const sound = SOUNDS[response[0] as number].sound;
                 this._feedback.playSound(sound);
             });
     }
