@@ -83,8 +83,8 @@ class ActionForm extends Form {
  * Class representing a modal form.
  */
 class ModalForm extends Form {
-    public textField(label: string, placeholder: string, defaultValue: string, callback?: (response: string) => void): ModalForm {
-        this.addComponent({ type: 'textField', label, placeholder, defaultValue, callback });
+    public textField(textfieldType: 'string' | 'number', label: string, placeholder: string, defaultValue: string, callback?: (response: string) => void): ModalForm {
+        this.addComponent({ type: 'textField', label, placeholder, defaultValue, callback, textfieldType });
         return this;
     }
 
@@ -111,14 +111,44 @@ class ModalForm extends Form {
         system.run(async () => {
             const response = await form.show(this.player);
             if (!response.canceled && onSubmit) {
-                this.components.forEach((component, index) => {
-                    if (component.callback) {
-                        component.callback(response.formValues[index]);
-                    }
-                });
-                onSubmit(response.formValues);
+                try {
+                    const validatedValues = this.components.map((component, index) => {
+                        const value = response.formValues[index];
+                        return component.type === 'textField'
+                            ? this.validateTextField(component.textfieldType!, value as string)
+                            : value;
+                    });
+    
+                    this.components.forEach((component, index) => {
+                        if (component.callback) {
+                            component.callback(validatedValues[index]);
+                        }
+                    });
+                    onSubmit(validatedValues);
+                } catch (error) {
+                    console.error('Error in form validation: ', error);
+                    this.player.sendMessage(`§c${error.message}`);
+                    this.player.playSound('item.shield.block');
+                }
             }
         });
+
+    }
+
+    private validateTextField(valueType: 'string' | 'number', value: any): string | number | boolean {
+        if (valueType === 'number') {
+            const numberValue = Number(value);
+            if (isNaN(numberValue)) {
+                throw new Error(`Invalid number value: ${value}`);
+            }
+            return numberValue;
+        } else if (valueType === 'string') {
+            if (/^\d+$/.test(value) || value === '') {
+                throw new Error(`Invalid string value: ${value}`);
+            }
+            return value;
+        }
+        throw new Error(`Unknown value type: ${valueType}`);
     }
 }
 
