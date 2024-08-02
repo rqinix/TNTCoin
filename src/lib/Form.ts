@@ -83,22 +83,22 @@ class ActionForm extends Form {
  * Class representing a modal form.
  */
 class ModalForm extends Form {
-    public textField(textfieldType: 'string' | 'number', label: string, placeholder: string, defaultValue: string, callback?: (response: string) => void): ModalForm {
+    public textField(textfieldType: 'string' | 'number', label: string, placeholder: string, defaultValue: string, callback?: (updatedValue: string | number) => void): ModalForm {
         this.addComponent({ type: 'textField', label, placeholder, defaultValue, callback, textfieldType });
         return this;
     }
 
-    public dropdown(label: string, options: string[], defaultValue: number, callback?: (response: number) => void): ModalForm {
+    public dropdown(label: string, options: string[], defaultValue: number, callback?: (updatedValue: number) => void): ModalForm {
         this.addComponent({ type: 'dropdown', label, options, defaultValue, callback });
         return this;
     }
 
-    public slider(label: string, min: number, max: number, step: number, defaultValue: number, callback?: (response: number) => void): ModalForm {
+    public slider(label: string, min: number, max: number, step: number, defaultValue: number, callback?: (updatedValue: number) => void): ModalForm {
         this.addComponent({ type: 'slider', label, min, max, step, defaultValue, callback });
         return this;
     }
 
-    public toggle(label: string, defaultValue: boolean, callback?: (response: boolean) => void): ModalForm {
+    public toggle(label: string, defaultValue: boolean, callback?: (updatedValue: boolean) => void): ModalForm {
         this.addComponent({ type: 'toggle', label, defaultValue, callback });
         return this;
     }
