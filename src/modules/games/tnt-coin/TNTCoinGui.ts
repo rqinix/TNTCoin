@@ -121,11 +121,6 @@ export class TNTCoinGUI extends TNTCoin {
             const widthStr = response[2].toString().trim();
             const heightStr = response[3].toString().trim();
     
-            if (isNaN(Number(widthStr)) || isNaN(Number(heightStr))) {
-                this._feedback.error("Width and height must be numeric values.", { sound: 'item.shield.block' });
-                return;
-            }
-    
             const width = parseInt(widthStr);
             const height = parseInt(heightStr);
     
@@ -171,6 +166,7 @@ export class TNTCoinGUI extends TNTCoin {
         )
 
         .button('Summon TNT', this.summonTNT.bind(this), 'textures/tnt-coin-gui/tnt.png')
+        .button('Summon Lightning Bolt', this.summonLightningBolt.bind(this), 'textures/tnt-coin-gui/lightning_bolt.png')
         .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin-gui/npc.png')
         .button('Fill Blocks', this.fill.bind(this), 'textures/tnt-coin-gui/brush.png')
         .button('Stop Filling', this.fillStop.bind(this), 'textures/tnt-coin-gui/stop_fill.png')
@@ -198,74 +194,79 @@ export class TNTCoinGUI extends TNTCoin {
 
         new ModalForm(this._player, 'Game Settings')
         .toggle(
-            '[§eStructure§r] Use Barriers',
-            oldSettings.useBarriers
+            'Use Barriers',
+            oldSettings.useBarriers, 
+            (updatedValue) => newSettings.useBarriers = updatedValue as boolean
         )
         .toggle(
-            '[§eCamera§r] Rotate Camera', 
-            oldSettings.doesCameraRotate
+            'Rotate Camera', 
+            oldSettings.doesCameraRotate,
+            (updatedValue) => newSettings.doesCameraRotate = updatedValue as boolean
+        )
+        .toggle(
+            'Randomize Placing Blocks',
+            oldSettings.randomizeBlocks,
+            (updatedValue) => newSettings.randomizeBlocks = updatedValue as boolean
         )
         .textField(
             "number",
             "[§eWIN§r] Set Wins",
             "Enter the amount of wins:",
-            oldSettings.wins.toString()
+            oldSettings.wins.toString(),
+            (updatedValue) => newSettings.wins = updatedValue as number
         )
         .textField(
             "number",
             "[§eWIN§r] Max Win",
             "Enter the max win:",
-            oldSettings.winMax.toString()
+            oldSettings.winMax.toString(),
+            (updatedValue) => newSettings.winMax = updatedValue as number
         )
         .textField(
             "number",
             '[§eCOUNTDOWN§r] Starting count value:', 
             'Enter the starting count for the countdown', 
-            oldSettings.defaultCountdownTime.toString()
+            oldSettings.defaultCountdownTime.toString(),
+            (updatedValue) => newSettings.defaultCountdownTime = updatedValue as number
         )
         .textField(
             "number",
             '[§eCOUNTDOWN§r] Delay in Ticks:', 
             'Enter the countdown delay in ticks', 
-            oldSettings.countdownTickInterval.toString()
+            oldSettings.countdownTickInterval.toString(),
+            (updatedValue) => newSettings.countdownTickInterval = updatedValue as number
         )
         .textField(
             "string",
             '[§eFILL§r] Block Name:', 
             'Enter the block name to fill', 
-            oldSettings.fillBlockName
+            oldSettings.fillBlockName,
+            (updatedValue) => {
+                try {
+                    if (BlockPermutation.resolve(updatedValue as string)) {
+                        newSettings.fillBlockName = updatedValue as string
+                    }
+                } catch (error) {
+                    this._feedback.error(`Invalid block name: ${error.message}`, { sound: 'item.shield.block' });
+                }
+            }
         )
         .textField(
             "number",
             "[§eFILL§r] Delay in Ticks:", 
             "Enter the delay in ticks to fill blocks", 
-            oldSettings.fillTickInteval.toString()
+            oldSettings.fillTickInteval.toString(),
+            (updatedValue) => newSettings.fillTickInteval = updatedValue as number
         )
         .textField(
             "number",
             "[§eFILL§r] Amount of Blocks per tick:", 
             'Enter the amount of blocks to fill per tick', 
-            oldSettings.fillBlocksPerTick.toString()
+            oldSettings.fillBlocksPerTick.toString(),
+            (updatedValue) => newSettings.fillBlocksPerTick = updatedValue as number
         )
 
-        .show((values) => {
-            newSettings.useBarriers = values[0] as boolean;
-            newSettings.doesCameraRotate = values[1] as boolean;
-            newSettings.wins = parseInt(values[2].toString());
-            newSettings.winMax = parseInt(values[3].toString());
-            newSettings.defaultCountdownTime = parseInt(values[4].toString());
-            newSettings.countdownTickInterval = parseInt(values[5].toString());
-            newSettings.fillTickInteval = parseInt(values[7].toString());
-            newSettings.fillBlocksPerTick = parseInt(values[8].toString());
-
-            try {
-                if (BlockPermutation.resolve(values[6].toString())) {
-                    newSettings.fillBlockName = values[6].toString();
-                }
-            } catch (error) {
-                this._feedback.error(`Invalid block name: ${error.message}`, { sound: 'item.shield.block' });
-            }
-
+        .show(() => {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
             if (isSettingsChanged) {
                 this.gameSettings = newSettings;
