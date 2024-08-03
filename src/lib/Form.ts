@@ -103,7 +103,7 @@ class ModalForm extends Form {
         return this;
     }
 
-    public show(onSubmit?: (response: (string | number | boolean)[]) => void): void {
+    public show(onSubmit: (values: (string | number | boolean)[]) => void = () => {}): void {
         const form = new ModalFormData().title(this.title);
         this.components.forEach(component => {
             FormComponentBuilder.createComponent(component, form);
@@ -132,7 +132,6 @@ class ModalForm extends Form {
                 }
             }
         });
-
     }
 
     private validateTextField(valueType: 'string' | 'number', value: any): string | number | boolean {
