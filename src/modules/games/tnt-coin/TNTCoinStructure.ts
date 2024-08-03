@@ -1,8 +1,4 @@
-import {
-    Player,
-    Vector3,
-    Dimension,
-} from "@minecraft/server";
+import { Player, Vector3, Dimension } from "@minecraft/server";
 import { PlayerFeedback } from "../../../lib/PlayerFeedback";
 import { floorVector3 } from "../../../utilities/math/floorVector";
 import { fill } from "../../../utilities/blocks/fill";
@@ -17,10 +13,10 @@ import { isBlockAir, isBlockOnBorder, isBlockOnBoundary, isBlockOnBottomLayer, i
  * @classdesc the structure of the TNT Coin.
  */
 export class TNTCoinStructure {
-    protected readonly _player: Player;
-    protected readonly _dimension: Dimension;
-    protected readonly _feedback: PlayerFeedback;
-    protected readonly _structureKey: string;
+    private readonly _player: Player;
+    private readonly _dimension: Dimension;
+    private readonly _feedback: PlayerFeedback;
+    private readonly _structureKey: string;
     protected _fillBlockName: string = "minecraft:amethyst_block";
     protected _fillTickInterval: number = 1;
     protected _fillBlocksPerTick: number = 1;
@@ -40,6 +36,10 @@ export class TNTCoinStructure {
         this._player = player;
         this._dimension = player.dimension;
         this._feedback = new PlayerFeedback(player);
+    }
+
+    public get structureKey(): string {
+        return this._structureKey;
     }
 
     /**
@@ -177,7 +177,7 @@ export class TNTCoinStructure {
     /**
     * Generates a random location within or above the bounds of the structure.
     * @param {number} offset The offset from the edges to avoid.
-    * @param {boolean} useRandomHeight If `true`, generates a random Y within the structure. If `false`, uses the top of the structure plus `5` blocks.
+    * @param {boolean} useRandomHeight If `true`, generates a random Y within the structure. If `false`, uses the top of the structure plus a random value between 5 and 10 blocks.
     * @returns {Vector3} A random location within or above the structure's bounds.
     * @remarks the default value of `useRandomHeight` is `true`.
     */
@@ -190,7 +190,8 @@ export class TNTCoinStructure {
         if (useRandomHeight) {
             randomY = y + offset + Math.floor(Math.random() * (height - 2 * offset));
         } else {
-            randomY = y + height + 5;
+            const randomOffset = Math.floor(Math.random() * 6) + 5;
+            randomY = y + height + randomOffset;
         }
         return floorVector3({ x: randomX, y: randomY, z: randomZ });
     }
