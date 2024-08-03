@@ -6,7 +6,7 @@ import { rotateCamera360 } from "../../../utilities/camera/rotate360";
 import { floorVector3 } from "../../../utilities/math/floorVector";
 import { Timer } from "../../../lib/Timer";
 import { event as eventHandlerRegistry } from "./eventHandlers/index";
-import { clearBlock } from "../../../utilities/blocks/clearing";
+import { clearBlock, clearBlocks } from "../../../utilities/blocks/clearing";
 
 /**
  * Represents a TNTCoin game instance.
@@ -21,6 +21,7 @@ export class TNTCoin extends TNTCoinStructure {
     private _winMax: number = 10;
     private _useBarriers: boolean = false;
     private _doesCameraRotate: boolean = true;
+    private _randomizeBlocks: boolean = true;
     private _timerDuration: number = 180;
     private _taskCameraId: string;
     private _taskFillCheckId: string;
@@ -38,7 +39,7 @@ export class TNTCoin extends TNTCoinStructure {
         this._taskCameraId = `${player.name}:camera`;
     }
     
-    protected get gameSettings(): GameSettings {
+    public get gameSettings(): GameSettings {
         return {
             wins: this._wins,
             winMax: this._winMax,
@@ -49,10 +50,11 @@ export class TNTCoin extends TNTCoinStructure {
             countdownTickInterval: this._countdown.tickInterval,
             doesCameraRotate: this._doesCameraRotate,
             useBarriers: this._useBarriers,
+            randomizeBlocks: this._randomizeBlocks,
         };
     }
 
-    protected set gameSettings(settings: GameSettings) {
+    public set gameSettings(settings: GameSettings) {
         this._wins = settings.wins;
         this._winMax = settings.winMax;
         this._fillBlockName = settings.fillBlockName;
@@ -62,6 +64,7 @@ export class TNTCoin extends TNTCoinStructure {
         this._countdown.tickInterval = settings.countdownTickInterval;
         this._doesCameraRotate = settings.doesCameraRotate;
         this._useBarriers = settings.useBarriers;
+        this._randomizeBlocks = settings.randomizeBlocks;
     }
 
     public get isPlayerInGame(): boolean {
@@ -112,9 +115,9 @@ export class TNTCoin extends TNTCoinStructure {
         }
 
         try {
-            this._player.setDynamicProperty(this._gameKey, JSON.stringify(gameState));
+            this.player.setDynamicProperty(this._gameKey, JSON.stringify(gameState));
         } catch (error) {
-            this._feedback.error('Failed to save game state.', { sound: "mob.wither.death" });
+            this.feedback.error('Failed to save game state.', { sound: "mob.wither.death" });
         }
     }
 
@@ -123,7 +126,7 @@ export class TNTCoin extends TNTCoinStructure {
      */
     protected loadGameState(): void {
         try {
-            const gameStateString = this._player.getDynamicProperty(this._gameKey) as string;
+            const gameStateString = this.player.getDynamicProperty(this._gameKey) as string;
             if (!gameStateString) return;
             const gameState = JSON.parse(gameStateString) as GameState;
             this._isPlayerInGame = gameState.isPlayerInGame;
@@ -131,7 +134,7 @@ export class TNTCoin extends TNTCoinStructure {
             this.gameSettings = gameState.gameSettings;
             this._wins = gameState.wins;
         } catch (error) {
-            this._feedback.error('Failed to load game state.', { sound: "mob.wither.death" });
+            this.feedback.error('Failed to load game state.', { sound: "mob.wither.death" });
         }
     }
 
@@ -203,8 +206,8 @@ export class TNTCoin extends TNTCoinStructure {
         const TITLE = '§cOHHH NOOOO!!!§r'
         const SOUND = 'random.totem';
 
-        this._feedback.setTitle(TITLE);
-        this._feedback.playSound(SOUND);
+        this.feedback.setTitle(TITLE);
+        this.feedback.playSound(SOUND);
     }
 
     /**
@@ -231,10 +234,10 @@ export class TNTCoin extends TNTCoinStructure {
         const SOUND = 'random.levelup';
 
         taskManager.runTimeout(() => {
-            this._feedback.setTitle(TITLE);
-            this._feedback.setSubtitle(SUBTITLE);
-            this._feedback.playSound(SOUND);
-            this._dimension.spawnParticle('minecraft:totem_particle', this._player.location);
+            this.feedback.setTitle(TITLE);
+            this.feedback.setSubtitle(SUBTITLE);
+            this.feedback.playSound(SOUND);
+            this.dimension.spawnParticle('minecraft:totem_particle', this.player.location);
             this.summonEntity('fireworks_rocket', () => this.randomLocation(2), 20);
         }, 20);
 
@@ -252,9 +255,9 @@ export class TNTCoin extends TNTCoinStructure {
         const SUBTITLE = '§cYou lose!§r';
         const SOUND = 'random.totem';
 
-        this._feedback.setTitle(TITLE);
-        this._feedback.setSubtitle(SUBTITLE);
-        this._feedback.playSound(SOUND);
+        this.feedback.setTitle(TITLE);
+        this.feedback.setSubtitle(SUBTITLE);
+        this.feedback.playSound(SOUND);
 
         await this.restartGame();
     }
@@ -268,11 +271,10 @@ export class TNTCoin extends TNTCoinStructure {
         const SUBTITLE = '§eYou have won the game!§r';
         const SOUND = 'random.levelup';
 
-        this._feedback.setTitle(TITLE);
-        this._feedback.setSubtitle(SUBTITLE);
-        this._feedback.playSound(SOUND);
-
-        await this.restartGame();
+        this.feedback.setTitle(TITLE);
+        this.feedback.setSubtitle(SUBTITLE);
+        this.feedback.playSound(SOUND);
+        this.summonEntity('fireworks_rocket', () => this.randomLocation(2), 20);
     }
 
     /**
@@ -314,7 +316,7 @@ export class TNTCoin extends TNTCoinStructure {
 
         this._timer.toggleActionBar(true);
         this._timer.start(this.timerDuration, this.onLose.bind(this));
-        this._feedback.playSound(TIMER_START_SOUND);
+        this.feedback.playSound(TIMER_START_SOUND);
     }
 
     /**
@@ -325,7 +327,7 @@ export class TNTCoin extends TNTCoinStructure {
         const SOUND = 'random.orb';
         
         this._timer.stop();
-        this._feedback.playSound(SOUND);
+        this.feedback.playSound(SOUND);
     }
 
     /**
@@ -334,7 +336,7 @@ export class TNTCoin extends TNTCoinStructure {
     private cameraRotate360(): void {
         if (!this._doesCameraRotate) return;
         rotateCamera360(
-            this._player, 
+            this.player, 
             this._taskCameraId,
             floorVector3(this.structureCenter), 
             this.structureWidth, 
@@ -348,7 +350,7 @@ export class TNTCoin extends TNTCoinStructure {
      */
     private cameraClear(): void {
         taskManager.clearTask(this._taskCameraId);
-        this._player.camera.clear();
+        this.player.camera.clear();
     }
     
     /**
@@ -358,26 +360,32 @@ export class TNTCoin extends TNTCoinStructure {
         const TELEPORT_SOUND = 'mob.shulker.teleport';
         const TELEPORT_PARTICLE = 'minecraft:eyeofender_death_explode_particle';
 
-        this._player.teleport({ 
+        this.player.teleport({ 
             x: this.structureCenter.x, 
             y: this.structureCenter.y + 1, 
             z: this.structureCenter.z 
         });
-        this._dimension.spawnParticle(
-            TELEPORT_PARTICLE, {
-                x: this._player.location.x,
-                y: this._player.location.y + 1,
-                z: this._player.location.z,
-            }
-        );
-        this._feedback.playSound(TELEPORT_SOUND);
+        
+        try {
+            this.dimension.spawnParticle(
+                TELEPORT_PARTICLE, {
+                    x: this.player.location.x,
+                    y: this.player.location.y + 1,
+                    z: this.player.location.z,
+                }
+            );
+        } catch (error) {
+            console.error('Failed to spawn teleport particle.', error);
+        }
+
+        this.feedback.playSound(TELEPORT_SOUND);
     }
     
     /**
     * Summon a TNT.
     */
     public summonTNT(): void {
-        this._dimension.spawnEntity('tnt_minecart', this.randomLocation(2, false));
+        this.dimension.spawnEntity('tnt_minecart', this.randomLocation(2, false));
     }
     
     /**
@@ -394,9 +402,9 @@ export class TNTCoin extends TNTCoinStructure {
         for (let i = 0; i < amount; i++) {
             const entityLocation = (typeof location === 'function') ? location() : location;
             try {
-                this._dimension.spawnEntity(entityName, entityLocation);
+                this.dimension.spawnEntity(entityName, entityLocation);
             } catch (error) {
-                this._feedback.error(`Failed to summon ${amount} ${entityName}.`, { sound: "item.shield.block" });
+                this.feedback.error(`Failed to summon ${amount} ${entityName}.`, { sound: "item.shield.block" });
                 break;
             }
         }
@@ -407,7 +415,7 @@ export class TNTCoin extends TNTCoinStructure {
         if (locations.size === 0) return;
         const randomLocation = JSON.parse(Array.from(locations)[Math.floor(Math.random() * locations.size)]);
         this.summonEntity('lightning_bolt', randomLocation, 1);
-        clearBlock(this._dimension, randomLocation);
+        clearBlock(this.dimension, randomLocation);
     }
 
 
@@ -416,10 +424,9 @@ export class TNTCoin extends TNTCoinStructure {
         const eventType = event.id.split(':')[1];
         const message = event.message;
         const handler = eventHandlerRegistry.getHandler(eventType);
+        if (!eventHandlerRegistry.isEventEnabled(eventType)) return;
         if (handler) {
             handler(this, message);
-        } else {
-            console.warn(`No event handler found for event type: ${eventType}`);
         }
     }
 }
