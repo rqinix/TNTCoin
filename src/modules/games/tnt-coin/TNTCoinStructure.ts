@@ -17,9 +17,9 @@ export class TNTCoinStructure {
     private readonly _dimension: Dimension;
     private readonly _feedback: PlayerFeedback;
     private readonly _structureKey: string;
-    protected _fillBlockName: string = "minecraft:amethyst_block";
-    protected _fillTickInterval: number = 1;
-    protected _fillBlocksPerTick: number = 1;
+    private _fillBlockName: string = "minecraft:amethyst_block";
+    private _fillTickInterval: number = 1;
+    private _fillBlocksPerTick: number = 1;
     private _isFilling: boolean = false;
     private _protectedBlockLocations = new Set<string>();
     private _airBlockLocations = new Set<string>();
@@ -38,32 +38,25 @@ export class TNTCoinStructure {
         this._feedback = new PlayerFeedback(player);
     }
 
+    /**
+     * Gets the fill settings for the TNT coin structure.
+     * @returns {{ blockName: string, tickInterval: number, blocksPerTick: number }} The fill settings.
+     */
+    public get fillSettings(): { blockName: string, tickInterval: number, blocksPerTick: number } {
+        return { blockName: this._fillBlockName, tickInterval: this._fillTickInterval, blocksPerTick: this._fillBlocksPerTick };
+    }
+
+    /**
+     * Set the fill settings
+     */
+    public set fillSettings({ blockName, tickInterval, blocksPerTick }: { blockName: string, tickInterval: number, blocksPerTick: number }) {
+        this._fillBlockName = blockName;
+        this._fillTickInterval = tickInterval;
+        this._fillBlocksPerTick = blocksPerTick;
+    }
+
     public get structureKey(): string {
         return this._structureKey;
-    }
-
-    /**
-     * Get the player instance
-     * @returns {Player} the `Player` instance
-     */
-    public get player(): Player {
-        return this._player;
-    }
-
-    /**
-     * Get the player feedback instance
-     * @returns {PlayerFeedback} the `PlayerFeedback` instance
-     */
-    public get feedback(): PlayerFeedback {
-        return this._feedback;
-    }
-
-    /**
-     * Get the dimension instance
-     * @returns {Dimension} the `Dimension` instance
-     */
-    public get dimension(): Dimension {
-        return this._dimension;
     }
     
     /**
@@ -78,7 +71,7 @@ export class TNTCoinStructure {
      * Get the width of the structure
      * @returns {number} the width of the structure
      */
-    protected get structureWidth(): number {
+    public get structureWidth(): number {
         return this.structureProperties.width;
     }
 
@@ -86,7 +79,7 @@ export class TNTCoinStructure {
      * Get the height of the structure
      * @returns {number} the height of the structure
      */
-    protected get structureHeight(): number {
+    public get structureHeight(): number {
         return this.structureProperties.height;
     }
 
@@ -94,7 +87,7 @@ export class TNTCoinStructure {
      * Get the center of the structure
      * @returns {Vector3} the center of the structure
      */
-    protected get structureCenter(): Vector3 {
+    public get structureCenter(): Vector3 {
         const { centerLocation, width } = this.structureProperties;
         const x = centerLocation.x + Math.floor(width / 2);
         const y = centerLocation.y;
@@ -106,11 +99,28 @@ export class TNTCoinStructure {
      * Set the structure properties
      * @param {string} newProperties the new properties
      */
-    protected set structureProperties(newProperties: string) {
+    public set structureProperties(newProperties: string) {
         try {
             this._player.setDynamicProperty(this._structureKey, newProperties);
         } catch (error) {
             console.error(`Failed to set structure data for player ${this._player.name}: `,error);
+        }
+    }
+
+    /**
+     * Get the structure properties
+     * @returns {StructureProperties} the structure properties
+     */
+    public get structureProperties(): StructureProperties {
+        try {
+            const data = this._player.getDynamicProperty(this._structureKey) as string;
+            if (!data) {
+                this._feedback.error("No structure data found.");
+                return;
+            };
+            return JSON.parse(data) as StructureProperties;
+        } catch (error) {
+            console.error(`Failed to get structure data for player ${this._player.name}: `, error);
         }
     }
 
@@ -145,7 +155,7 @@ export class TNTCoinStructure {
 
     /**
     * Get the blocks to clear
-    * @returns {Vector3[]} the blocks to clear
+    * @returns {Vector3[]} the block locations to clear
     */
     public get blocksToClear(): Vector3[] {
         const blocksToClear: Vector3[] = [];
@@ -155,23 +165,6 @@ export class TNTCoinStructure {
                 blocksToClear.push(blockPosition);
         }, width - 1, height, centerLocation);
         return blocksToClear;
-    }
-    
-    /**
-     * Get the structure properties
-     * @returns {StructureProperties} the structure properties
-     */
-    protected get structureProperties(): StructureProperties {
-        try {
-            const data = this._player.getDynamicProperty(this._structureKey) as string;
-            if (!data) {
-                this._feedback.error("No structure data found.");
-                return;
-            };
-            return JSON.parse(data) as StructureProperties;
-        } catch (error) {
-            console.error(`Failed to get structure data for player ${this._player.name}: `, error);
-        }
     }
 
     /**
@@ -190,7 +183,7 @@ export class TNTCoinStructure {
         if (useRandomHeight) {
             randomY = y + offset + Math.floor(Math.random() * (height - 2 * offset));
         } else {
-            const randomOffset = Math.floor(Math.random() * 6) + 5;
+            const randomOffset = Math.floor(Math.random() * 3) + 4;
             randomY = y + height + randomOffset;
         }
         return floorVector3({ x: randomX, y: randomY, z: randomZ });
@@ -200,7 +193,7 @@ export class TNTCoinStructure {
     * Generate protected structure.
     * @returns {Promise<void>} a promise that resolves when the protected structure is generated.
     */
-    protected async generateProtectedStructure(): Promise<void> {
+    public async generateProtectedStructure(): Promise<void> {
         let protectedBlocks: Array<{ 
             blockName: string; 
             blockLocation: Vector3 
@@ -281,7 +274,7 @@ export class TNTCoinStructure {
     /**
      * Generate barrier blocks on top of the structure.
      */
-    protected async generateBarriers(): Promise<void> {
+    public async generateBarriers(): Promise<void> {
         let barrierBlocks: Vector3[] = [];
         const { width, height, centerLocation } = this.structureProperties;
         const barrierHeight = 7;
@@ -312,7 +305,7 @@ export class TNTCoinStructure {
     /**
      * Clear barrier blocks around the structure.
      */
-    protected async clearBarriers(): Promise<void> {
+    public async clearBarriers(): Promise<void> {
         try {
             const blocksToClear = Array.from(this._barrierBlockLocations)
                 .map(location => JSON.parse(location));
@@ -331,7 +324,7 @@ export class TNTCoinStructure {
     * Clear the protected structure
     * @returns {Promise<void>} a promise that resolves when the protected structure is cleared.
     */
-    protected async clearProtedtedStructure(): Promise<void> {
+    public async clearProtedtedStructure(): Promise<void> {
         if (!this._protectedBlockLocations.size) return;
 
         const blocksToClear = Array.from(this._protectedBlockLocations)
@@ -390,7 +383,7 @@ export class TNTCoinStructure {
     /**
     * Stops the filling process.
     */
-    protected fillStop(): void{
+    public fillStop(): void{
         if (this._isFilling) this._isFilling = false;
     }
     
@@ -415,7 +408,7 @@ export class TNTCoinStructure {
     * Checks if the structure is fully filled.
     * @returns {boolean} `true` if the structure is fully filled, `false` otherwise.
     */
-    protected isStructureFilled(): boolean {
+    public isStructureFilled(): boolean {
         this._filledBlockLocations.clear();
         const { width, height, centerLocation } = this.structureProperties;
         try {

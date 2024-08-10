@@ -9,6 +9,7 @@ interface FormComponent {
     step?: number;
     callback?: (response: any) => Promise<void> | void;
     iconPath?: string;
+    textfieldType?: 'string' | 'number';
 }
 
 interface FeedbackOptions {
@@ -25,13 +26,14 @@ interface Vec3 {
 }
 
 interface GameSettings {
+    wins: number;
     winMax: number;
-    fillBlockName: string;
-    fillTickInteval: number;
-    fillBlocksPerTick: number;
+    fillSettings: FillSettings;
     defaultCountdownTime: number;
     countdownTickInterval: number;
     doesCameraRotate: boolean;
+    useBarriers: boolean;
+    randomizeBlocks: boolean;
 }
 
 interface StructureProperties {
@@ -49,4 +51,10 @@ interface GameState {
     structureProperties: StructureProperties;
     gameSettings: GameSettings;
     wins: number;
+}
+
+interface FillSettings {
+    blockName: string;
+    tickInterval: number;
+    blocksPerTick: number;
 }

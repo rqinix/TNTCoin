@@ -6,23 +6,28 @@ import { rotateCamera360 } from "../../../utilities/camera/rotate360";
 import { floorVector3 } from "../../../utilities/math/floorVector";
 import { Timer } from "../../../lib/Timer";
 import { event as eventHandlerRegistry } from "./eventHandlers/index";
-import { clearBlock, clearBlocks } from "../../../utilities/blocks/clearing";
+import { clearBlocks } from "../../../utilities/blocks/clearing";
+import { PlayerFeedback } from "../../../lib/PlayerFeedback";
 
 /**
  * Represents a TNTCoin game instance.
- * @extends TNTCoinStructure
  */
-export class TNTCoin extends TNTCoinStructure {
-    protected readonly _countdown: Countdown;
-    protected readonly _timer: Timer;
-    protected readonly _gameKey: string;
+export class TNTCoin {
+    private readonly _player: Player;
+    private readonly _structure: TNTCoinStructure;
+    private readonly _feedback: PlayerFeedback;
+    private readonly _countdown: Countdown;
+    private readonly _timer: Timer;
+    private readonly _gameKey: string;
     private _isPlayerInGame: boolean = false;
+
     private _wins: number = 0;
     private _winMax: number = 10;
     private _useBarriers: boolean = false;
     private _doesCameraRotate: boolean = true;
     private _randomizeBlocks: boolean = true;
     private _timerDuration: number = 180;
+
     private _taskCameraId: string;
     private _taskFillCheckId: string;
     
@@ -31,21 +36,77 @@ export class TNTCoin extends TNTCoinStructure {
      * @param {Player} player The player to create the game for.
      */
     constructor(player: Player) {
-        super(player);
         this._gameKey = 'TNTCoinGameState';
+        this._player = player;
+        this._structure = new TNTCoinStructure(player);
+        this._feedback = new PlayerFeedback(player);
         this._countdown = new Countdown(10, player);
         this._timer = new Timer(player);
         this._taskFillCheckId = `${player.name}:fillcheck`;
         this._taskCameraId = `${player.name}:camera`;
     }
-    
+
+    public get key(): string {
+        return this._gameKey;
+    }
+
+    public get player(): Player {
+        return this._player;
+    }
+
+    public get structure(): TNTCoinStructure {
+        return this._structure;
+    }
+
+    public get feedback(): PlayerFeedback {
+        return this._feedback;
+    }
+
+    public get countdown(): Countdown {
+        return this._countdown;
+    }
+
+    public get isPlayerInGame(): boolean {
+        return this._isPlayerInGame;
+    }
+
+    public set isPlayerInGame(value: boolean) {
+        this._isPlayerInGame = value;
+    }
+
+    public get isWin(): boolean {
+        return this._wins >= this._winMax;
+    }
+
+    public get wins(): number {
+        return this._wins;
+    }
+
+    public set wins(value: number) {
+        this._wins = value;
+    }
+
+    public get winMax(): number {
+        return this._winMax;
+    }
+
+    public set winMax(value: number) {
+        this._winMax = value;
+    }
+
+    public set timerDuration(value: number) {
+        this._timerDuration = value;
+    }
+
+    public get timerDuration(): number {
+        return this._timerDuration;
+    }
+
     public get gameSettings(): GameSettings {
         return {
             wins: this._wins,
             winMax: this._winMax,
-            fillBlockName: this._fillBlockName,
-            fillTickInteval: this._fillTickInterval,
-            fillBlocksPerTick: this._fillBlocksPerTick,
+            fillSettings: this._structure.fillSettings,
             defaultCountdownTime: this._countdown.defaultCountdownTime,
             countdownTickInterval: this._countdown.tickInterval,
             doesCameraRotate: this._doesCameraRotate,
@@ -57,9 +118,7 @@ export class TNTCoin extends TNTCoinStructure {
     public set gameSettings(settings: GameSettings) {
         this._wins = settings.wins;
         this._winMax = settings.winMax;
-        this._fillBlockName = settings.fillBlockName;
-        this._fillTickInterval = settings.fillTickInteval;
-        this._fillBlocksPerTick = settings.fillBlocksPerTick;
+        this._structure.fillSettings = settings.fillSettings;
         this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
         this._countdown.tickInterval = settings.countdownTickInterval;
         this._doesCameraRotate = settings.doesCameraRotate;
@@ -67,74 +126,38 @@ export class TNTCoin extends TNTCoinStructure {
         this._randomizeBlocks = settings.randomizeBlocks;
     }
 
-    public get isPlayerInGame(): boolean {
-        return this._isPlayerInGame;
-    }
-
-    public set isPlayerInGame(value: boolean) {
-        this._isPlayerInGame = value;
-    }
-
-    protected get isWin(): boolean {
-        return this._wins >= this._winMax;
-    }
-
-    protected get wins(): number {
-        return this._wins;
-    }
-
-    protected set wins(value: number) {
-        this._wins = value;
-    }
-
-    protected get winMax(): number {
-        return this._winMax;
-    }
-
-    protected set winMax(value: number) {
-        this._winMax = value;
-    }
-
-    protected set timerDuration(value: number) {
-        this._timerDuration = value;
-    }
-
-    protected get timerDuration(): number {
-        return this._timerDuration;
-    }
-
     /**
      * Save the game state to the player's dynamic properties.
      */
-    protected saveGameState(): void {
+    public saveGameState(): void {
         const gameState: GameState = {
             isPlayerInGame: this._isPlayerInGame,
-            structureProperties: this.structureProperties,
+            structureProperties: this._structure.structureProperties,
             gameSettings: this.gameSettings,
             wins: this._wins,
         }
 
         try {
-            this.player.setDynamicProperty(this._gameKey, JSON.stringify(gameState));
+            this._player.setDynamicProperty(this._gameKey, JSON.stringify(gameState));
         } catch (error) {
-            this.feedback.error('Failed to save game state.', { sound: "mob.wither.death" });
+            this._feedback.error('Failed to save game state.', { sound: "mob.wither.death" });
         }
     }
 
     /**
      * Load the game state from the player's dynamic properties.
      */
-    protected loadGameState(): void {
+    public loadGameState(): void {
         try {
-            const gameStateString = this.player.getDynamicProperty(this._gameKey) as string;
+            const gameStateString = this._player.getDynamicProperty(this._gameKey) as string;
             if (!gameStateString) return;
             const gameState = JSON.parse(gameStateString) as GameState;
             this._isPlayerInGame = gameState.isPlayerInGame;
-            this.structureProperties = JSON.stringify(gameState.structureProperties);
+            this._structure.structureProperties = JSON.stringify(gameState.structureProperties);
             this.gameSettings = gameState.gameSettings;
             this._wins = gameState.wins;
         } catch (error) {
-            this.feedback.error('Failed to load game state.', { sound: "mob.wither.death" });
+            this._feedback.error('Failed to load game state.', { sound: "mob.wither.death" });
         }
     }
 
@@ -143,7 +166,7 @@ export class TNTCoin extends TNTCoinStructure {
      * @returns {Promise<void>} A promise that resolves when the game is restarted.
      */
     private async restartGame(): Promise<void> {
-        await this.clearFilledBlocks();
+        await this._structure.clearFilledBlocks();
         this.cameraClear();
         this.timerRestart();
     }
@@ -152,25 +175,25 @@ export class TNTCoin extends TNTCoinStructure {
     * Cleans up the game session by stopping all activities and clearing blocks.
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
-    protected async cleanGameSession(): Promise<void> {
+    public async cleanGameSession(): Promise<void> {
         this.cameraClear();
         this._countdown.reset();
         this.timerStop();
-        this.fillStop();
+        this._structure.fillStop();
         taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId]);
-        await this.clearFilledBlocks();
-        await this.clearProtedtedStructure();
+        await this._structure.clearFilledBlocks();
+        await this._structure.clearProtedtedStructure();
     }
     
     /**
     * Starts listening for the structure being fully filled. Starts the countdown when it is filled.
     */
-    protected startFillListener(): void {
+    public startFillListener(): void {
         taskManager.addInterval(this._taskFillCheckId, async () => {
             try {
                 if (!this.isPlayerInGame) throw new Error('Player is not in game.');
 
-                const isStructureFilled = this.isStructureFilled();
+                const isStructureFilled = this._structure.isStructureFilled();
         
                 if (this.isWin) {
                     await this.onWin();
@@ -206,8 +229,8 @@ export class TNTCoin extends TNTCoinStructure {
         const TITLE = '§cOHHH NOOOO!!!§r'
         const SOUND = 'random.totem';
 
-        this.feedback.setTitle(TITLE);
-        this.feedback.playSound(SOUND);
+        this._feedback.setTitle(TITLE);
+        this._feedback.playSound(SOUND);
     }
 
     /**
@@ -234,11 +257,11 @@ export class TNTCoin extends TNTCoinStructure {
         const SOUND = 'random.levelup';
 
         taskManager.runTimeout(() => {
-            this.feedback.setTitle(TITLE);
-            this.feedback.setSubtitle(SUBTITLE);
-            this.feedback.playSound(SOUND);
-            this.dimension.spawnParticle('minecraft:totem_particle', this.player.location);
-            this.summonEntity('fireworks_rocket', () => this.randomLocation(2), 20);
+            this._feedback.setTitle(TITLE);
+            this._feedback.setSubtitle(SUBTITLE);
+            this._feedback.playSound(SOUND);
+            this._player.dimension.spawnParticle('minecraft:totem_particle', this._player.location);
+            this.summonEntity('fireworks_rocket', () => this._structure.randomLocation(2), 20);
         }, 20);
 
         await this.restartGame();
@@ -255,9 +278,9 @@ export class TNTCoin extends TNTCoinStructure {
         const SUBTITLE = '§cYou lose!§r';
         const SOUND = 'random.totem';
 
-        this.feedback.setTitle(TITLE);
-        this.feedback.setSubtitle(SUBTITLE);
-        this.feedback.playSound(SOUND);
+        this._feedback.setTitle(TITLE);
+        this._feedback.setSubtitle(SUBTITLE);
+        this._feedback.playSound(SOUND);
 
         await this.restartGame();
     }
@@ -271,10 +294,10 @@ export class TNTCoin extends TNTCoinStructure {
         const SUBTITLE = '§eYou have won the game!§r';
         const SOUND = 'random.levelup';
 
-        this.feedback.setTitle(TITLE);
-        this.feedback.setSubtitle(SUBTITLE);
-        this.feedback.playSound(SOUND);
-        this.summonEntity('fireworks_rocket', () => this.randomLocation(2), 20);
+        this._feedback.setTitle(TITLE);
+        this._feedback.setSubtitle(SUBTITLE);
+        this._feedback.playSound(SOUND);
+        this.summonEntity('fireworks_rocket', () => this._structure.randomLocation(2), 20);
     }
 
     /**
@@ -301,7 +324,7 @@ export class TNTCoin extends TNTCoinStructure {
     /**
      * Restarts the game timer.
      */
-    protected timerRestart(): void {
+    public timerRestart(): void {
         if (this._timer.isDisplayOnActionBar) {
             this._timer.reset();
             this.timerStart();
@@ -311,23 +334,23 @@ export class TNTCoin extends TNTCoinStructure {
     /**
      * Starts the game timer.
      */
-    protected timerStart(): void {
+    public timerStart(): void {
         const TIMER_START_SOUND = 'random.orb';
 
         this._timer.toggleActionBar(true);
         this._timer.start(this.timerDuration, this.onLose.bind(this));
-        this.feedback.playSound(TIMER_START_SOUND);
+        this._feedback.playSound(TIMER_START_SOUND);
     }
 
     /**
      * Stops the timer.
      */
-    protected timerStop(): void {
+    public timerStop(): void {
         if (!this._timer.isDisplayOnActionBar) return;
         const SOUND = 'random.orb';
         
         this._timer.stop();
-        this.feedback.playSound(SOUND);
+        this._feedback.playSound(SOUND);
     }
 
     /**
@@ -336,11 +359,11 @@ export class TNTCoin extends TNTCoinStructure {
     private cameraRotate360(): void {
         if (!this._doesCameraRotate) return;
         rotateCamera360(
-            this.player, 
+            this._player, 
             this._taskCameraId,
-            floorVector3(this.structureCenter), 
-            this.structureWidth, 
-            this.structureHeight + 12, 
+            floorVector3(this._structure.structureCenter), 
+            this._structure.structureWidth, 
+            this._structure.structureHeight + 12, 
             5
         );
     }
@@ -350,7 +373,7 @@ export class TNTCoin extends TNTCoinStructure {
      */
     private cameraClear(): void {
         taskManager.clearTask(this._taskCameraId);
-        this.player.camera.clear();
+        this._player.camera.clear();
     }
     
     /**
@@ -360,32 +383,32 @@ export class TNTCoin extends TNTCoinStructure {
         const TELEPORT_SOUND = 'mob.shulker.teleport';
         const TELEPORT_PARTICLE = 'minecraft:eyeofender_death_explode_particle';
 
-        this.player.teleport({ 
-            x: this.structureCenter.x, 
-            y: this.structureCenter.y + 1, 
-            z: this.structureCenter.z 
+        this._player.teleport({ 
+            x: this._structure.structureCenter.x, 
+            y: this._structure.structureCenter.y + 1, 
+            z: this._structure.structureCenter.z 
         });
         
         try {
-            this.dimension.spawnParticle(
+            this._player.dimension.spawnParticle(
                 TELEPORT_PARTICLE, {
-                    x: this.player.location.x,
-                    y: this.player.location.y + 1,
-                    z: this.player.location.z,
+                    x: this._player.location.x,
+                    y: this._player.location.y + 1,
+                    z: this._player.location.z,
                 }
             );
         } catch (error) {
             console.error('Failed to spawn teleport particle.', error);
         }
 
-        this.feedback.playSound(TELEPORT_SOUND);
+        this._feedback.playSound(TELEPORT_SOUND);
     }
     
     /**
     * Summon a TNT.
     */
-    public summonTNT(): void {
-        this.dimension.spawnEntity('tnt_minecart', this.randomLocation(2, false));
+    public summonTNT(amount: number = 1): void {
+        this.summonEntity('tnt_minecart', () => this._structure.randomLocation(2, false), amount);
     }
     
     /**
@@ -399,23 +422,35 @@ export class TNTCoin extends TNTCoinStructure {
         location: Vector3 | (() => Vector3), 
         amount: number 
     ): void {
-        for (let i = 0; i < amount; i++) {
+        for (let i = 0; i <= amount; i++) {
             const entityLocation = (typeof location === 'function') ? location() : location;
             try {
-                this.dimension.spawnEntity(entityName, entityLocation);
+                this._player.dimension.spawnEntity(entityName, entityLocation);
             } catch (error) {
-                this.feedback.error(`Failed to summon ${amount} ${entityName}.`, { sound: "item.shield.block" });
+                this._feedback.error(`Failed to summon ${amount} ${entityName}.`, { sound: "item.shield.block" });
                 break;
             }
         }
     }
 
-    public summonLightningBolt(): void {
-        const locations = this.filledBlockLocations;
+    /**
+     * Summons a lightning bolt at a random filled block.
+     * Clear the block after the lightning bolt is summoned.
+     * @param {number} amount The number of lightning bolts to summon.
+     */
+    public summonLightningBolt(amount: number = 1): void {
+        const locations = this._structure.filledBlockLocations;
         if (locations.size === 0) return;
-        const randomLocation = JSON.parse(Array.from(locations)[Math.floor(Math.random() * locations.size)]);
-        this.summonEntity('lightning_bolt', randomLocation, 1);
-        clearBlock(this.dimension, randomLocation);
+        try {
+            for (let i = 0; i < amount; i++) {
+                const randomLocation = JSON.parse(Array.from(locations)[Math.floor(Math.random() * locations.size)]);
+                this.summonEntity('lightning_bolt', randomLocation, 1);
+                clearBlocks(this._player.dimension, [randomLocation], 100);
+            }
+        } catch (error) {
+            console.error('Failed to summon lightning bolt.', error);
+            this._feedback.error('Failed to summon lightning bolt.', { sound: "item.shield.block" });
+        }
     }
 
 
