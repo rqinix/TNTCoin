@@ -4,14 +4,15 @@
 |
 | Author: Rqinix
 | Version: 1.0.0
-| Source Code: https://github.com/rqinix/MCBE-TNT-Coin
+| Source Code: https://github.com/rqinix/MCBE-TNTCoin-BP
 |
 */
 
-import { system, world } from "@minecraft/server";
+import { BlockPermutation, system, Vector3, world } from "@minecraft/server";
 import { floorVector3 } from "./utilities/math/floorVector";
-import { GUI_ITEM } from "./config";
+import { GUI_ITEM, RANDOM_BLOCK_ITEM } from "./config";
 import { INGAME_PLAYERS, TNTCoinGUI } from "./modules/games/tnt-coin/TNTCoinGui";
+import { getRandomBlock } from "./utilities/blocks/randomBlock";
 
 /**
  * Shows the TNT Coin GUI when a player uses the designated GUI item.
@@ -32,10 +33,10 @@ world.beforeEvents.playerBreakBlock.subscribe(event => {
     const block = event.block;
     const players = world.getAllPlayers();
     for (const player of players) {
-        const game = INGAME_PLAYERS.get(player.name);
-        if (game && game.isPlayerInGame) {
+        const gui = INGAME_PLAYERS.get(player.name);
+        if (gui && gui.game.isPlayerInGame) {
             const blockLocation = JSON.stringify(floorVector3(block.location));
-            if (game.protectedBlockLocations.has(blockLocation)) {
+            if (gui.game.structure.protectedBlockLocations.has(blockLocation)) {
                 event.cancel = true;
                 system.run(() => player.playSound("item.shield.block"));
             }
@@ -52,9 +53,9 @@ world.beforeEvents.explosion.subscribe(event => {
     
     const allProtectedLocations = new Set<string>();
     for (const player of players) {
-        const game = INGAME_PLAYERS.get(player.name);
-        if (game && game.isPlayerInGame) {
-            for (const location of game.protectedBlockLocations) {
+        const gui = INGAME_PLAYERS.get(player.name);
+        if (gui && gui.game.isPlayerInGame) {
+            for (const location of gui.game.structure.protectedBlockLocations) {
                 allProtectedLocations.add(location);
             }
         }
@@ -68,7 +69,7 @@ world.beforeEvents.explosion.subscribe(event => {
 
 
 /**
- * Loads the game state for players who are in a game.
+ * Loads the game state for players who are in a game when they spawn.
  */
 world.afterEvents.playerSpawn.subscribe(event => {
     const player = event.player;
@@ -88,3 +89,40 @@ world.afterEvents.playerSpawn.subscribe(event => {
             .loadGame();
     }
 });
+  
+/**
+ * Randomizes the block permutation when a player places a random block.
+ */
+world.afterEvents.playerPlaceBlock.subscribe((event) => {
+    const player = event.player;
+    const blockLocation = event.block.location;
+    const dimension = event.block.dimension;
+    const blockUsed = event.block.typeId;
+    const gui = INGAME_PLAYERS.get(player.name);
+    if (
+        gui && 
+        gui.game.isPlayerInGame &&
+        gui.game.gameSettings.randomizeBlocks &&
+        blockUsed === RANDOM_BLOCK_ITEM
+    ) {
+        const randomBlockType = getRandomBlock();
+        let permutation: BlockPermutation;
+        try {
+            permutation = BlockPermutation.resolve(randomBlockType);
+        } catch (error) {
+            player.sendMessage(`§4Failed to place block §c${randomBlockType}§4 name.`);
+            player.playSound('item.shield.block');
+        }
+        const block = dimension.getBlock(blockLocation);
+        block.setPermutation(permutation);
+    };
+});
+
+/**
+ * Handles script events for TNTCoin
+ */
+system.afterEvents.scriptEventReceive.subscribe((event) => {
+    const sourceEntity = event.sourceEntity;
+    const gui = INGAME_PLAYERS.get(sourceEntity.nameTag);
+    if (gui && gui.game.isPlayerInGame) gui.game.handleEvents(event);
+}, { namespaces: ['tntcoin'] });
