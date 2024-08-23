@@ -1,5 +1,5 @@
 import { Player, Vector3, EasingType } from "@minecraft/server";
-import { taskManager } from "../../lib/TaskManager";
+import { taskManager } from "../../../core/TaskManager";
 import { toRadians } from "../math/toRadians";
 
 /**

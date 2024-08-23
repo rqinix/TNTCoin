@@ -19,7 +19,7 @@ export async function batch<T, R>(
     batchSize: number,
     processItem: (item: T) => Promise<R> | R,
     options: {
-        tickInterval?: number;
+        delayInTicks?: number;
         shouldContinue?: () => boolean;
         onBatchComplete?: (
             batchResults?: R[], 
@@ -36,21 +36,25 @@ export async function batch<T, R>(
         if (options.shouldContinue && !options.shouldContinue()) break;
         
         const batch = items.slice(i, i + batchSize);
-        const batchResults = await Promise.all(batch.map(processItem));
-        
-        results.push(...batchResults);
-        
-        if (options.onBatchComplete) {
-            options.onBatchComplete(
-                batchResults, 
-                Math.floor(i / batchSize) + 1, 
-                totalBatches
-            );
+
+        try {
+            const batchResults = await Promise.all(batch.map(processItem));
+            results.push(...batchResults);
+            
+            if (options.onBatchComplete) {
+                options.onBatchComplete(
+                    batchResults, 
+                    Math.floor(i / batchSize) + 1, 
+                    totalBatches
+                );
+            }
+        } catch (error) {
+            console.error(error);
         }
         
-        if (options.tickInterval && (i + batchSize) < items.length) {
+        if (options.delayInTicks && (i + batchSize) < items.length) {
             await new Promise<void>(resolve => {
-                system.runTimeout(() => resolve(), options.tickInterval)
+                system.runTimeout(() => resolve(), options.delayInTicks);
             });
         }
     }

@@ -1,4 +1,4 @@
-import { BLOCKS } from "../../config";
+import { BLOCKS } from "../../../config";
 
 /**
  * Returns a random block from the BLOCKS array.

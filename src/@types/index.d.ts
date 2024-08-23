@@ -58,3 +58,5 @@ interface FillSettings {
     tickInterval: number;
     blocksPerTick: number;
 }
+
+type TimerAction = 'start' | 'stop' | 'restart';

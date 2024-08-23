@@ -1,11 +1,11 @@
 import { Player, Vector3, Dimension } from "@minecraft/server";
-import { PlayerFeedback } from "../../../lib/PlayerFeedback";
-import { floorVector3 } from "../../../utilities/math/floorVector";
-import { fill } from "../../../utilities/blocks/fill";
-import { clearBlocks } from "../../../utilities/blocks/clearing";
-import { getRelativeBlockLocation } from "../../../utilities/blocks/relative";
-import { applyToBlocks, iterateBlocks } from "../../../utilities/blocks/iteration";
-import { isBlockAir, isBlockOnBorder, isBlockOnBoundary, isBlockOnBottomLayer, isBlockOnPerimeter } from "../../../utilities/blocks/state";
+import { PlayerFeedback } from "../core/PlayerFeedback";
+import { floorVector3 } from "./utilities/math/floorVector";
+import { fill } from "./utilities/blocks/fill";
+import { clearBlocks } from "./utilities/blocks/clearing";
+import { getRelativeBlockLocation } from "./utilities/blocks/relative";
+import { applyToBlocks, iterateBlocks } from "./utilities/blocks/iteration";
+import { isBlockAir, isBlockOnBorder, isBlockOnBoundary, isBlockOnBottomLayer, isBlockOnPerimeter } from "./utilities/blocks/state";
 
 
 /**
@@ -55,6 +55,9 @@ export class TNTCoinStructure {
         this._fillBlocksPerTick = blocksPerTick;
     }
 
+    /**
+     * Get the structure key
+     */
     public get structureKey(): string {
         return this._structureKey;
     }
@@ -170,7 +173,8 @@ export class TNTCoinStructure {
     /**
     * Generates a random location within or above the bounds of the structure.
     * @param {number} offset The offset from the edges to avoid.
-    * @param {boolean} useRandomHeight If `true`, generates a random Y within the structure. If `false`, uses the top of the structure plus a random value between 5 and 10 blocks.
+    * @param {boolean} useRandomHeight If `true`, generates a random Y within the structure. 
+    * If `false`, uses the top of the structure plus a random value between 5 and 10 blocks.
     * @returns {Vector3} A random location within or above the structure's bounds.
     * @remarks the default value of `useRandomHeight` is `true`.
     */
@@ -364,7 +368,7 @@ export class TNTCoinStructure {
                 this._dimension,
                 this._fillBlockName, this.airBlockLocations, this._fillBlocksPerTick,
                 {
-                    tickInterval: this._fillTickInterval,
+                    delayInTicks: this._fillTickInterval,
                     isFilling: () => this._isFilling,
                     setFilling: (isFilling: boolean) => (this._isFilling = isFilling),
                     onSetBlock: (blockLocation) => {
@@ -376,7 +380,7 @@ export class TNTCoinStructure {
                 }
             );
         } catch (error) {
-            console.error(`Failed to fill blocks: `, error);
+            console.error('Failed to fill blocks: ', error);
         }
     }
     

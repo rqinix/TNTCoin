@@ -1,11 +1,11 @@
-import { BlockPermutation, DimensionLocation, Player } from "@minecraft/server";
+import { BlockPermutation, DimensionLocation, Player, Vector3 } from "@minecraft/server";
 import { TNTCoin } from "./TNTCoin";
-import { floorVector3 } from "../../../utilities/math/floorVector";
-import { getStructureCenter } from "../../../utilities/structure/getStructureCenter";
-import { ActionForm, ModalForm } from "../../../lib/Form";
-import { SOUNDS } from "../../../config";
-import { event as eventHandler } from "./eventHandlers/index";
-import { PlayerFeedback } from "../../../lib/PlayerFeedback";
+import { floorVector3 } from "./utilities/math/floorVector";
+import { getStructureCenter } from "./utilities/structure/getStructureCenter";
+import { ActionForm, ModalForm } from "../core/Form";
+import { SOUNDS } from "../config";
+import { event as eventHandler } from "./events/index";
+import { PlayerFeedback } from "../core/PlayerFeedback";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 
 /**
@@ -176,21 +176,21 @@ export class TNTCoinGUI {
 
         .body(
             `[§bWINS§f]: ${this._game.wins < 0 ? '§c' : '§a' }${this._game.wins}§f/§a${this._game.winMax}§f\n` +
-            `[§bBLOCKS TO FILL§f]: §a${this._structure.airBlockLocations.length}§f\n`
+            `[§bBLOCKS TO FILL§f]: §a${this._structure.airBlockLocations.length}§f\n` 
         )
 
-        .button('Summon TNT', this._game.summonTNT.bind(this._game), 'textures/tnt-coin-gui/tnt.png')
-        .button('Summon Lightning Bolt', this._game.summonLightningBolt.bind(this._game), 'textures/tnt-coin-gui/lightning_bolt.png')
-        .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin-gui/npc.png')
-        .button('Fill Blocks', this._structure.fill.bind(this._structure), 'textures/tnt-coin-gui/brush.png')
-        .button('Stop Filling', this._structure.fillStop.bind(this._structure), 'textures/tnt-coin-gui/stop_fill.png')
-        .button('Clear Blocks', this._structure.clearFilledBlocks.bind(this._structure), 'textures/tnt-coin-gui/trash.png')
-        .button('Teleport', this._game.teleportPlayer.bind(this._game), 'textures/tnt-coin-gui/ender_pearl.png')
-        .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin-gui/clock.png')
-        .button('Play Sound', this.showPlaySoundForm.bind(this), 'textures/tnt-coin-gui/record_cat.png')
-        .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin-gui/settings.png')
-        .button('§2§kii§r§8Events§2§kii§r', this.showEventForm.bind(this), 'textures/tnt-coin-gui/bell.png')
-        .button('Quit', this.quitGame.bind(this), 'textures/tnt-coin-gui/left.png')
+        .button('Summon TNT', this._game.summonTNT.bind(this._game), 'textures/tnt-coin/gui/buttons/tnt.png')
+        .button('Summon Lightning Bolt', this._game.summonLightningBolt.bind(this._game), 'textures/tnt-coin/gui/buttons/lightning_bolt.png')
+        .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin/gui/buttons/npc.png')
+        .button('Fill Blocks', this._structure.fill.bind(this._structure), 'textures/tnt-coin/gui/buttons/brush.png')
+        .button('Stop Filling', this._structure.fillStop.bind(this._structure), 'textures/tnt-coin/gui/buttons/stop_fill.png')
+        .button('Clear Blocks', this._structure.clearFilledBlocks.bind(this._structure), 'textures/tnt-coin/gui/buttons/trash.png')
+        .button('Teleport', () => this._game.teleportPlayer(this._structure.structureHeight), 'textures/tnt-coin/gui/buttons/ender_pearl.png')
+        .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin/gui/buttons/clock.png')
+        .button('Play Sound', this.showPlaySoundForm.bind(this), 'textures/tnt-coin/gui/buttons/record_cat.png')
+        .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin/gui/buttons/settings.png')
+        .button('§2§kii§r§8Events§2§kii§r', this.showEventsForm.bind(this), 'textures/tnt-coin/gui/buttons/bell.png')
+        .button('Quit', this.quitGame.bind(this), 'textures/tnt-coin/gui/buttons/left.png')
 
         .show();
     }
@@ -301,73 +301,58 @@ export class TNTCoinGUI {
     
     private async showSummonEntityForm(): Promise<void> {
         new ModalForm(this._player, 'Summon Entity')
-
-        .dropdown('Location', [
-            'Random',
-            'Random (On Top)',
-            'Center',
-        ], 0)
-        .textField(
-            "string",
-            "Entity Name:", 
-            "Enter the entity name", 
-            "tnt_minecart",
-        )
-        .textField(
-            "number",
-            "Amount:", 
-            "Enter the amount of entities to summon", 
-            "1"
-        )
-
+        .dropdown('Location', ['Random', 'Random (On Top)', 'Center'], 0)
+        .textField("string", "Entity Name:", "Enter the entity name", "tnt_minecart")
+        .textField("number", "Amount:", "Enter the amount of entities to summon", "1")
         .show((response) => {
             const location = response[0] as number;
             const entityName = response[1] as string;
-            let amount = response[2] as number;
-
-            const center = { 
-                x: this._structure.structureCenter.x, 
-                y: this._structure.structureCenter.y + 1, 
-                z: this._structure.structureCenter.z 
-            };
-
-            if (amount < 1) amount = 1; 
-
-            switch (location) {
-                case 0:
-                    this._game.summonEntity(
-                        entityName, 
-                        () => this._structure.randomLocation(2), 
-                        amount
-                    );
-                    break;
-                case 1:
-                    this._game.summonEntity(
-                        entityName, 
-                        () => this._structure.randomLocation(2, false), 
-                        amount
-                    );
-                    break;
-                case 2:
-                    this._game.summonEntity(entityName, center, amount);
-                    break;
-            }
+            const amount = Math.max(1, response[2] as number); 
+            const locations = this.generateSummonLocations(location, amount);
+            this._game.summonEntities(entityName, locations, amount);
         });
+
     }
 
+    private generateSummonLocations(location: number, amount: number): Vector3[] {
+        switch (location) {
+            case 0: // Random
+                return Array.from({ length: amount }, () => this._structure.randomLocation(2));
+            case 1: // Random (On Top)
+                return Array.from({ length: amount }, () => this._structure.randomLocation(2, false));
+            case 2: // Center
+                return Array(amount).fill({
+                    x: this._structure.structureCenter.x,
+                    y: this._structure.structureCenter.y + 1,
+                    z: this._structure.structureCenter.z
+                });
+            default:
+                throw new Error(`Unknown location type: ${location}`);
+        }
+    }
+
+    /**
+     * Shows Timer form to the player.
+     */
     private showTimerForm(): void {
         new ActionForm(this._player, 'Timer')
-        
-            .button('Start Timer', this._game.timerStart.bind(this._game))
-            .button('Stop Timer', this._game.timerStop.bind(this._game))
+            .button('Start Timer', () => this._game.manageTimer('start'))
+            .button('Stop Timer', () => this._game.manageTimer('stop'))
+            .button('Restart Timer', () => this._game.manageTimer('restart'))
             .button('Edit Timer', this.showTimerConfigForm.bind(this))
-        
             .show();
     }
 
+    /**
+     * Shows Timer Configuration Form to the player.
+     */
     private showTimerConfigForm(): void {
-        new ModalForm(this._player, 'Timer Configuration')
+        if (this._game.isTimerRunning) {
+            this._feedback.error('Cannot change timer settings while timer is running.', { sound: 'item.shield.block' });
+            return;
+        }
 
+        new ModalForm(this._player, 'Timer Configuration')
             .textField(
                 'number',
                 'Time in Seconds:', 
@@ -382,7 +367,6 @@ export class TNTCoinGUI {
                     this._game.timerDuration = newDuration;
                 }
             )
-
             .show(() => {
                 this._feedback.success(
                     'Timer settings have been updated.', 
@@ -391,6 +375,9 @@ export class TNTCoinGUI {
             });
     }
 
+    /**
+     * Shows play sound form to the player.
+     */
     private showPlaySoundForm(): void {
         new ModalForm(this._player, 'Play Sound')
             .dropdown('Sounds: ', SOUNDS.map(sound => sound.name), 0)
@@ -400,8 +387,11 @@ export class TNTCoinGUI {
             });
     }
 
-    private showEventForm(): void {
-        const form = new ModalForm(this._player, 'TikTok Events')
+    /**
+     * Shows the events form to the player.
+     */
+    private showEventsForm(): void {
+        const form = new ModalForm(this._player, 'TikTok Events');
 
         eventHandler.getAllEvents().forEach(event => {
             form.toggle(`Enable ${event} event`, eventHandler.isEventEnabled(event), (enabled) => {

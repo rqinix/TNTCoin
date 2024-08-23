@@ -9,10 +9,10 @@
 */
 
 import { BlockPermutation, system, Vector3, world } from "@minecraft/server";
-import { floorVector3 } from "./utilities/math/floorVector";
+import { floorVector3 } from "./game/utilities/math/floorVector";
 import { GUI_ITEM, RANDOM_BLOCK_ITEM } from "./config";
-import { INGAME_PLAYERS, TNTCoinGUI } from "./modules/games/tnt-coin/TNTCoinGui";
-import { getRandomBlock } from "./utilities/blocks/randomBlock";
+import { INGAME_PLAYERS, TNTCoinGUI } from "./game/TNTCoinGui";
+import { getRandomBlock } from "./game/utilities/blocks/randomBlock";
 
 /**
  * Shows the TNT Coin GUI when a player uses the designated GUI item.
@@ -122,7 +122,12 @@ world.afterEvents.playerPlaceBlock.subscribe((event) => {
  * Handles script events for TNTCoin
  */
 system.afterEvents.scriptEventReceive.subscribe((event) => {
-    const sourceEntity = event.sourceEntity;
-    const gui = INGAME_PLAYERS.get(sourceEntity.nameTag);
-    if (gui && gui.game.isPlayerInGame) gui.game.handleEvents(event);
+    // const sourceEntity = event.sourceEntity;
+    // const gui = INGAME_PLAYERS.get(sourceEntity.nameTag);
+    // if (gui && gui.game.isPlayerInGame) gui.game.handleEvents(event);
+    const players = world.getAllPlayers();
+    for (const player of players) {
+        const gui = INGAME_PLAYERS.get(player.name);
+        if (gui && gui.game.isPlayerInGame) gui.game.handleEvents(event);
+    }
 }, { namespaces: ['tntcoin'] });

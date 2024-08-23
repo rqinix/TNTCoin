@@ -54,4 +54,10 @@ export class PlayerFeedback {
     public setActionbar(actionBar: string): void {
         this.player.onScreenDisplay.setActionBar(actionBar);
     }
+
+    public showFeedbackScreen({ title, subtitle, sound }: { title?: string, subtitle?: string, sound?: string }): void {
+        if (title) this.setTitle(title);
+        if (subtitle) this.setSubtitle(subtitle);
+        if (sound) this.playSound(sound);
+    }
 }

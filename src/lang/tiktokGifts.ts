@@ -1,4 +1,5 @@
-export const  TIKTOK_GIFT: { [key: string]: { icon: string, coins: number } } = {
+export type TikTokGifts = keyof typeof TIKTOK_GIFT;
+export const TIKTOK_GIFT: { [key: string]: { icon: string, coins: number } } = {
     "Gimme The Vote": { icon: "", coins: 1 },
     "Community Fest": { icon: "", coins: 1 },
     "Music Play": { icon: "", coins: 1 },

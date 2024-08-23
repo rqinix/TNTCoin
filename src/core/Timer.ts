@@ -24,6 +24,10 @@ export class Timer {
         return this.displayOnActionBar;
     }
 
+    public get isTimerRunning(): boolean {
+        return this.isRunning;
+    }
+
     /**
      * Starts the timer.
      * @param {number} duration The duration of the timer in seconds.
@@ -71,7 +75,6 @@ export class Timer {
      * Resets the timer to the initial duration.
      */
     public reset(): void {
-        this.stop();
         this.remainingTime = this.duration;
         this.updateActionBar();
     }
@@ -98,6 +101,7 @@ export class Timer {
      * Clears the action bar display.
      */
     private clearActionBar(): void {
+        this.displayOnActionBar = false;
         this.player.onScreenDisplay.setActionBar('');
     }
 }
