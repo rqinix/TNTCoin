@@ -28,6 +28,10 @@ export class Timer {
         return this.isRunning;
     }
 
+    public get timeRemaining(): number {
+        return this.remainingTime;
+    }
+
     /**
      * Starts the timer.
      * @param {number} duration The duration of the timer in seconds.
@@ -36,9 +40,7 @@ export class Timer {
     public start(duration: number, onEnd: () => void): void {
         this.duration = duration;
         this.remainingTime = duration;
-        if (this.isRunning) {
-            this.stop();
-        }
+        if (this.isRunning) this.stop();
         this.isRunning = true;
         this.runTimer(onEnd);
     }
@@ -49,7 +51,7 @@ export class Timer {
      */
     private async runTimer(onEnd: () => Promise<void> | void): Promise<void> {
         const tickInterval = 20;
-        if (this.remainingTime > 0) {
+        if (this.remainingTime >= 0) {
             this.updateActionBar();
             taskManager.addTimeout(this.timeoutId, () => {
                 this.remainingTime--;
