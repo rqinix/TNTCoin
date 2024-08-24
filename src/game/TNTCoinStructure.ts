@@ -171,27 +171,30 @@ export class TNTCoinStructure {
     }
 
     /**
-    * Generates a random location within or above the bounds of the structure.
-    * @param {number} offset The offset from the edges to avoid.
-    * @param {boolean} useRandomHeight If `true`, generates a random Y within the structure. 
-    * If `false`, uses the top of the structure plus a random value between 5 and 10 blocks.
-    * @returns {Vector3} A random location within or above the structure's bounds.
-    * @remarks the default value of `useRandomHeight` is `true`.
-    */
-    public randomLocation(offset: number, useRandomHeight: boolean = true): Vector3 {
+     * Generates a random location within or on top of the structure.
+     * @param {number} offset The offset from the edges to avoid.
+     * @param {boolean} onTop If `true`, generates a random Y on top of the structure. 
+     * If `false`, generates a random Y within the structure's height.
+     * @returns {Vector3} A random location within or on top of the structure's bounds.
+     * @remarks The default value of `onTop` is `false`.
+     */
+    public randomLocation(offset: number, onTop: boolean = false): Vector3 {
         const { centerLocation, width, height } = this.structureProperties;
         const { x, y, z } = centerLocation;
         const randomX = x + offset + Math.floor(Math.random() * (width - 2 * offset));
         const randomZ = z + offset + Math.floor(Math.random() * (width - 2 * offset));
         let randomY: number;
-        if (useRandomHeight) {
-            randomY = y + offset + Math.floor(Math.random() * (height - 2 * offset));
-        } else {
+
+        if (onTop) {
             const randomOffset = Math.floor(Math.random() * 3) + 4;
             randomY = y + height + randomOffset;
+        } else {
+            randomY = y + offset + Math.floor(Math.random() * (height - 2 * offset));
         }
+
         return floorVector3({ x: randomX, y: randomY, z: randomZ });
     }
+
     
     /** 
     * Generate protected structure.
