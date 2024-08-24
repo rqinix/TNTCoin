@@ -14,7 +14,7 @@ export function onGift(game: TNTCoin, message: string): void {
 
     game.feedback.showFeedbackScreen({ 
         title: `${giftIcon}\n§d${formattedGifterNickName}§f`, 
-        subtitle: `§asent§f §g${giftName}§f §o§cx${giftCount}!` 
+        subtitle: `§asent§f §g${giftName}§f §o§c x${giftCount}!` 
     });
 
     game.player.sendMessage(`§aThank you for §c§ox${giftCount} §d${giftName}§f${giftIcon}, §b${formattedGifterNickName}§a!`);
@@ -27,7 +27,7 @@ export function onGift(game: TNTCoin, message: string): void {
             );
             game.feedback.showFeedbackScreen({
                 title: `${giftIcon}\n§d${formattedGifterNickName}§f`,
-                subtitle: `§asent §cTNT §d§ox${amount}§`
+                subtitle: `§asent §cTNT §d§ox${amount}§f`
             });
             game.player.sendMessage(`${giftIcon} ${formattedGifterNickName} sent §cTNT §d§ox${amount}§f!`);
         },
