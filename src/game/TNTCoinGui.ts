@@ -1,9 +1,9 @@
-import { BlockPermutation, DimensionLocation, Player, Vector3 } from "@minecraft/server";
+import { BlockPermutation, Player } from "@minecraft/server";
 import { TNTCoin } from "./TNTCoin";
 import { floorVector3 } from "./utilities/math/floorVector";
 import { getStructureCenter } from "./utilities/structure/getStructureCenter";
 import { ActionForm, ModalForm } from "../core/Form";
-import { SOUNDS } from "../config";
+import { SOUNDS } from "../config/config";
 import { event as eventHandler } from "./events/index";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { TNTCoinStructure } from "./TNTCoinStructure";
@@ -54,10 +54,12 @@ export class TNTCoinGUI {
         try {
             await this._structure.generateProtectedStructure();
             if (this._game.gameSettings.useBarriers) await this._structure.generateBarriers();
+            
             this.saveGame();
             this._game.teleportPlayer();
             this._game.checkGameStatus();
-            this._player.setSpawnPoint({...this._structure.structureCenter, dimension: this._player.dimension});
+            this._player.setSpawnPoint({ ...this._structure.structureCenter, dimension: this._player.dimension });
+
             this._feedback.playSound('random.anvil_use');
             this._feedback.playSound('random.levelup');
         } catch (error) {
@@ -325,9 +327,9 @@ export class TNTCoinGUI {
      */
     private showTimerForm(): void {
         new ActionForm(this._player, 'Timer')
-            .button('Start Timer', () => this._game.manageTimer('start'))
-            .button('Stop Timer', () => this._game.manageTimer('stop'))
-            .button('Restart Timer', () => this._game.manageTimer('restart'))
+            .button('Start Timer', () => this._game.timerManager('start'))
+            .button('Stop Timer', () => this._game.timerManager('stop'))
+            .button('Restart Timer', () => this._game.timerManager('restart'))
             .button('Edit Timer', this.showTimerConfigForm.bind(this))
             .show();
     }

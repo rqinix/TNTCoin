@@ -10,7 +10,7 @@
 
 import { BlockPermutation, system, Vector3, world } from "@minecraft/server";
 import { floorVector3 } from "./game/utilities/math/floorVector";
-import { GUI_ITEM, RANDOM_BLOCK_ITEM } from "./config";
+import { GUI_ITEM, RANDOM_BLOCK_ITEM } from "./config/config";
 import { INGAME_PLAYERS, TNTCoinGUI } from "./game/TNTCoinGui";
 import { getRandomBlock } from "./game/utilities/blocks/randomBlock";
 
@@ -128,6 +128,6 @@ system.afterEvents.scriptEventReceive.subscribe((event) => {
     const players = world.getAllPlayers();
     for (const player of players) {
         const gui = INGAME_PLAYERS.get(player.name);
-        if (gui && gui.game.isPlayerInGame) gui.game.handleEvents(event);
+        if (gui && gui.game.isPlayerInGame) gui.game.handleScriptEvents(event);
     }
 }, { namespaces: ['tntcoin'] });

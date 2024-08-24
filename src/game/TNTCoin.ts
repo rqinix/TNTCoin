@@ -9,6 +9,7 @@ import { event as eventHandlerRegistry } from "./events/index";
 import { clearBlocks } from "./utilities/blocks/clearing";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { Win } from "../core/WinManager";
+import { eventHandlers } from "../config/eventHandlers";
 
 /**
  * Represents a TNTCoin game instance.
@@ -69,6 +70,10 @@ export class TNTCoin {
 
     public get countdown(): Countdown {
         return this._countdown;
+    }
+
+    public get winManager(): Win {
+        return this._winManager;
     }
 
     public get isPlayerInGame(): boolean {
@@ -161,10 +166,10 @@ export class TNTCoin {
      * Restarts the game.
      * @returns {Promise<void>} A promise that resolves when the game is restarted.
      */
-    private async restartGame(): Promise<void> {
+    public async restartGame(): Promise<void> {
         await this._structure.clearFilledBlocks();
         this.cameraClear();
-        this.manageTimer('restart');
+        this.timerManager('restart');
     }
 
     /**
@@ -174,7 +179,7 @@ export class TNTCoin {
     public async cleanGameSession(): Promise<void> {
         this.cameraClear();
         this._countdown.reset();
-        this.manageTimer('stop');
+        this.timerManager('stop');
         this._structure.fillStop();
         taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId]);
         await this._structure.clearFilledBlocks();
@@ -182,19 +187,25 @@ export class TNTCoin {
     }
 
     /**
-     * Starts listening for the structure being fully filled. 
-     * Starting the countdown and handling a win when appropriate.
+     * Handles script events.
+     */
+    public handleScriptEvents(event: ScriptEventCommandMessageAfterEvent): void {
+        if (!event.id.startsWith('tntcoin')) return;
+        const eventType = event.id.split(':')[1];
+        if (!eventHandlerRegistry.isEventEnabled(eventType)) return;
+        const message = event.message;
+        const handler = eventHandlerRegistry.getHandler(eventType);
+        if (handler) handler(this, message);
+    }
+
+    /**
+     * Checks the game status to determine if the structure is filled.
      */
     public checkGameStatus(): void {
         taskManager.addInterval(this._taskFillCheckId, async () => {
             try {
                 if (!this.isPlayerInGame) throw new Error('Player is not in game.');
-    
-                const isStructureFilled = this._structure.isStructureFilled();
-    
-                if (this._winManager.hasReachedMaxWins()) this.onMaxWin();
-                
-                this.handleCountdown(isStructureFilled);
+                this.handleGameProgress(this._structure.isStructureFilled());
             } catch (error) {
                 taskManager.clearTask(this._taskFillCheckId);
                 throw new Error(`Failed to check fill status. Cleared task ${this._taskFillCheckId}: ${error}`);
@@ -203,8 +214,35 @@ export class TNTCoin {
     } 
 
     /**
+     * Handles the progress of the game, including managing countdowns and checking for wins.
+     * @param {boolean} isStructureFilled - Whether the structure is fully filled.
+     */
+    private handleGameProgress(isStructureFilled: boolean): void {
+        if (this._winManager.hasReachedMaxWins()) {
+            this.handleMaxWin();
+        } else {
+            this.handleCountdown(isStructureFilled);
+        }
+    }
+
+    private handleMaxWin(): void {
+        eventHandlers.onMaxWin(this);
+    }
+
+    private handleWin(): void {
+        eventHandlers.onWin(this);
+    }
+
+    private handleLose(): void {
+        eventHandlers.onLose(this);
+    }
+
+    private handleCountdownCancelled(): void {
+        eventHandlers.onCountdownCancelled(this);
+    }
+
+    /**
      * Manages the countdown based on whether the structure is filled or not.
-     * Pauses the countdown if the structure is no longer filled.
      * @param {boolean} isStructureFilled - Whether the structure is fully filled.
      */
     private handleCountdown(isStructureFilled: boolean): void {
@@ -214,87 +252,13 @@ export class TNTCoin {
         } else if (isStructureFilled && !this._countdown.isCountingDown) {
             this.cameraRotate360();
             this._countdown.start({
-                onCancelled: this.onCountdownCancelled.bind(this),
-                onEnd: this.onCountdownEnd.bind(this),
+                onCancelled: this.handleCountdownCancelled.bind(this),
+                onEnd: this.handleWin.bind(this),
             });
         }
     }
 
-    /** 
-    * handles the event when the countdown is cancelled
-    */
-    private onCountdownCancelled(): void {
-        const TITLE = '§cOHHH NOOOO!!!§r'
-        const SOUND = 'random.totem';
-        this._feedback.showFeedbackScreen({ title: TITLE, sound: SOUND });
-    }
-
-    /**
-     * Handles the event when the countdown ends.
-     */
-    private onCountdownEnd(): void {
-        system.run(async () => await this.onWin());
-    }
-
-    /** 
-     * Handles the event when the player wins.
-     * @returns {Promise<void>} A promise that resolves when the player wins.
-     */
-    private async onWin(): Promise<void> {
-        if (this._winManager.hasReachedMaxWins()) return;
-
-        this._winManager.incrementWin();
-
-        const TITLE = `§a${this._winManager.getCurrentWins()}§f/§a${this._winManager.getMaxWins()}`;
-        const SUBTITLE = '§eYou win!§r';
-        const SOUND = 'random.levelup';
-
-        taskManager.runTimeout(() => {
-            this.summonFireworks(20);
-            this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
-            this._player.dimension.spawnParticle('minecraft:totem_particle', this._player.location);
-        }, 20);
-
-        await this.restartGame();
-    }
-
-    /**
-     * Handles the event when the player reaches the maximum number of wins.
-     */
-    private onMaxWin(): void {
-        const TITLE = `§a${this._winManager.getCurrentWins()}§f/§a${this._winManager.getMaxWins()}§r\n§eCongratulations!§r`;
-        const SUBTITLE = '§eYou have won the game!§r';
-        const SOUND = 'random.levelup';
-
-        this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
-        this._winManager.resetWins();
-        this.summonFireworks(20);
-    }
-
-    /**
-     * Handles the event when the player loses.
-     * @returns {Promise<void>} A promise that resolves when the player loses.
-     */
-    private async onLose(): Promise<void> {
-        this._winManager.decrementWin();
-
-        const TITLE = `§c${this._winManager.getCurrentWins()}§f/§a${this._winManager.getMaxWins()}`;
-        const SUBTITLE = '§cYou Lose!§r';
-        const SOUND = 'random.totem';
-
-        this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
-
-        await this.restartGame();
-    }
-
-    private summonFireworks(amount: number): void {
-        this.summonEntities('fireworks_rocket', {
-            locationType: 'random',
-            amount: amount
-        });
-    }
-
-    public manageTimer(action: TimerAction): void {
+    public timerManager(action: TimerAction): void {
         const TIMER_START_SOUND = 'random.orb';
         switch (action) {
             case 'start':
@@ -304,7 +268,7 @@ export class TNTCoin {
                 }
     
                 this._timer.toggleActionBar(true);
-                this._timer.start(this.timerDuration, this.onLose.bind(this));
+                this._timer.start(this._timerDuration, this.handleLose.bind(this));
                 this._feedback.playSound(TIMER_START_SOUND);
                 break;
     
@@ -328,7 +292,7 @@ export class TNTCoin {
     /**
      * Rotates the player's camera 360 degrees around the structure.
      */
-    private cameraRotate360(): void {
+    public cameraRotate360(): void {
         if (!this._doesCameraRotate) return;
         const tickInterval = 5;
         rotateCamera360(
@@ -344,7 +308,7 @@ export class TNTCoin {
     /**
      * Returns the player to their normal perspective
      */
-    private cameraClear(): void {
+    public cameraClear(): void {
         taskManager.clearTask(this._taskCameraId);
         this._player.camera.clear();
     }
@@ -377,15 +341,19 @@ export class TNTCoin {
 
         this._feedback.playSound(TELEPORT_SOUND);
     }
+
+    public summonFireworks(amount: number): void {
+        this.summonEntities('fireworks_rocket', {
+            locationType: 'random',
+            amount: amount
+        });
+    }
     
     /**
      * summons TNT at random locations in the structure
      */
     public summonTNT(): void {
-        this.summonEntities('tnt_minecart', {
-            locationType: 'random',
-            onTop: true,
-        });
+        this.summonEntities('tnt_minecart', { locationType: 'random', onTop: true });
     }
 
     /**
@@ -429,10 +397,14 @@ export class TNTCoin {
         if (customLocations.length > 0) {
             locations = customLocations;
         } else if (locationType === 'center') {
+            const structureCenterY = this._structure.structureCenter.y;
+            const structureCenterX = this._structure.structureCenter.x;
+            const structureCenterZ = this._structure.structureCenter.z
+            const structureHeight = this._structure.structureHeight;
             const centerLocation = {
-                x: this._structure.structureCenter.x,
-                y: onTop ? this._structure.structureCenter.y + this._structure.structureHeight + 5 : this._structure.structureCenter.y + 2,
-                z: this._structure.structureCenter.z
+                x: structureCenterX,
+                y: onTop ? structureCenterY + structureHeight + 5 : structureCenterY + 2,
+                z: structureCenterZ
             };
             locations = Array(amount).fill(centerLocation);
         } else if (locationType === 'random') {
@@ -449,17 +421,5 @@ export class TNTCoin {
                 this._feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });
             }
         });
-    }
-
-    /**
-     * Handles script events.
-     */
-    public handleEvents(event: ScriptEventCommandMessageAfterEvent): void {
-        if (!event.id.startsWith('tntcoin')) return;
-        const eventType = event.id.split(':')[1];
-        if (!eventHandlerRegistry.isEventEnabled(eventType)) return;
-        const message = event.message;
-        const handler = eventHandlerRegistry.getHandler(eventType);
-        if (handler) handler(this, message);
     }
 }
