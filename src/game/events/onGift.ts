@@ -23,8 +23,7 @@ export function onGift(game: TNTCoin, message: string): void {
         summonTNT: (amount: number) => {
             game.summonEntities(
                 'tnt_minecart', 
-                Array.from({ length: amount }, () => game.structure.randomLocation(2, false)),
-                amount
+                { amount: amount, locationType: 'random', onTop: true }
             );
             game.feedback.showFeedbackScreen({
                 title: `${giftIcon}\n§d${formattedGifterNickName}§f`,
