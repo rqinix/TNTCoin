@@ -190,44 +190,58 @@ export class TNTCoin {
         await this._structure.clearFilledBlocks();
         await this._structure.clearProtedtedStructure();
     }
+
+
+    /**
+     * Handles the win condition by checking if the player has won.
+     */
+    private handleWinCondition(): void {
+        if (this.isWin) {
+            this.onWin().then(() => {
+                this.resetWin();
+                this.saveGameState();
+            });
+        }
+    }
     
     /**
-    * Starts listening for the structure being fully filled. 
-    * Starts the countdown when it is filled.
-    */
+     * Manages the countdown based on whether the structure is filled or not.
+     * Pauses the countdown if the structure is no longer filled and resumes it when it is.
+     * @param {boolean} isStructureFilled - Whether the structure is fully filled.
+     */
+    private handleCountdown(isStructureFilled: boolean): void {
+        if (!isStructureFilled && this._countdown.isCountingDown) {
+            this.cameraClear();
+            this._countdown.pause();
+        } else if (isStructureFilled && !this._countdown.isCountingDown) {
+            this.cameraRotate360();
+            this._countdown.start({
+                onCancelled: this.onCountdownCancelled.bind(this),
+                onEnd: this.onCountdownEnd.bind(this),
+            });
+        }
+    }
+    
+    /**
+     * Starts listening for the structure being fully filled. 
+     * Starting the countdown and handling a win when appropriate.
+     */
     public startFillListener(): void {
         taskManager.addInterval(this._taskFillCheckId, async () => {
             try {
                 if (!this.isPlayerInGame) throw new Error('Player is not in game.');
-
+    
                 const isStructureFilled = this._structure.isStructureFilled();
-        
-                if (this.isWin) {
-                    await this.onWin();
-                    this.resetWin();
-                    this.saveGameState();
-                }
-        
-                if (!isStructureFilled) {
-                    if (this._countdown.isCountingDown) {
-                        this.cameraClear();
-                        this._countdown.pause();
-                    }
-                } else {
-                    if (!this._countdown.isCountingDown) {
-                        this.cameraRotate360();
-                        this._countdown.start({
-                            onCancelled: this.onCountdownCancelled.bind(this),
-                            onEnd: this.onCountdownEnd.bind(this),
-                        });
-                    }
-                }
+    
+                this.handleWinCondition();
+                this.handleCountdown(isStructureFilled);
+    
             } catch (error) {
                 taskManager.clearTask(this._taskFillCheckId);
                 throw new Error(`Failed to check fill status. Cleared task ${this._taskFillCheckId}: ${error}`);
             }
         }, 20);
-    }
+    }    
 
     /** 
     * handles the event when the countdown is cancelled
@@ -262,9 +276,9 @@ export class TNTCoin {
         const SOUND = 'random.levelup';
 
         taskManager.runTimeout(() => {
+            this.summonFireworks(20);
             this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
             this._player.dimension.spawnParticle('minecraft:totem_particle', this._player.location);
-            this.summonEntities('fireworks_rocket', [this._structure.randomLocation(2)], 5, true);
         }, 20);
 
         await this.restartGame();
@@ -292,7 +306,14 @@ export class TNTCoin {
         const SUBTITLE = '§eYou have won the game!§r';
         const SOUND = 'random.levelup';
         this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
-        this.summonEntities('fireworks_rocket', [this._structure.randomLocation(2)], 15, true);
+        this.summonFireworks(20);
+    }
+
+    private summonFireworks(amount: number): void {
+        this.summonEntities('firework_rocket', {
+            locationType: 'random',
+            amount: amount,
+        });
     }
 
     /**
@@ -339,8 +360,6 @@ export class TNTCoin {
                 if (this._timer.isTimerRunning) {
                     this._timer.reset();
                     this._feedback.playSound(TIMER_START_SOUND);
-                } else {
-                    this.manageTimer('start');
                 }
                 break;
     
@@ -348,7 +367,6 @@ export class TNTCoin {
                 throw new Error(`Unknown timer action: ${action}`);
         }
     }
-    
 
     /**
      * Rotates the player's camera 360 degrees around the structure.
@@ -407,9 +425,16 @@ export class TNTCoin {
      * summons TNT at random locations in the structure
      */
     public summonTNT(): void {
-        this.summonEntities('tnt_minecart', [this._structure.randomLocation(2, false)], 1);
+        this.summonEntities('tnt_minecart', {
+            locationType: 'random',
+            onTop: true,
+        });
     }
 
+    /**
+     * Summons lightning bolts and destroy random blocks in the structure.
+     * @param amount The amount of lightning bolts to summon. Default is 1.
+     */
     public summonLightningBolt(amount: number = 1): void {
         const locations: Vector3[] = [];
     
@@ -419,15 +444,44 @@ export class TNTCoin {
             locations.push(randomLocation);
         }
     
-        this.summonEntities('lightning_bolt', locations, 1, true);
+        this.summonEntities('lightning_bolt', {
+            customLocations: locations,
+            clearBlocksAfterSummon: true,
+        });
     }    
 
+    /**
+     * Summons entities in the game based on the provided options.
+     * @param {string} entityName - The name of the entity to summon.
+     * @param {SummonOptions} options - The options for summoning entities.
+     */
     public summonEntities(
         entityName: string,
-        locations: Vector3[],
-        amount: number = 1,
-        clearBlocksAfterSummon: boolean = false
+        options: SummonOptions
     ): void {
+        const {
+            locationType = 'random', 
+            onTop = false,
+            amount = 1,
+            clearBlocksAfterSummon = false,
+            customLocations = []
+        } = options;
+    
+        let locations: Vector3[] = [];
+    
+        if (customLocations.length > 0) {
+            locations = customLocations;
+        } else if (locationType === 'center') {
+            const centerLocation = {
+                x: this._structure.structureCenter.x,
+                y: onTop ? this._structure.structureCenter.y + this._structure.structureHeight + 5 : this._structure.structureCenter.y + 2,
+                z: this._structure.structureCenter.z
+            };
+            locations = Array(amount).fill(centerLocation);
+        } else if (locationType === 'random') {
+            locations = Array.from({ length: amount }, () => this._structure.randomLocation(2, onTop));
+        }
+    
         locations.forEach(location => {
             try {
                 this._player.dimension.spawnEntity(entityName, location);
@@ -449,8 +503,6 @@ export class TNTCoin {
         if (!eventHandlerRegistry.isEventEnabled(eventType)) return;
         const message = event.message;
         const handler = eventHandlerRegistry.getHandler(eventType);
-        if (handler) {
-            handler(this, message);
-        }
+        if (handler) handler(this, message);
     }
 }

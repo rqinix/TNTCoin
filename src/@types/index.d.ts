@@ -60,3 +60,11 @@ interface FillSettings {
 }
 
 type TimerAction = 'start' | 'stop' | 'restart';
+
+interface SummonOptions {
+    locationType?: 'center' | 'random';
+    onTop?: boolean;
+    customLocations?: Vec3[];
+    amount?: number;
+    clearBlocksAfterSummon?: boolean;
+}

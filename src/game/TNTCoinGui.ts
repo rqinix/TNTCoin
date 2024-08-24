@@ -301,34 +301,23 @@ export class TNTCoinGUI {
     
     private async showSummonEntityForm(): Promise<void> {
         new ModalForm(this._player, 'Summon Entity')
-        .dropdown('Location', ['Random', 'Random (On Top)', 'Center'], 0)
+        .dropdown('Location', ['Random', 'Center'], 0)
+        .toggle('On Top', false)
         .textField("string", "Entity Name:", "Enter the entity name", "tnt_minecart")
         .textField("number", "Amount:", "Enter the amount of entities to summon", "1")
         .show((response) => {
             const location = response[0] as number;
-            const entityName = response[1] as string;
-            const amount = Math.max(1, response[2] as number); 
-            const locations = this.generateSummonLocations(location, amount);
-            this._game.summonEntities(entityName, locations, amount);
+            const isOnTop = response[1] as boolean;
+            const entityName = response[2] as string;
+            const amount = Math.max(1, response[3] as number); 
+
+            this._game.summonEntities(entityName,{
+                amount,
+                locationType: location === 0 ? 'random' : 'center',
+                onTop: isOnTop,
+            });
         });
 
-    }
-
-    private generateSummonLocations(location: number, amount: number): Vector3[] {
-        switch (location) {
-            case 0: // Random
-                return Array.from({ length: amount }, () => this._structure.randomLocation(2));
-            case 1: // Random (On Top)
-                return Array.from({ length: amount }, () => this._structure.randomLocation(2, false));
-            case 2: // Center
-                return Array(amount).fill({
-                    x: this._structure.structureCenter.x,
-                    y: this._structure.structureCenter.y + 1,
-                    z: this._structure.structureCenter.z
-                });
-            default:
-                throw new Error(`Unknown location type: ${location}`);
-        }
     }
 
     /**
