@@ -56,7 +56,7 @@ export class TNTCoinGUI {
             if (this._game.gameSettings.useBarriers) await this._structure.generateBarriers();
             this.saveGame();
             this._game.teleportPlayer();
-            this._game.startFillListener();
+            this._game.checkGameStatus();
             this._player.setSpawnPoint({...this._structure.structureCenter, dimension: this._player.dimension});
             this._feedback.playSound('random.anvil_use');
             this._feedback.playSound('random.levelup');
@@ -175,7 +175,7 @@ export class TNTCoinGUI {
         new ActionForm(this._player, '§1§kii§r§c§lTNT§eCOIN§r§5§kii§r')
 
         .body(
-            `[§bWINS§f]: ${this._game.wins < 0 ? '§c' : '§a' }${this._game.wins}§f/§a${this._game.winMax}§f\n` +
+            `[§bWINS§f]: ${this._game.wins < 0 ? '§c' : '§a' }${this._game.wins}§f/§a${this._game.maxWins}§f\n` +
             `[§bBLOCKS TO FILL§f]: §a${this._structure.airBlockLocations.length}§f\n` 
         )
 
@@ -242,8 +242,8 @@ export class TNTCoinGUI {
             "number",
             "[§eWIN§r] Max Win",
             "Enter the max win:",
-            oldSettings.winMax.toString(),
-            (updatedValue) => newSettings.winMax = updatedValue as number
+            oldSettings.maxWins.toString(),
+            (updatedValue) => newSettings.maxWins = updatedValue as number
         )
         .textField(
             "number",

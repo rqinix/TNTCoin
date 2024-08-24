@@ -8,6 +8,7 @@ import { Timer } from "../core/Timer";
 import { event as eventHandlerRegistry } from "./events/index";
 import { clearBlocks } from "./utilities/blocks/clearing";
 import { PlayerFeedback } from "../core/PlayerFeedback";
+import { Win } from "../core/WinManager";
 
 /**
  * Represents a TNTCoin game instance.
@@ -18,11 +19,9 @@ export class TNTCoin {
     private readonly _feedback: PlayerFeedback;
     private readonly _countdown: Countdown;
     private readonly _timer: Timer;
+    private readonly _winManager: Win;
     private readonly _gameKey: string;
     private _isPlayerInGame: boolean = false;
-
-    private _wins: number = 0;
-    private _winMax: number = 10;
 
     private _useBarriers: boolean = false;
     private _doesCameraRotate: boolean = true;
@@ -32,6 +31,9 @@ export class TNTCoin {
 
     private _taskCameraId: string;
     private _taskFillCheckId: string;
+
+    private _wins: number = 0;
+    private _maxWins: number = 10;
     
     /**
      * Creates a new TNTCoin game instance.
@@ -44,6 +46,7 @@ export class TNTCoin {
         this._feedback = new PlayerFeedback(player);
         this._countdown = new Countdown(10, player);
         this._timer = new Timer(player);
+        this._winManager = new Win(this._maxWins);
         this._taskFillCheckId = `${player.name}:fillcheck`;
         this._taskCameraId = `${player.name}:camera`;
     }
@@ -76,26 +79,6 @@ export class TNTCoin {
         this._isPlayerInGame = value;
     }
 
-    public get isWin(): boolean {
-        return this._wins >= this._winMax;
-    }
-
-    public get wins(): number {
-        return this._wins;
-    }
-
-    public set wins(value: number) {
-        this._wins = value;
-    }
-
-    public get winMax(): number {
-        return this._winMax;
-    }
-
-    public set winMax(value: number) {
-        this._winMax = value;
-    }
-
     public set timerDuration(value: number) {
         this._timerDuration = value;
     }
@@ -108,10 +91,18 @@ export class TNTCoin {
         return this._timer.isTimerRunning;
     }
 
+    public get wins(): number {
+        return this._winManager.getCurrentWins();
+    }
+
+    public get maxWins(): number {
+        return this._winManager.getMaxWins();
+    }
+
     public get gameSettings(): GameSettings {
         return {
-            wins: this._wins,
-            winMax: this._winMax,
+            wins: this._winManager.getCurrentWins(),
+            maxWins: this._winManager.getMaxWins(),
             fillSettings: this._structure.fillSettings,
             defaultCountdownTime: this._countdown.defaultCountdownTime,
             countdownTickInterval: this._countdown.tickInterval,
@@ -122,8 +113,9 @@ export class TNTCoin {
     }
 
     public set gameSettings(settings: GameSettings) {
-        this._wins = settings.wins;
-        this._winMax = settings.winMax;
+        this._wins = this._winManager.setWins(settings.wins);
+        this._maxWins = this._winManager.setMaxWins(settings.maxWins);
+        this._winManager.setMaxWins(settings.maxWins);
         this._structure.fillSettings = settings.fillSettings;
         this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
         this._countdown.tickInterval = settings.countdownTickInterval;
@@ -140,7 +132,6 @@ export class TNTCoin {
             isPlayerInGame: this._isPlayerInGame,
             structureProperties: this._structure.structureProperties,
             gameSettings: this.gameSettings,
-            wins: this._wins,
         }
 
         try {
@@ -161,7 +152,6 @@ export class TNTCoin {
             this._isPlayerInGame = gameState.isPlayerInGame;
             this._structure.structureProperties = JSON.stringify(gameState.structureProperties);
             this.gameSettings = gameState.gameSettings;
-            this._wins = gameState.wins;
         } catch (error) {
             this._feedback.error('Failed to load game state.', { sound: "mob.wither.death" });
         }
@@ -191,22 +181,30 @@ export class TNTCoin {
         await this._structure.clearProtedtedStructure();
     }
 
+    /**
+     * Starts listening for the structure being fully filled. 
+     * Starting the countdown and handling a win when appropriate.
+     */
+    public checkGameStatus(): void {
+        taskManager.addInterval(this._taskFillCheckId, async () => {
+            try {
+                if (!this.isPlayerInGame) throw new Error('Player is not in game.');
+    
+                const isStructureFilled = this._structure.isStructureFilled();
+    
+                if (this._winManager.hasReachedMaxWins()) this.onMaxWin();
+                
+                this.handleCountdown(isStructureFilled);
+            } catch (error) {
+                taskManager.clearTask(this._taskFillCheckId);
+                throw new Error(`Failed to check fill status. Cleared task ${this._taskFillCheckId}: ${error}`);
+            }
+        }, 20);
+    } 
 
     /**
-     * Handles the win condition by checking if the player has won.
-     */
-    private handleWinCondition(): void {
-        if (this.isWin) {
-            this.onWin().then(() => {
-                this.resetWin();
-                this.saveGameState();
-            });
-        }
-    }
-    
-    /**
      * Manages the countdown based on whether the structure is filled or not.
-     * Pauses the countdown if the structure is no longer filled and resumes it when it is.
+     * Pauses the countdown if the structure is no longer filled.
      * @param {boolean} isStructureFilled - Whether the structure is fully filled.
      */
     private handleCountdown(isStructureFilled: boolean): void {
@@ -221,27 +219,6 @@ export class TNTCoin {
             });
         }
     }
-    
-    /**
-     * Starts listening for the structure being fully filled. 
-     * Starting the countdown and handling a win when appropriate.
-     */
-    public startFillListener(): void {
-        taskManager.addInterval(this._taskFillCheckId, async () => {
-            try {
-                if (!this.isPlayerInGame) throw new Error('Player is not in game.');
-    
-                const isStructureFilled = this._structure.isStructureFilled();
-    
-                this.handleWinCondition();
-                this.handleCountdown(isStructureFilled);
-    
-            } catch (error) {
-                taskManager.clearTask(this._taskFillCheckId);
-                throw new Error(`Failed to check fill status. Cleared task ${this._taskFillCheckId}: ${error}`);
-            }
-        }, 20);
-    }    
 
     /** 
     * handles the event when the countdown is cancelled
@@ -264,14 +241,11 @@ export class TNTCoin {
      * @returns {Promise<void>} A promise that resolves when the player wins.
      */
     private async onWin(): Promise<void> {
-        if (this._wins >= this._winMax) {
-            await this.onMaxWin();
-            return;
-        }
+        if (this._winManager.hasReachedMaxWins()) return;
 
-        this.incrementWin();
+        this._winManager.incrementWin();
 
-        const TITLE = `§a${this._wins}§f/§a${this._winMax}`;
+        const TITLE = `§a${this._winManager.getCurrentWins()}§f/§a${this._winManager.getMaxWins()}`;
         const SUBTITLE = '§eYou win!§r';
         const SOUND = 'random.levelup';
 
@@ -285,56 +259,39 @@ export class TNTCoin {
     }
 
     /**
+     * Handles the event when the player reaches the maximum number of wins.
+     */
+    private onMaxWin(): void {
+        const TITLE = `§a${this._winManager.getCurrentWins()}§f/§a${this._winManager.getMaxWins()}§r\n§eCongratulations!§r`;
+        const SUBTITLE = '§eYou have won the game!§r';
+        const SOUND = 'random.levelup';
+
+        this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
+        this._winManager.resetWins();
+        this.summonFireworks(20);
+    }
+
+    /**
      * Handles the event when the player loses.
      * @returns {Promise<void>} A promise that resolves when the player loses.
      */
     private async onLose(): Promise<void> {
-        this.decrementWin();
-        const TITLE = `§c${this._wins}§f/§a${this._winMax}`;
-        const SUBTITLE = '§cYou lose!§r';
+        this._winManager.decrementWin();
+
+        const TITLE = `§c${this._winManager.getCurrentWins()}§f/§a${this._winManager.getMaxWins()}`;
+        const SUBTITLE = '§cYou Lose!§r';
         const SOUND = 'random.totem';
+
         this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
+
         await this.restartGame();
     }
 
-    /**
-     * Handles the event when the player reaches the maximum number of wins.
-     * @returns {Promise<void>} A promise that resolves when the player reaches the maximum number of wins.
-     */
-    private async onMaxWin(): Promise<void> {
-        const TITLE = `§a${this._wins}§f/§a${this._winMax}§r\n§eCongratulations!§r`;
-        const SUBTITLE = '§eYou have won the game!§r';
-        const SOUND = 'random.levelup';
-        this._feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
-        this.summonFireworks(20);
-    }
-
     private summonFireworks(amount: number): void {
-        this.summonEntities('firework_rocket', {
+        this.summonEntities('fireworks_rocket', {
             locationType: 'random',
-            amount: amount,
+            amount: amount
         });
-    }
-
-    /**
-     * Increments the win count.
-     */
-    private incrementWin(): void {
-        this._wins++;
-    }
-
-    /**
-     * Decrements the win count.
-     */
-    private decrementWin(): void {
-        this._wins--;
-    }
-
-    /**
-    * reset the win count
-    */
-    private resetWin(): void {
-        this._wins = 0;
     }
 
     public manageTimer(action: TimerAction): void {
@@ -366,7 +323,7 @@ export class TNTCoin {
             default:
                 throw new Error(`Unknown timer action: ${action}`);
         }
-    }
+    }    
 
     /**
      * Rotates the player's camera 360 degrees around the structure.
@@ -415,7 +372,7 @@ export class TNTCoin {
                 }
             );
         } catch (error) {
-            console.error('Failed to spawn teleport particle.', error);
+            console.error('Failed to spawn teleport particle.');
         }
 
         this._feedback.playSound(TELEPORT_SOUND);

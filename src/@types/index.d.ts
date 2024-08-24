@@ -27,7 +27,7 @@ interface Vec3 {
 
 interface GameSettings {
     wins: number;
-    winMax: number;
+    maxWins: number;
     fillSettings: FillSettings;
     defaultCountdownTime: number;
     countdownTickInterval: number;
@@ -50,7 +50,6 @@ interface GameState {
     isPlayerInGame: boolean;
     structureProperties: StructureProperties;
     gameSettings: GameSettings;
-    wins: number;
 }
 
 interface FillSettings {
@@ -67,4 +66,9 @@ interface SummonOptions {
     customLocations?: Vec3[];
     amount?: number;
     clearBlocksAfterSummon?: boolean;
+}
+
+interface WinActions {
+    onWin: () => void;
+    onMaxWins: () => void;
 }
