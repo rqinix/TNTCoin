@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "name": "tnt-coin",
-  "description": "TNT Coin is a Minecraft mini-game designed for Bedrock/Pocket Edition players, inspired by a popular trend on TikTok live streams.",
+  "description": "TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and run the Minecraft TNT Challenge.",
   "type": "module",
   "main": "scripts/index.js",
   "scripts": {},
