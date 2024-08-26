@@ -1,14 +1,22 @@
 import { TNTCoin } from "../game/TNTCoin";
 import { taskManager } from "../core/TaskManager";
-import { TNTCoinStructure } from "../game/TNTCoinStructure";
 
 export const eventHandlers = {
+    /**
+     * Handles event when the countdown is cancelled.
+     * @param {TNTCoin} game - The current instance of the TNTCoin game.
+     */
     onCountdownCancelled: (game: TNTCoin): void => {
         const TITLE = '§cOHHH NOOOO!!!§r';
         const SOUND = 'random.totem';
         game.feedback.showFeedbackScreen({ title: TITLE, sound: SOUND });
     },
 
+    /**
+     * Handles the event when the player wins the game.
+     * @param {TNTCoin} game - The current instance of the TNTCoin game.
+     * @returns {Promise<void>} - A promise that resolves when the win handling is complete.
+     */
     onWin: async (game: TNTCoin): Promise<void> => {
         if (game.winManager.hasReachedMaxWins()) return;
 
@@ -28,6 +36,10 @@ export const eventHandlers = {
         await game.restartGame();
     },
 
+    /**
+     * Handles the event when the player reaches the maximum number of wins.
+     * @param {TNTCoin} game - The current instance of the TNTCoin game.
+     */
     onMaxWin: (game: TNTCoin): void => {
         const TITLE = `§a${game.winManager.getCurrentWins()}§f/§a${game.winManager.getMaxWins()}§r\n§eCongratulations!§r`;
         const SUBTITLE = '§eYou have won the game!§r';
@@ -38,6 +50,11 @@ export const eventHandlers = {
         game.summonFireworks(20);
     },
 
+    /**
+     * Handles the event when the player loses the game.
+     * @param {TNTCoin} game - The current instance of the TNTCoin game.
+     * @returns {Promise<void>} - A promise that resolves when the lose handling is complete.
+     */
     onLose: async (game: TNTCoin): Promise<void> => {
         game.winManager.decrementWin();
 
