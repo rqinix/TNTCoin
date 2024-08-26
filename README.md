@@ -1,7 +1,14 @@
-<div style="text-align: center;">
-  <img src="./pack_icon.png" alt="Pack Icon">
+<div align="center">
+
+![pack_icon](./pack_icon.png)
+
+# TNT COIN
+
+![license](https://img.shields.io/github/license/rqinix/BP-TNT-Coin?color=lightgreen&logo=open-source-initiative)
+![release](https://img.shields.io/github/v/release/rqinix/BP-TNT-Coin?color=purple&logo=github)
+![downloads](https://img.shields.io/github/downloads/rqinix/BP-TNT-Coin/total?color=brightgreen&logo=github)
+
 </div>
-<h1 align="center">TNT COIN</h1>
 
 TNT Coin is a Minecraft BE/PE add-on, inspired by a popular trend on TikTok live streams known as the Minecraft TNT Challenge. In this challenge, streamers try to build or maintain a structure while their viewers send virtual gifts that spawn TNT, causing chaos and destruction.
 
@@ -11,24 +18,31 @@ TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and r
 ### Graphical User Interface (GUI)
 
 - Simply open your inventory, navigate to the Items tab, and search for "TNT Coin".
-    
-<div>
-<img src="./docs/images/image_2.png">
+
+![img2](./docs/images/image_2.png)
+
 <br>
-<img src="./docs/images/image_3.png" alt="Image 3" style="max-width: 200px;">
-<img src="./docs/images/image_4.png" alt="Image 4" style="max-width: 200px;">
-<img src="./docs/images/image_5.png" alt="Image 5" style="max-width: 200px;">
-</div>
+
+![img3](./docs/images/image_3.png)
+
+<br>
+
+![img4](./docs/images/image_4.png)
+
+<br>
+
+![img5](./docs/images/image_5.png)
+
 
 ### Structure Creation
 
 - Players can select the base and side block types for the structure.
 - The width and height of the structure can be customized.
 
-<div>
+
 <img src="./docs/images/image_1.png" alt="TNT Coin Structure Configuration">
+
 <img src="./docs/images/structure.png" alt="TNT Coin Structure">
-</div>
 
 ### Barrier Generation
 
@@ -44,9 +58,7 @@ TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and r
 - Players can start, stop, and restart at any time.
 - The timer can be displayed on the action bar.
 
-<div>
 <img src="./docs/images/timer.png" alt="Timer Actionbar">
-</div>
 
 - Players can configure the timer’s duration.
 - If you run out of time, you will LOSE!
@@ -73,9 +85,7 @@ TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and r
 
 - This feature allows players to place a random block from a predefined list whenever they use a specific item in the game.
 
-<div>
 <img src="./docs/images/randomblock1.png" alt="random block">
-</div>
 
 - Update the `RANDOM_BLOCK_ITEM` to the desired item ID.
 - Modify the `BLOCKS` array from `scripts/config/config.js` file to include any block IDs you want to be randomly selected when the specified `RANDOM_BLOCK_ITEM` is used.
@@ -104,9 +114,7 @@ export const BLOCKS = [
 
 ### Play Sound
 
-<div>
 <img src="./docs/images/playsound.png" alt="playsound">
-</div>
 
 - You can easily modify the sounds available in the game by editing also the `scripts/config/config.js` file.
 
