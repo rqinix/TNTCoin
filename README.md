@@ -14,6 +14,11 @@ TNT Coin is a Minecraft BE/PE add-on, inspired by a popular trend on TikTok live
 
 TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and run the Minecraft TNT Challenge.
 
+## Download
+
+- [Download Resource Pack](https://github.com/rqinix/RP-TNT-Coin/releases)
+- [Download Behavior Pack](https://github.com/rqinix/BP-TNT-Coin/releases)
+
 ## 🌟Features
 ### Graphical User Interface (GUI)
 
