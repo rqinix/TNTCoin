@@ -17,10 +17,12 @@ export class TNTCoinStructure {
     private readonly _dimension: Dimension;
     private readonly _feedback: PlayerFeedback;
     private readonly _structureKey: string;
+
     private _fillBlockName: string = "minecraft:amethyst_block";
     private _fillTickInterval: number = 1;
     private _fillBlocksPerTick: number = 1;
     private _isFilling: boolean = false;
+    
     private _protectedBlockLocations = new Set<string>();
     private _airBlockLocations = new Set<string>();
     private _filledBlockLocations = new Set<string>();
@@ -39,6 +41,42 @@ export class TNTCoinStructure {
     }
 
     /**
+     * Get the structure key
+     */
+    public get structureKey(): string {
+        return this._structureKey;
+    }
+
+    /**
+     * Set the structure properties
+     * @param {string} newProperties the new properties
+     */
+    public set structureProperties(newProperties: string) {
+        try {
+            this._player.setDynamicProperty(this._structureKey, newProperties);
+        } catch (error) {
+            console.error(`Failed to set structure data for player ${this._player.name}: `,error);
+        }
+    }
+
+    /**
+     * Get the structure properties
+     * @returns {StructureProperties} the structure properties
+     */
+    public get structureProperties(): StructureProperties {
+        try {
+            const data = this._player.getDynamicProperty(this._structureKey) as string;
+            if (!data) {
+                this._feedback.error("No structure data found.");
+                return;
+            };
+            return JSON.parse(data) as StructureProperties;
+        } catch (error) {
+            console.error(`Failed to get structure data for player ${this._player.name}: `, error);
+        }
+    }
+
+    /**
      * Gets the fill settings for the TNT coin structure.
      * @returns {{ blockName: string, tickInterval: number, blocksPerTick: number }} The fill settings.
      */
@@ -53,13 +91,6 @@ export class TNTCoinStructure {
         this._fillBlockName = blockName;
         this._fillTickInterval = tickInterval;
         this._fillBlocksPerTick = blocksPerTick;
-    }
-
-    /**
-     * Get the structure key
-     */
-    public get structureKey(): string {
-        return this._structureKey;
     }
     
     /**
@@ -96,35 +127,6 @@ export class TNTCoinStructure {
         const y = centerLocation.y;
         const z = centerLocation.z + Math.floor(width / 2);
         return floorVector3({ x, y, z });
-    }
-
-    /**
-     * Set the structure properties
-     * @param {string} newProperties the new properties
-     */
-    public set structureProperties(newProperties: string) {
-        try {
-            this._player.setDynamicProperty(this._structureKey, newProperties);
-        } catch (error) {
-            console.error(`Failed to set structure data for player ${this._player.name}: `,error);
-        }
-    }
-
-    /**
-     * Get the structure properties
-     * @returns {StructureProperties} the structure properties
-     */
-    public get structureProperties(): StructureProperties {
-        try {
-            const data = this._player.getDynamicProperty(this._structureKey) as string;
-            if (!data) {
-                this._feedback.error("No structure data found.");
-                return;
-            };
-            return JSON.parse(data) as StructureProperties;
-        } catch (error) {
-            console.error(`Failed to get structure data for player ${this._player.name}: `, error);
-        }
     }
 
     /**
@@ -172,10 +174,13 @@ export class TNTCoinStructure {
 
     /**
      * Generates a random location within or on top of the structure.
-     * @param {number} offset The offset from the edges to avoid.
-     * @param {boolean} onTop If `true`, generates a random Y on top of the structure. 
+     * @param {number} offset 
+     * The offset from the edges to avoid.
+     * @param {boolean} onTop 
+     * If `true`, generates a random Y on top of the structure. 
      * If `false`, generates a random Y within the structure's height.
-     * @returns {Vector3} A random location within or on top of the structure's bounds.
+     * @returns {Vector3} 
+     * A random location within or on top of the structure's bounds.
      * @remarks The default value of `onTop` is `false`.
      */
     public randomLocation(offset: number, onTop: boolean = false): Vector3 {
@@ -206,16 +211,9 @@ export class TNTCoinStructure {
             blockLocation: Vector3 
         }> = [];
 
-        const heightMinRange = this._dimension.heightRange.min;
-        const heightMaxRange = this._dimension.heightRange.max;
-
         try {
             this.iterateProtectedBlockLocations({ x: 0, y: 0, z: 0 }, (blockLocation, blockName) => {
-                if (blockLocation.y < heightMinRange || blockLocation.y > heightMaxRange) {
-                    throw new Error('Block out of bounds.');
-                } else {
-                    protectedBlocks.push({ blockName, blockLocation });
-                }
+                protectedBlocks.push({ blockName, blockLocation });
             });
             await this.generateProtectedBlocks(protectedBlocks);
         } catch (error) {
@@ -260,12 +258,21 @@ export class TNTCoinStructure {
         const { width, height, centerLocation, blockOptions } = this.structureProperties;
         const { baseBlockName, sideBlockName } = blockOptions;
 
+        const heightMinRange = this._dimension.heightRange.min;
+        const heightMaxRange = this._dimension.heightRange.max;
+
         try {
             iterateBlocks(startingPosition, (blockLocation) => {
+                // Check if block is out of bounds
+                if (blockLocation.y < heightMinRange || blockLocation.y > heightMaxRange) {
+                    throw new Error('Block out of bounds.');
+                } 
+
                 const blockPosition = JSON.stringify(getRelativeBlockLocation(centerLocation, blockLocation));
                 const blockName = isBlockOnBoundary(blockLocation.y, height) ? baseBlockName : sideBlockName;
                 const isOnPerimeter = isBlockOnPerimeter(blockLocation, width, height);
                 const isOnBottomLayer = isBlockOnBottomLayer(blockLocation.y);
+                
                 if (isOnPerimeter || isOnBottomLayer) {
                     handleBlock(JSON.parse(blockPosition), blockName);
                     this._protectedBlockLocations.add(blockPosition);
