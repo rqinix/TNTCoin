@@ -66,6 +66,9 @@ interface SummonOptions {
     customLocations?: Vec3[];
     amount?: number;
     clearBlocksAfterSummon?: boolean;
+    batchSize?: number;
+    delayBetweenBatches?: number;
+    onSummon?: () => void;
 }
 
 interface WinActions {
