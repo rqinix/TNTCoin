@@ -10,6 +10,7 @@ import { clearBlocks } from "./utilities/blocks/clearing";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { Win } from "../core/WinManager";
 import { eventHandlers } from "../config/eventHandlers";
+import { batch } from "./utilities/batch";
 
 /**
  * Represents a TNTCoin game instance.
@@ -389,37 +390,46 @@ export class TNTCoin {
             onTop = false,
             amount = 1,
             clearBlocksAfterSummon = false,
-            customLocations = []
+            customLocations = [],
+            batchSize = 10, 
+            delayBetweenBatches = 0,
+            onSummon = () => {},
         } = options;
-    
+
         let locations: Vector3[] = [];
-    
+
         if (customLocations.length > 0) {
             locations = customLocations;
         } else if (locationType === 'center') {
-            const structureCenterY = this._structure.structureCenter.y;
-            const structureCenterX = this._structure.structureCenter.x;
-            const structureCenterZ = this._structure.structureCenter.z
-            const structureHeight = this._structure.structureHeight;
             const centerLocation = {
-                x: structureCenterX,
-                y: onTop ? structureCenterY + structureHeight + 5 : structureCenterY + 2,
-                z: structureCenterZ
+                x: this._structure.structureCenter.x,
+                y: onTop ? this._structure.structureCenter.y + this._structure.structureHeight + 5 : this._structure.structureCenter.y + 2,
+                z: this._structure.structureCenter.z
             };
             locations = Array(amount).fill(centerLocation);
         } else if (locationType === 'random') {
             locations = Array.from({ length: amount }, () => this._structure.randomLocation(2, onTop));
         }
-    
-        locations.forEach(location => {
-            try {
-                this._player.dimension.spawnEntity(entityName, location);
-                if (clearBlocksAfterSummon) {
-                    clearBlocks(this._player.dimension, [location], 100);
+
+        batch(
+            locations,
+            batchSize,
+            (location) => {
+                try {
+                    this._player.dimension.spawnEntity(entityName, location);
+                    onSummon();
+                    if (clearBlocksAfterSummon) {
+                        clearBlocks(this._player.dimension, [location], 100);
+                    }
+                } catch (error) {
+                    this._feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });
                 }
-            } catch (error) {
-                this._feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });
+            },
+            {
+                delayInTicks: delayBetweenBatches,
+                onComplete: () => this._feedback.success(`${amount} ${entityName}(s) summoned successfully.`),
             }
-        });
+        );
     }
+
 }
