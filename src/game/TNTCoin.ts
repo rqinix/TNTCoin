@@ -426,8 +426,7 @@ export class TNTCoin {
                 }
             },
             {
-                delayInTicks: delayBetweenBatches,
-                onComplete: () => this._feedback.success(`${amount} ${entityName}(s) summoned successfully.`),
+                delayInTicks: delayBetweenBatches
             }
         );
     }
