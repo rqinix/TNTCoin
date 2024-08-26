@@ -9,5 +9,5 @@ export function onFollow(game: TNTCoin, message: string): void {
     const data = JSON.parse(message);
     const { nickname, uniqueId } = data;
 
-    game.player.sendMessage(`Thank You for the Follow, §e${nickname}§e§f!`);
+    game.player.sendMessage(`§bThank You for the Follow§f, §e${nickname}§e§f!`);
 }

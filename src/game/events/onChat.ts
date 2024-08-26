@@ -9,5 +9,5 @@ export function onChat(game: TNTCoin, message: string): void {
     const data = JSON.parse(message);
     const { uniqueId, nickname, comment } = data;
 
-    game.player.sendMessage(`§7${nickname}§f: ${comment}`);
+    game.player.sendMessage(`§a${nickname}§f: ${comment}`);
 }

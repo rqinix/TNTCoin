@@ -15,11 +15,11 @@ export const BLOCKS = [
     'minecraft:stone',
     'minecraft:dirt',
     'minecraft:grass',
-    'minecraft:gravel',
-    'minecraft:sand',
     'minecraft:diamond_block',
     'minecraft:emerald_block',
     'minecraft:gold_block',
+    'minecraft:iron_block',
+    "minecraft:pink_wool",
 ];
 
 /**

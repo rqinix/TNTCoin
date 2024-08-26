@@ -23,7 +23,14 @@ export function onGift(game: TNTCoin, message: string): void {
         summonTNT: (amount: number) => {
             game.summonEntities(
                 'tnt_minecart', 
-                { amount: amount, locationType: 'random', onTop: true }
+                { 
+                    amount: amount, 
+                    locationType: 'random', 
+                    onTop: true, 
+                    batchSize: 5, 
+                    delayBetweenBatches: 15,
+                    onSummon: () => game.player.playSound('kururin')
+                }
             );
             game.feedback.showFeedbackScreen({
                 title: `${giftIcon}\n§d${formattedGifterNickName}§f`,
@@ -45,14 +52,16 @@ export function onGift(game: TNTCoin, message: string): void {
                 title: `${giftIcon}\n§d${formattedGifterNickName}§f`,
                 subtitle: `§acleared the blocks!`
             });
+            game.player.playSound('cat_laughing');
             game.player.sendMessage(`${giftIcon} ${formattedGifterNickName} cleared the blocks!`);
         },
-        fillStructure: () => {
-            game.structure.fill();
+        fillStructure: async () => {
             game.feedback.showFeedbackScreen({
                 title: `${giftIcon}\n§d${formattedGifterNickName}§f`,
                 subtitle: `§afilled the structure!`
             });
+            game.player.playSound('wait_wait_wait');
+            await game.structure.fill();
         }
     };
 

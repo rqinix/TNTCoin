@@ -1,5 +1,6 @@
 import { TNTCoin } from "../game/TNTCoin";
 import { taskManager } from "../core/TaskManager";
+import { TNTCoinStructure } from "../game/TNTCoinStructure";
 
 export const eventHandlers = {
     onCountdownCancelled: (game: TNTCoin): void => {
@@ -22,6 +23,7 @@ export const eventHandlers = {
             game.feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
             game.player.dimension.spawnParticle('minecraft:totem_particle', game.player.location);
         }, 20);
+        game.player.playSound('wait_wait_wait');
 
         await game.restartGame();
     },
