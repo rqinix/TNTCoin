@@ -135,19 +135,21 @@ class ModalForm extends Form {
     }
 
     private validateTextField(valueType: 'string' | 'number', value: any): string | number | boolean {
-        if (valueType === 'number') {
-            const numberValue = Number(value);
-            if (isNaN(numberValue)) {
-                throw new Error(`Invalid number value: ${value}`);
-            }
-            return numberValue;
-        } else if (valueType === 'string') {
-            if (/^\d+$/.test(value) || value === '') {
-                throw new Error(`Invalid string value: ${value}`);
-            }
-            return value;
+        switch (valueType) {
+            case 'number':
+                const numberValue = Number(value);
+                if (isNaN(numberValue)) {
+                    throw new Error(`Invalid number value: ${value}`);
+                }
+                return numberValue;
+            case 'string':
+                if (/^\d+$/.test(value) || value === '') {
+                    throw new Error(`Invalid string value: ${value}`);
+                }
+                return value;
+            default:
+                throw new Error(`Unknown value type: ${valueType}`);
         }
-        throw new Error(`Unknown value type: ${valueType}`);
     }
 }
 
