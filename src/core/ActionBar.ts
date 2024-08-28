@@ -6,7 +6,7 @@ import { taskManager } from "./TaskManager";
  */
 export class ActionBar {
     private _player: Player;
-    private _tasks: Map<string, () => (string | number | undefined)[]> = new Map();
+    private _tasks: Map<string, () => (string | number | undefined)[] | Promise<(string | number | undefined)[]>> = new Map();
     private _isRunning: boolean = false;
 
     constructor(player: Player) {
@@ -16,9 +16,10 @@ export class ActionBar {
     /**
      * Adds a task to the action bar display.
      * @param {string} id - Unique identifier for the task.
-     * @param {() => (string | number | undefined)[]} callback - Function that returns an array of strings, numbers, or undefined values to be displayed.
+     * @param {() => (string | number | undefined)[] | Promise<(string | number | undefined)[]>} callback 
+     * - Function that returns an array of strings, numbers, or undefined values to be displayed, or a promise that resolves to such an array.
      */
-    public addTask(id: string, callback: () => (string | number | undefined)[]): void {
+    public addTask(id: string, callback: () => (string | number | undefined)[] | Promise<(string | number | undefined)[]>): void {
         this._tasks.set(id, callback);
         this.updateDisplay();
     }
@@ -83,16 +84,19 @@ export class ActionBar {
      * Updates the action bar display with the latest information from all tasks.
      * @param {number} tasksPerLine - Maximum number of tasks to display per line.
      */
-    private updateDisplay(tasksPerLine: number = 3): void {
+    private async updateDisplay(tasksPerLine: number = 3): Promise<void> {
         const divider = ' §f| ';
         const lines: string[] = [];
         const taskArray = Array.from(this._tasks.values());
 
         for (let i = 0; i < taskArray.length; i += tasksPerLine) {
-            const line = taskArray.slice(i, i + tasksPerLine)
-                .map(callback => this.formatTask(callback()))
-                .join(divider);
-            lines.push(line);
+            const linePromises = taskArray.slice(i, i + tasksPerLine).map(async (callback) => {
+                const result = await callback();
+                return this.formatTask(result);
+            });
+
+            const resolvedLine = await Promise.all(linePromises);
+            lines.push(resolvedLine.join(divider));
         }
 
         const displayText = lines.join('\n');
