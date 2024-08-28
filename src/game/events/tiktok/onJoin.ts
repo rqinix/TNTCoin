@@ -1,4 +1,4 @@
-import { TNTCoin } from "../TNTCoin";
+import { TNTCoin } from "../../TNTCoin";
 
 /**
  * Handles the join event.

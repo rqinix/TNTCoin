@@ -1,4 +1,4 @@
-import { EventHandlerRegistry } from '../../core/EventHandlerRegistry';
+import { EventHandlerRegistry } from '../../../core/EventHandlerRegistry';
 import { onChat } from './onChat';
 import { onFollow } from './onFollow';
 import { onGift } from './onGift';
