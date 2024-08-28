@@ -35,27 +35,30 @@ export class Timer {
     /**
      * Starts the timer.
      * @param {number} duration The duration of the timer in seconds.
+     * @param {() => boolean} display Whether to display the timer on the action bar.
      * @param {() => void} onEnd Callback function when the timer ends.
      */
-    public start(duration: number, onEnd: () => void): void {
+    public start(duration: number, display: () => boolean, onEnd: () => void): void {
         this.duration = duration;
         this.remainingTime = duration;
         if (this.isRunning) this.stop();
         this.isRunning = true;
-        this.runTimer(onEnd);
+        this.runTimer(display, onEnd);
     }
 
     /**
      * Runs the timer and updates the remaining time.
+     * @param {() => boolean} display Whether to display the timer on the action bar.
      * @param {() => Promise<void> | void} onEnd Callback function when the timer ends.
      */
-    private async runTimer(onEnd: () => Promise<void> | void): Promise<void> {
+    private async runTimer(display: () => boolean, onEnd: () => Promise<void> | void): Promise<void> {
         const tickInterval = 20;
         if (this.remainingTime >= 0) {
+            if (display) this.toggleActionBar(!display());
             this.updateActionBar();
             taskManager.addTimeout(this.timeoutId, () => {
                 this.remainingTime--;
-                this.runTimer(onEnd);
+                this.runTimer(display, onEnd);
             }, tickInterval);
         } else {
             this.isRunning = false;
@@ -85,7 +88,7 @@ export class Timer {
      * Toggles the timer display on the action bar.
      * @param {boolean} display Whether to display the timer on the action bar.
      */
-    public toggleActionBar(display: boolean): void {
+    private toggleActionBar(display: boolean): void {
         this.displayOnActionBar = display;
         if (!display) this.clearActionBar();
     }
