@@ -4,7 +4,7 @@ import { floorVector3 } from "./utilities/math/floorVector";
 import { getStructureCenter } from "./utilities/structure/getStructureCenter";
 import { ActionForm, ModalForm } from "../core/Form";
 import { SOUNDS } from "../config/config";
-import { event as eventHandler } from "./events/index";
+import { event as eventHandler } from "./events/tiktok/index";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 
@@ -174,10 +174,13 @@ export class TNTCoinGUI {
     * Shows the in-game form to the player.
     */
     private showInGameForm(): void {
+        const wins = this._game.winManager.getCurrentWins();
+        const maxWin = this._game.winManager.getMaxWins();
+        
         new ActionForm(this._player, '§1§kii§r§c§lTNT§eCOIN§r§5§kii§r')
 
         .body(
-            `[§bWINS§f]: ${this._game.wins < 0 ? '§c' : '§a' }${this._game.wins}§f/§a${this._game.maxWins}§f\n` +
+            `[§bWINS§f]: ${wins < 0 ? '§c' : '§a' }${wins}§f/§a${maxWin}§f\n` +
             `[§bBLOCKS TO FILL§f]: §a${this._structure.airBlockLocations.length}§f\n` 
         )
 

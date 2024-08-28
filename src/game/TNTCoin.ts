@@ -5,12 +5,15 @@ import { taskManager } from "../core/TaskManager";
 import { rotateCamera360 } from "./utilities/camera/rotate360";
 import { floorVector3 } from "./utilities/math/floorVector";
 import { Timer } from "../core/Timer";
-import { event as eventHandlerRegistry } from "./events/index";
+import { event as eventHandlerRegistry } from "./events/tiktok/index";
 import { clearBlocks } from "./utilities/blocks/clearing";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { Win } from "../core/WinManager";
-import { eventHandlers } from "../config/eventHandlers";
 import { batch } from "./utilities/batch";
+import { onWin } from "./events/tntcoin/onWin";
+import { onLose } from "./events/tntcoin/onLose";
+import { onMaxWin } from "./events/tntcoin/onMaxWin";
+import { onCountdownCancelled } from "./events/tntcoin/onCountdownCancel";
 
 /**
  * Represents a TNTCoin game instance.
@@ -33,9 +36,6 @@ export class TNTCoin {
 
     private _taskCameraId: string;
     private _taskFillCheckId: string;
-
-    private _wins: number = 0;
-    private _maxWins: number = 10;
     
     /**
      * Creates a new TNTCoin game instance.
@@ -48,7 +48,7 @@ export class TNTCoin {
         this._feedback = new PlayerFeedback(player);
         this._countdown = new Countdown(10, player);
         this._timer = new Timer(player);
-        this._winManager = new Win(this._maxWins);
+        this._winManager = new Win(10);
         this._taskFillCheckId = `${player.name}:fillcheck`;
         this._taskCameraId = `${player.name}:camera`;
     }
@@ -97,14 +97,6 @@ export class TNTCoin {
         return this._timer.isTimerRunning;
     }
 
-    public get wins(): number {
-        return this._winManager.getCurrentWins();
-    }
-
-    public get maxWins(): number {
-        return this._winManager.getMaxWins();
-    }
-
     public get gameSettings(): GameSettings {
         return {
             wins: this._winManager.getCurrentWins(),
@@ -119,8 +111,7 @@ export class TNTCoin {
     }
 
     public set gameSettings(settings: GameSettings) {
-        this._wins = this._winManager.setWins(settings.wins);
-        this._maxWins = this._winManager.setMaxWins(settings.maxWins);
+        this._winManager.setWins(settings.wins);
         this._winManager.setMaxWins(settings.maxWins);
         this._structure.fillSettings = settings.fillSettings;
         this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
@@ -185,78 +176,6 @@ export class TNTCoin {
         taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId]);
         await this._structure.clearFilledBlocks();
         await this._structure.clearProtedtedStructure();
-    }
-
-    /**
-     * Handles script events.
-     */
-    public handleScriptEvents(event: ScriptEventCommandMessageAfterEvent): void {
-        if (!event.id.startsWith('tntcoin')) return;
-        const eventType = event.id.split(':')[1];
-        if (!eventHandlerRegistry.isEventEnabled(eventType)) return;
-        const message = event.message;
-        const handler = eventHandlerRegistry.getHandler(eventType);
-        if (handler) handler(this, message);
-    }
-
-    /**
-     * Checks the game status to determine if the structure is filled.
-     */
-    public checkGameStatus(): void {
-        taskManager.addInterval(this._taskFillCheckId, async () => {
-            try {
-                if (!this.isPlayerInGame) throw new Error('Player is not in game.');
-                this.handleGameProgress(this._structure.isStructureFilled());
-            } catch (error) {
-                taskManager.clearTask(this._taskFillCheckId);
-                throw new Error(`Failed to check fill status. Cleared task ${this._taskFillCheckId}: ${error}`);
-            }
-        }, 20);
-    } 
-
-    /**
-     * Handles the progress of the game, including managing countdowns and checking for wins.
-     * @param {boolean} isStructureFilled - Whether the structure is fully filled.
-     */
-    private handleGameProgress(isStructureFilled: boolean): void {
-        if (this._winManager.hasReachedMaxWins()) {
-            this.handleMaxWin();
-        } else {
-            this.handleCountdown(isStructureFilled);
-        }
-    }
-
-    private handleMaxWin(): void {
-        eventHandlers.onMaxWin(this);
-    }
-
-    private handleWin(): void {
-        eventHandlers.onWin(this);
-    }
-
-    private handleLose(): void {
-        eventHandlers.onLose(this);
-    }
-
-    private handleCountdownCancelled(): void {
-        eventHandlers.onCountdownCancelled(this);
-    }
-
-    /**
-     * Manages the countdown based on whether the structure is filled or not.
-     * @param {boolean} isStructureFilled - Whether the structure is fully filled.
-     */
-    private handleCountdown(isStructureFilled: boolean): void {
-        if (!isStructureFilled && this._countdown.isCountingDown) {
-            this.cameraClear();
-            this._countdown.pause();
-        } else if (isStructureFilled && !this._countdown.isCountingDown) {
-            this.cameraRotate360();
-            this._countdown.start({
-                onCancelled: this.handleCountdownCancelled.bind(this),
-                onEnd: this.handleWin.bind(this),
-            });
-        }
     }
 
     public timerManager(action: TimerAction): void {
@@ -366,7 +285,12 @@ export class TNTCoin {
     
         for (let i = 0; i < amount; i++) {
             if (this._structure.filledBlockLocations.size === 0) return;
-            const randomLocation = JSON.parse(Array.from(this._structure.filledBlockLocations)[Math.floor(Math.random() * this._structure.filledBlockLocations.size)]);
+
+            const filledBlockLocationsArray = Array.from(this._structure.filledBlockLocations);
+            const randomIndex = Math.floor(Math.random() * filledBlockLocationsArray.length);
+            const randomLocationJson = filledBlockLocationsArray[randomIndex];
+            const randomLocation = JSON.parse(randomLocationJson);
+            
             locations.push(randomLocation);
         }
     
@@ -374,7 +298,7 @@ export class TNTCoin {
             customLocations: locations,
             clearBlocksAfterSummon: true,
         });
-    }    
+    } 
 
     /**
      * Summons entities in the game based on the provided options.
@@ -431,4 +355,74 @@ export class TNTCoin {
         );
     }
 
+    /**
+     * Handles script events.
+     * @param {ScriptEventCommandMessageAfterEvent} event - The event and message to handle
+     */
+    public handleScriptEvents(event: ScriptEventCommandMessageAfterEvent): void {
+        if (!event.id.startsWith('tntcoin')) return;
+        const eventType = event.id.split(':')[1];
+        if (!eventHandlerRegistry.isEventEnabled(eventType)) return;
+        const message = event.message;
+        const handler = eventHandlerRegistry.getHandler(eventType);
+        if (handler) handler(this, message);
+    }
+
+    /**
+     * Checks the game status to determine if the structure is filled.
+     */
+    public checkGameStatus(): void {
+        taskManager.addInterval(this._taskFillCheckId, () => {
+            if (!this.isPlayerInGame) {
+                taskManager.clearTask(this._taskFillCheckId);
+                throw new Error('Player is not in game.');
+            }
+            this.handleGameProgress(this._structure.isStructureFilled());
+        }, 20);
+    } 
+
+    /**
+     * Handles the progress of the game, including managing countdowns and checking for wins.
+     * @param {boolean} isStructureFilled - Whether the structure is fully filled.
+     */
+    private handleGameProgress(isStructureFilled: boolean): void {
+        if (this._winManager.hasReachedMaxWins()) {
+            this.handleMaxWin();
+        } else {
+            this.handleCountdown(isStructureFilled);
+        }
+    }
+
+    /**
+     * Manages the countdown based on whether the structure is filled or not.
+     * @param {boolean} isStructureFilled - Whether the structure is fully filled.
+     */
+    private handleCountdown(isStructureFilled: boolean): void {
+        if (!isStructureFilled && this._countdown.isCountingDown) {
+            this.cameraClear();
+            this._countdown.pause();
+        } else if (isStructureFilled && !this._countdown.isCountingDown) {
+            this.cameraRotate360();
+            this._countdown.start({
+                onCancelled: this.handleCountdownCancelled.bind(this),
+                onEnd: this.handleWin.bind(this),
+            });
+        }
+    }
+
+    private handleCountdownCancelled(): void {
+        onCountdownCancelled(this);
+    }
+
+    private handleMaxWin(): void {
+        onMaxWin(this);
+    }
+
+    private async handleWin(): Promise<void> {
+        await onWin(this);
+    }
+
+    private async handleLose(): Promise<void> {
+        await onLose(this);
+    }
 }
