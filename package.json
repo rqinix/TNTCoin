@@ -16,7 +16,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@minecraft/server": "^1.11.0",
+    "@minecraft/server": "^1.13.0",
     "@minecraft/server-ui": "^1.1.0"
   }
 }
