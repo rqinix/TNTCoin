@@ -1,5 +1,5 @@
 export type TikTokGifts = keyof typeof TIKTOK_GIFT;
-export const TIKTOK_GIFT: { [key: string]: { icon: string, coins: number } } = {
+export const TIKTOK_GIFT: { [key: string]: TikTokGift } = {
     "Gimme The Vote": { icon: "", coins: 1 },
     "Community Fest": { icon: "", coins: 1 },
     "Music Play": { icon: "", coins: 1 },
@@ -29,7 +29,7 @@ export const TIKTOK_GIFT: { [key: string]: { icon: string, coins: number } } = {
     "Applause": { icon: "", coins: 9 },
     "Cheer You Up": { icon: "", coins: 9 },
 
-    "Friendship Necklace": { icon: "", coins: 10 },
+    "BFF Necklace": { icon: "", coins: 10 },
     "Rosa": { icon: "", coins: 10 },
     "Tiny Diny": { icon: "", coins: 10 },
     "ASMR Time": { icon: "", coins: 10 },

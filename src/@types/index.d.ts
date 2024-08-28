@@ -34,6 +34,7 @@ interface GameSettings {
     doesCameraRotate: boolean;
     useBarriers: boolean;
     randomizeBlocks: boolean;
+    giftGoal: GiftGoalSettings;
 }
 
 interface StructureProperties {
@@ -74,4 +75,17 @@ interface SummonOptions {
 interface WinActions {
     onWin: () => void;
     onMaxWins: () => void;
+}
+
+interface TikTokGift {
+    icon: string;
+    coins: number;
+}
+
+interface GiftGoalSettings {
+    giftName: string;
+    maxCount: number;
+    currentCount: number;
+    isActive: boolean;
+    isEnabled: boolean;
 }
