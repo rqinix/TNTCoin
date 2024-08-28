@@ -1,5 +1,3 @@
-import { PlayerFeedback } from "./PlayerFeedback";
-
 export class Win {
     private _currentWins: number = 0;
     private _maxWins: number;
