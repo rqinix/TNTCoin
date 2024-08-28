@@ -7,6 +7,7 @@ import { SOUNDS } from "../config/config";
 import { event as eventHandler } from "./events/tiktok/index";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { TNTCoinStructure } from "./TNTCoinStructure";
+import { TIKTOK_GIFT } from "../lang/tiktokGifts";
 
 /**
  * A map of player names in-game with a TNTCoinGUI instance.
@@ -44,68 +45,6 @@ export class TNTCoinGUI {
         if (!this._game.isPlayerInGame) {
             INGAME_PLAYERS.set(this._player.name, this);
             this._game.isPlayerInGame = true;
-        }
-    }
-
-    /**
-     * Start the game
-     */
-    private async startGame(): Promise<void> {
-        try {
-            await this._structure.generateProtectedStructure();
-            if (this._game.gameSettings.useBarriers) await this._structure.generateBarriers();
-            
-            this.saveGame();
-            this._game.teleportPlayer();
-            this._game.checkGameStatus();
-            this._player.setSpawnPoint({ ...this._structure.structureCenter, dimension: this._player.dimension });
-
-            this._feedback.playSound('random.anvil_use');
-            this._feedback.playSound('random.levelup');
-        } catch (error) {
-            this._feedback.error(`Failed to start game. ${error.message}`, { sound: 'item.shield.block' });
-            this.quitGame();
-            throw error;
-        }
-    }
-    
-    /**
-    * Quit the game
-    * @returns {Promise<void>} a promise that resolves when the game has been successfully quit.
-    */
-    public async quitGame(): Promise<void> {
-        try {
-            await this._game.cleanGameSession();
-            this._player.setDynamicProperty(this._structure.structureKey, null);
-            this._player.setDynamicProperty(this._game.key, null);
-            this._game.isPlayerInGame = false;
-            INGAME_PLAYERS.delete(this._player.name);
-        } catch (error) {
-            console.error(`Error quitting game: ${error}`);
-        }
-    }
-
-    /**
-     * Save the game
-     */
-    public saveGame(): void {
-        try {
-            this._game.saveGameState();
-        } catch (error) {
-            console.error(`Error saving game: ${error}`);
-        }
-    }
-
-    /**
-     * Load the game
-     * @returns {Promise<void>} a promise that resolves when the game has been successfully loaded.
-     */
-    public async loadGame(): Promise<void> { 
-        try {
-            this._game.loadGameState();
-            await this.startGame();
-        } catch (error) {
-            console.error(`Error loading game: ${error}`);
         }
     }
     
@@ -166,7 +105,7 @@ export class TNTCoinGUI {
     
             this.setupGame();
             this._game.structure.structureProperties = JSON.stringify(newStructureProperties);
-            await this.startGame();
+            await this._game.startGame();
         });
     }
     
@@ -194,12 +133,41 @@ export class TNTCoinGUI {
         .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin/gui/buttons/clock.png')
         .button('Play Sound', this.showPlaySoundForm.bind(this), 'textures/tnt-coin/gui/buttons/record_cat.png')
         .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin/gui/buttons/settings.png')
+        .button('Gift Goal', this.showGiftGoalForm.bind(this))
         .button('§2§kii§r§8Events§2§kii§r', this.showEventsForm.bind(this), 'textures/tnt-coin/gui/buttons/bell.png')
-        .button('Quit', this.quitGame.bind(this), 'textures/tnt-coin/gui/buttons/left.png')
+        .button('Quit', this._game.quitGame.bind(this._game), 'textures/tnt-coin/gui/buttons/left.png')
 
         .show();
     }
-    
+
+    /**
+     * Shows the form to set up or modify the gift goal.
+     */
+    private async showGiftGoalForm(): Promise<void> {
+        const settings = this._game.gameSettings.giftGoal as GiftGoalSettings;
+        const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].icon);
+        
+        const giftOptions = availableGifts.map(giftName => {
+            const gift = TIKTOK_GIFT[giftName];
+            return `${gift.icon} ${giftName}`;
+        });
+        
+        const selectedGiftIndex = availableGifts.findIndex(gift => gift === settings.giftName);
+
+        new ModalForm(this._player, 'Set Gift Goal')
+            .toggle('Enable Gift Goal', settings.isEnabled, (isEnabled) => {
+                this._game.giftGoal.setEnabled(isEnabled as boolean);
+            })
+            .dropdown('Select Gift', giftOptions, selectedGiftIndex, (selectedIndex) => {
+                const selectedGiftName = availableGifts[selectedIndex];
+                this._game.giftGoal.setGift(selectedGiftName);
+            })
+            .textField('number', 'Set Goal', 'Enter the goal amount', settings.maxCount.toString(), (goal) => {
+                this._game.giftGoal.setMaxCount(goal as number);
+            })
+            .show();
+    }
+
     /**
     * Shows the in-game settings form to the player and update the game settings.
     */
@@ -235,6 +203,17 @@ export class TNTCoinGUI {
             'Randomize Placing Blocks',
             oldSettings.randomizeBlocks,
             (updatedValue) => newSettings.randomizeBlocks = updatedValue as boolean
+        )
+        .toggle(
+            'ActionBar',
+            this._game.actionBar.isRunning(),
+            (updatedValue) => {
+                if (updatedValue) {
+                    this._game.actionBar.start();
+                } else {
+                    this._game.actionBar.stop();
+                }
+            }
         )
         .textField(
             "number",
@@ -298,7 +277,7 @@ export class TNTCoinGUI {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
             if (isSettingsChanged) {
                 this._game.gameSettings = newSettings;
-                this.saveGame();
+                this._game.saveGameState();
                 this._feedback.success('Game settings have been updated.', { sound: 'random.levelup' });
             }
         });
@@ -322,7 +301,6 @@ export class TNTCoinGUI {
                 onTop: isOnTop,
             });
         });
-
     }
 
     /**
