@@ -30,7 +30,7 @@ export class TNTCoinGUI {
     constructor(player: Player) {
         this._player = player;
         this._feedback = new PlayerFeedback(player);
-        this._game = new TNTCoin(this._player);
+        this._game = new TNTCoin(player);
         this._structure = this._game.structure;
     }
 
@@ -206,12 +206,12 @@ export class TNTCoinGUI {
         )
         .toggle(
             'ActionBar',
-            this._game.actionBar.isRunning(),
+            this._game.actionbar.isRunning(),
             (updatedValue) => {
                 if (updatedValue) {
-                    this._game.actionBar.start();
+                    this._game.actionbar.start();
                 } else {
-                    this._game.actionBar.stop();
+                    this._game.actionbar.stop();
                 }
             }
         )
@@ -308,9 +308,9 @@ export class TNTCoinGUI {
      */
     private showTimerForm(): void {
         new ActionForm(this._player, 'Timer')
-            .button('Start Timer', () => this._game.timerManager('start'))
-            .button('Stop Timer', () => this._game.timerManager('stop'))
-            .button('Restart Timer', () => this._game.timerManager('restart'))
+            .button('Start Timer', () => this._game.timerManager.start(this._game.timerDuration))
+            .button('Stop Timer', this._game.timerManager.stop.bind(this._game.timerManager))
+            .button('Restart Timer', this._game.timerManager.restart.bind(this._game.timerManager))
             .button('Edit Timer', this.showTimerConfigForm.bind(this))
             .show();
     }
@@ -319,7 +319,7 @@ export class TNTCoinGUI {
      * Shows Timer Configuration Form to the player.
      */
     private showTimerConfigForm(): void {
-        if (this._game.isTimerRunning) {
+        if (this._game.timerManager.isTimerRunning) {
             this._feedback.error('Cannot change timer settings while timer is running.', { sound: 'item.shield.block' });
             return;
         }
@@ -366,7 +366,7 @@ export class TNTCoinGUI {
         const form = new ModalForm(this._player, 'TikTok Events');
 
         eventHandler.getAllEvents().forEach(event => {
-            form.toggle(`Enable ${event} event`, eventHandler.isEventEnabled(event), (enabled) => {
+            form.toggle(`Receive ${event} event actions`, eventHandler.isEventEnabled(event), (enabled) => {
                 if (enabled) {
                     eventHandler.enableEvent(event);
                 } else {
