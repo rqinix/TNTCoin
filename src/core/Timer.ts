@@ -1,5 +1,8 @@
 import { Player } from "@minecraft/server";
 import { taskManager } from "./TaskManager";
+import { ActionBar } from "./ActionBar";
+
+type TimerCallback = () => Promise<void> | void;
 
 export class Timer {
     private player: Player;
@@ -7,62 +10,88 @@ export class Timer {
     private remainingTime: number;
     private timeoutId: string;
     private isRunning: boolean;
-    private displayOnActionBar: boolean;
+    private actionBar: ActionBar;
+    private taskId: string;
+    private onEndCallbacks: TimerCallback[] = [];
 
     /**
      * Creates a new timer for the given player.
      * @param {Player} player The player for whom the timer is created.
+     * @param {ActionBar} actionBar The action bar instance to display the timer.
      */
-    constructor(player: Player) {
-        this.timeoutId = `${player.name}:timer`;
-        this.isRunning = false;
+    constructor(player: Player, actionBar: ActionBar) {
         this.player = player;
-        this.displayOnActionBar = false;
+        this.actionBar = actionBar;
+        this.timeoutId = `${player.name}:timer`;
+        this.taskId = `${player.name}:timer:actionbar`;
+        this.isRunning = false;
     }
 
-    public get isDisplayOnActionBar(): boolean {
-        return this.displayOnActionBar;
-    }
-
+    /**
+     * Gets whether the timer is currently running.
+     */
     public get isTimerRunning(): boolean {
         return this.isRunning;
     }
 
+    /**
+     * Gets the remaining time on the timer.
+     */
     public get timeRemaining(): number {
         return this.remainingTime;
     }
 
     /**
-     * Starts the timer.
-     * @param {number} duration The duration of the timer in seconds.
-     * @param {() => boolean} display Whether to display the timer on the action bar.
-     * @param {() => void} onEnd Callback function when the timer ends.
+     * Registers a callback to be called when the timer ends.
+     * @param {TimerCallback} callback The callback function to be executed on timer end.
      */
-    public start(duration: number, display: () => boolean, onEnd: () => void): void {
-        this.duration = duration;
-        this.remainingTime = duration;
-        if (this.isRunning) this.stop();
-        this.isRunning = true;
-        this.runTimer(display, onEnd);
+    public onEnd(callback: TimerCallback): void {
+        this.onEndCallbacks.push(callback);
     }
 
     /**
-     * Runs the timer and updates the remaining time.
-     * @param {() => boolean} display Whether to display the timer on the action bar.
-     * @param {() => Promise<void> | void} onEnd Callback function when the timer ends.
+     * Starts the timer.
+     * @param {number} duration The duration of the timer in seconds.
      */
-    private async runTimer(display: () => boolean, onEnd: () => Promise<void> | void): Promise<void> {
-        const tickInterval = 20;
-        if (this.remainingTime >= 0) {
-            if (display) this.toggleActionBar(!display());
-            this.updateActionBar();
-            taskManager.addTimeout(this.timeoutId, () => {
-                this.remainingTime--;
-                this.runTimer(display, onEnd);
-            }, tickInterval);
+    public start(duration: number): void {
+        if (this.isRunning) {
+            this.player.sendMessage('§cTimer is already running.');
+            return;
+        };
+        
+        this.duration = duration + 1;
+        this.remainingTime = this.duration;
+        this.isRunning = true;
+
+        this.actionBar.addTask(this.taskId, async () => {
+            const result = await this.task();
+            return result as (string | number)[];
+        });
+
+        this.player.playSound('random.orb');
+    }
+
+    /**
+     * The main task that runs the timer.
+     */
+    private async task(): Promise<(string | number | undefined)[]> {
+        if (this.remainingTime > 0) {
+            this.remainingTime--;
         } else {
             this.isRunning = false;
-            await Promise.resolve(onEnd());
+            this.clearActionBar();
+            await this.triggerOnEnd();
+        }
+
+        return this.getFormattedTime();
+    }
+
+    /**
+     * Triggers all registered onEnd callbacks.
+     */
+    private async triggerOnEnd(): Promise<void> {
+        for (const callback of this.onEndCallbacks) {
+            await Promise.resolve(callback());
         }
     }
 
@@ -72,8 +101,18 @@ export class Timer {
     public stop(): void {
         taskManager.clearTask(this.timeoutId);
         this.isRunning = false;
-        this.remainingTime = this.duration;
         this.clearActionBar();
+        this.player.playSound('random.orb');
+    }
+
+    /**
+     * Restarts the timer with the initial duration.
+     */
+    public restart(): void {
+        if (this.isRunning) {
+            this.reset();
+            this.player.playSound('random.orb');
+        }
     }
 
     /**
@@ -81,32 +120,20 @@ export class Timer {
      */
     public reset(): void {
         this.remainingTime = this.duration;
-        this.updateActionBar();
     }
 
     /**
-     * Toggles the timer display on the action bar.
-     * @param {boolean} display Whether to display the timer on the action bar.
+     * Gets the formatted time string for the action bar display.
      */
-    private toggleActionBar(display: boolean): void {
-        this.displayOnActionBar = display;
-        if (!display) this.clearActionBar();
-    }
-
-    /**
-     * Updates the action bar with the remaining time.
-     */
-    private updateActionBar(): void {
-        if (this.displayOnActionBar) {
-            this.player.onScreenDisplay.setActionBar(`Time Remaining: ${this.remainingTime <= 10 ? '§c' : '§a'}${this.remainingTime}§f seconds`);
-        }
+    private getFormattedTime(): (string | number | undefined)[] {
+        const timeColor = this.remainingTime <= 10 ? '§c' : '§a';
+        return ['Time Left: ', timeColor, this.remainingTime];
     }
 
     /**
      * Clears the action bar display.
      */
     private clearActionBar(): void {
-        this.displayOnActionBar = false;
-        this.player.onScreenDisplay.setActionBar('');
+        this.actionBar.removeTasks([this.taskId]);
     }
 }
