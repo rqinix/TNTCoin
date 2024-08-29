@@ -3,7 +3,7 @@ import { TNTCoin } from "../../TNTCoin";
 /**
  * Handles the event when the player loses the game.
  * @param {TNTCoin} game - The current instance of the TNTCoin game.
- * @returns {Promise<void>} - A promise that resolves when the lose handling is complete.
+ * @returns {Promise<void>} - A promise that resolves when the player loses the game.
  */
 export async function onLose(game: TNTCoin): Promise<void> {
     game.winManager.decrementWin();
@@ -18,5 +18,6 @@ export async function onLose(game: TNTCoin): Promise<void> {
         sound: SOUND 
     });
 
-    await game.restartGame();
+    await game.resetGame();
+    game.timerManager.start(game.timerDuration);
 }

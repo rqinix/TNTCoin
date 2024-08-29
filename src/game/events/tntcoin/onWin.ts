@@ -5,7 +5,7 @@ import { onMaxWin } from "./onMaxWin";
 /**
  * Handles the event when the player wins the game.
  * @param {TNTCoin} game - The current instance of the TNTCoin game.
- * @returns {Promise<void>} - A promise that resolves when the win handling is complete.
+ * @returns {Promise<void>} - A promise that resolves when the player wins the game.
  */
 export async function onWin(game: TNTCoin): Promise<void> {
     game.winManager.incrementWin();
@@ -29,5 +29,6 @@ export async function onWin(game: TNTCoin): Promise<void> {
 
     game.player.playSound('wait_wait_wait');
 
-    await game.restartGame();
+    await game.resetGame();
+    game.timerManager.restart();
 }

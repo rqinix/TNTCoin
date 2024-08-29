@@ -3,8 +3,9 @@ import { TNTCoin } from "../../TNTCoin";
 /**
  * Handles the event when the player reaches the maximum number of wins.
  * @param {TNTCoin} game - The current instance of the TNTCoin game.
+ * @returns {Promise<void>} - A promise that resolves when the player reaches the maximum number of wins.
  */
-export function onMaxWin(game: TNTCoin): void {
+export async function onMaxWin(game: TNTCoin): Promise<void> {
     const isMaxWin = game.winManager.hasReachedMaxWins();
     if (!isMaxWin) return;
 
@@ -17,6 +18,7 @@ export function onMaxWin(game: TNTCoin): void {
     game.feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
     game.summonFireworks(20);
 
+    await game.resetGame();
     game.winManager.resetWins();
-    game.restartGame();
+    game.timerManager.stop();
 }
