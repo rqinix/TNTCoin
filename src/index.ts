@@ -8,7 +8,7 @@
 |
 */
 
-import { BlockPermutation, system, Vector3, world } from "@minecraft/server";
+import { BlockPermutation, system, world } from "@minecraft/server";
 import { floorVector3 } from "./game/utilities/math/floorVector";
 import { GUI_ITEM, RANDOM_BLOCK_ITEM } from "./config/config";
 import { INGAME_PLAYERS, TNTCoinGUI } from "./game/TNTCoinGui";
@@ -63,7 +63,7 @@ world.beforeEvents.explosion.subscribe(event => {
 /**
  * Loads the game state for players who are in a game when they spawn.
  */
-world.afterEvents.playerSpawn.subscribe(event => {
+world.afterEvents.playerSpawn.subscribe(async event => {
     const player = event.player;
     const playerName = player.name;
     try {
@@ -71,9 +71,9 @@ world.afterEvents.playerSpawn.subscribe(event => {
         const parsedState = JSON.parse(gameState) as GameState;
 
         if (parsedState.isPlayerInGame) {
-            const game = new TNTCoinGUI(player);
-            INGAME_PLAYERS.set(playerName, game);
-            game.loadGame();
+            const gui = new TNTCoinGUI(player);
+            INGAME_PLAYERS.set(playerName, gui);
+            await gui.game.loadGame();
         }
     } catch (error) {
         console.error(`No game state found or failed to load for player ${playerName}: ${error.message}`);
@@ -91,9 +91,7 @@ world.afterEvents.playerPlaceBlock.subscribe(event => {
     if (gui?.game.isPlayerInGame && gui.game.gameSettings.randomizeBlocks && blockUsed === RANDOM_BLOCK_ITEM) {
         try {
             const randomBlockType = getRandomBlock();
-            const permutation = BlockPermutation.resolve(randomBlockType);
-            const block = event.block.dimension.getBlock(event.block.location);
-            block.setPermutation(permutation);
+            player.dimension.setBlockType(event.block.location, randomBlockType)
         } catch (error) {
             player.sendMessage(`§4Failed to place random block: ${error.message}`);
             player.playSound('item.shield.block');
