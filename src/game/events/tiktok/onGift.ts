@@ -1,6 +1,5 @@
 import { TNTCoin } from "../../TNTCoin";
-import { TIKTOK_GIFT, TikTokGifts } from "../../../lang/tiktokGifts";
-import { system } from "@minecraft/server"
+import { DEFAULT_GIFT, TIKTOK_GIFT, TikTokGifts } from "../../../lang/tiktokGifts";
 
 /**
  * Handles the gift event.
@@ -10,18 +9,19 @@ import { system } from "@minecraft/server"
 export async function onGift(game: TNTCoin, message: string): Promise<void> { 
     const data = JSON.parse(message);
     const { giftName, giftCount, gifterNickName, gifterUniqueId, gifterRank } = data;
-    const giftIcon = TIKTOK_GIFT[giftName].icon || { icon: '' };
+    
     const formattedGifterNickName = `§e${gifterNickName}§a`;
+    const giftEmoji = TIKTOK_GIFT[giftName].icon || DEFAULT_GIFT;
 
     const goalGiftName = game.giftGoal.getGiftName();
     const isGoalActive = game.giftGoal.isActive();
 
     game.feedback.showFeedbackScreen({ 
-        title: `${giftIcon}\n§d${formattedGifterNickName}§f`, 
+        title: `${giftEmoji}\n§d${formattedGifterNickName}§f`, 
         subtitle: `§asent§f §g${giftName}§f §o§c x${giftCount}!` 
     });
 
-    game.player.sendMessage(`§aThank you for §c§ox${giftCount} §d${giftName}§f${giftIcon}, §b${formattedGifterNickName}§a!`);
+    game.player.sendMessage(`§aThank you for §c§ox${giftCount} §d${giftName}§f${giftEmoji}, §b${formattedGifterNickName}§a!`);
 
     if (isGoalActive && goalGiftName === giftName) {
         game.giftGoal.addGifts(giftCount);
@@ -31,9 +31,9 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
 
     const actions = {
         summonTNT: (amount: number) => {
-            const TITLE = `${giftIcon}\n§d${formattedGifterNickName}§f`;
+            const TITLE = `${giftEmoji}\n§d${formattedGifterNickName}§f`;
             const SUBTITLE = `§asent §cTNT §d§ox${amount}§f`;
-            const MESSAGE = `${giftIcon} ${formattedGifterNickName} sent §cTNT §d§ox${amount}§f!`
+            const MESSAGE = `${giftEmoji} ${formattedGifterNickName} sent §cTNT §d§ox${amount}§f!`
 
             game.summonEntities(
                 'tnt_minecart', 
@@ -50,18 +50,18 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
             game.player.sendMessage(MESSAGE);
         },
         summonLightning: (amount: number) => {
-            const TITLE = `${giftIcon}\n§d${formattedGifterNickName}§f`;
+            const TITLE = `${giftEmoji}\n§d${formattedGifterNickName}§f`;
             const SUBTITLE = `§asent §cLightning Bolts §d§ox${amount}§f!`;
-            const MESSAGE = `${giftIcon} ${formattedGifterNickName} sent §cLightning Bolts §d§ox${amount}§f!`;
+            const MESSAGE = `${giftEmoji} ${formattedGifterNickName} sent §cLightning Bolts §d§ox${amount}§f!`;
 
             game.summonLightningBolt(amount);
             game.feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE });
             game.player.sendMessage(MESSAGE);
         },
         clearBlocks: () => {
-            const TITLE = `${giftIcon}\n§d${formattedGifterNickName}§f`;
+            const TITLE = `${giftEmoji}\n§d${formattedGifterNickName}§f`;
             const SUBTITLE = `§acleared the blocks!`;
-            const MESSAGE = `${giftIcon} ${formattedGifterNickName} cleared the blocks!`;
+            const MESSAGE = `${giftEmoji} ${formattedGifterNickName} cleared the blocks!`;
             const SOUND_ON_CLEAR = 'cat_laughing'; 
 
             game.structure.clearFilledBlocks();
@@ -70,7 +70,7 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
             game.player.sendMessage(MESSAGE);
         },
         fillStructure: () => {
-            const TITLE = `${giftIcon}\n§d${formattedGifterNickName}§f`;
+            const TITLE = `${giftEmoji}\n§d${formattedGifterNickName}§f`;
             const SUBTITLE = `§afilled the structure!`;
             const SOUND_ON_FILL = 'wait_wait_wait';
             
