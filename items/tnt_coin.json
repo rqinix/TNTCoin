@@ -17,7 +17,11 @@
       "minecraft:glint": true,
       "minecraft:food": {
         "can_always_eat": true,
-        "saturation_modifier": 0.1
+        "saturation_modifier": 1
+      },
+      "minecraft:use_modifiers": {
+        "use_duration": 1,
+        "movement_modifier": 0.35
       }
     }
   }
