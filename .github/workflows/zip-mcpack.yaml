@@ -38,7 +38,6 @@ jobs:
           mkdir -p TNTCoin-BP-mcpack
           cp -r items TNTCoin-BP-mcpack/
           cp -r scripts TNTCoin-BP-mcpack/
-          cp -r texts TNTCoin-BP-mcpack/
           cp LICENSE TNTCoin-BP-mcpack/
           cp manifest.json TNTCoin-BP-mcpack/
           cp pack_icon.png TNTCoin-BP-mcpack/
