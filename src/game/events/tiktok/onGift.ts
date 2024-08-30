@@ -13,12 +13,21 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
     const giftIcon = TIKTOK_GIFT[giftName].icon || { icon: '' };
     const formattedGifterNickName = `§e${gifterNickName}§a`;
 
+    const goalGiftName = game.giftGoal.getGiftName();
+    const isGoalActive = game.giftGoal.isActive();
+
     game.feedback.showFeedbackScreen({ 
         title: `${giftIcon}\n§d${formattedGifterNickName}§f`, 
         subtitle: `§asent§f §g${giftName}§f §o§c x${giftCount}!` 
     });
 
     game.player.sendMessage(`§aThank you for §c§ox${giftCount} §d${giftName}§f${giftIcon}, §b${formattedGifterNickName}§a!`);
+
+    if (isGoalActive && goalGiftName === giftName) {
+        game.giftGoal.addGifts(giftCount);
+        game.player.playSound('random.orb');
+        game.saveGameState();
+    }
 
     const actions = {
         summonTNT: (amount: number) => {
