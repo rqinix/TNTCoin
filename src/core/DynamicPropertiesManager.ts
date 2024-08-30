@@ -22,8 +22,7 @@ export class DynamicPropertiesManager {
      */
     public setProperty(key: string, value: boolean | number | string | Vector3 | null): void {
         try {
-            const serializedValue = JSON.stringify(value);
-            this._player.setDynamicProperty(key, serializedValue);
+            this._player.setDynamicProperty(key, value);
         } catch (error) {
             console.error(`Failed to set dynamic property '${key}' for player ${this._player.name}:`, error);
             throw new Error(`Failed to set dynamic property '${key}'.`);
@@ -37,8 +36,8 @@ export class DynamicPropertiesManager {
      */
     public getProperty(key: string): boolean | number | string | Vector3 | null {
         try {
-            const value = this._player.getDynamicProperty(key) as string;
-            return value ? JSON.parse(value) : null;
+            const value = this._player.getDynamicProperty(key);
+            return value;
         } catch (error) {
             console.error(`Failed to get dynamic property '${key}' for player ${this._player.name}:`, error);
             return null;
