@@ -4,6 +4,7 @@ export class WinManager {
     private _currentWins: number = 0;
     private _maxWins: number;
     private _actionBar: ActionBar;
+    private _taskId: string = 'wins:actionbar';
 
     constructor(maxWins: number, actionBar: ActionBar) {
         this._maxWins = maxWins;
@@ -15,7 +16,7 @@ export class WinManager {
      * Sets up the ActionBar to display the current and maximum wins.
      */
     private setupActionBar(): void {
-        this._actionBar.addTask('wins', () => {
+        this._actionBar.addTask(this._taskId, () => {
             const currentWins = this._currentWins;
             const maxWins = this._maxWins;
             let countColor = '§a';
@@ -98,5 +99,9 @@ export class WinManager {
         this._currentWins = wins;
         this._actionBar.updateDisplay();
         return this._currentWins;
+    }
+
+    public clearActionbar(): void {
+        this._actionBar.removeTasks([this._taskId]);
     }
 }

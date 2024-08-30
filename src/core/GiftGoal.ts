@@ -85,9 +85,9 @@ export class GiftGoal {
     }
 
     /**
-     * Stops the gift goal tracking.
+     * Clears the action bar display for the gift goal.
      */
-    public stop(): void {
+    public clearActionbar(): void {
         this._isActive = false;
         this._actionBar.removeTasks(['giftGoal']);
     }
@@ -110,15 +110,22 @@ export class GiftGoal {
             this._currentCount = 0;
         }
 
+        this._isActive = this._isEnabled;
+
+        if (this.isGoalReached()) {
+            this._player.sendMessage(`§aYou have reached the goal of §d${this._giftName}§a!`);
+            this._player.playSound('random.levelup');
+        }
+
         this._actionBar.addTask('giftGoal', () => {
             const progress = [
                 this._gift!.icon,
                 ' ',
                 this._giftName,
                 ': ',
-                '§a',
+                this.isGoalReached() ? '§a§l' : '§c',
                 this._currentCount,
-                '§f/',
+                '§r/',
                 '§d',
                 this._maxCount,
                 '§f'
