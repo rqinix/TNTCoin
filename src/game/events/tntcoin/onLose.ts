@@ -1,3 +1,4 @@
+import { taskManager } from "../../../core/TaskManager";
 import { TNTCoin } from "../../TNTCoin";
 
 /**
@@ -17,7 +18,7 @@ export async function onLose(game: TNTCoin): Promise<void> {
         subtitle: SUBTITLE, 
         sound: SOUND 
     });
-
+    
     await game.resetGame();
-    game.timerManager.start(game.timerDuration);
+    game.timerManager.start();
 }
