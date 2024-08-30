@@ -85,6 +85,8 @@ export class ActionBar {
      * @param {number} tasksPerLine - Maximum number of tasks to display per line.
      */
     public async updateDisplay(tasksPerLine: number = 3): Promise<void> {
+        if (!this._isRunning) return;
+
         const divider = ' §f| ';
         const lines: string[] = [];
         const taskArray = Array.from(this._tasks.values());
