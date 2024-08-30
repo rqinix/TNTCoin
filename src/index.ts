@@ -8,7 +8,7 @@
 |
 */
 
-import { BlockPermutation, system, world } from "@minecraft/server";
+import { system, world } from "@minecraft/server";
 import { floorVector3 } from "./game/utilities/math/floorVector";
 import { GUI_ITEM, RANDOM_BLOCK_ITEM } from "./config/config";
 import { INGAME_PLAYERS, TNTCoinGUI } from "./game/TNTCoinGui";

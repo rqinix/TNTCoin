@@ -47,7 +47,7 @@ export class TNTCoinGUI {
             this._game.isPlayerInGame = true;
         }
     }
-    
+
     /**
     * Shows the GUI to the player.
     */
@@ -133,7 +133,7 @@ export class TNTCoinGUI {
         .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin/gui/buttons/clock.png')
         .button('Play Sound', this.showPlaySoundForm.bind(this), 'textures/tnt-coin/gui/buttons/record_cat.png')
         .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin/gui/buttons/settings.png')
-        .button('Gift Goal', this.showGiftGoalForm.bind(this))
+        .button('Gift Goal', this.showGiftGoalForm.bind(this), 'textures/tnt-coin/gui/buttons/goals.png')
         .button('§2§kii§r§8Events§2§kii§r', this.showEventsForm.bind(this), 'textures/tnt-coin/gui/buttons/bell.png')
         .button('Quit', this._game.quitGame.bind(this._game), 'textures/tnt-coin/gui/buttons/left.png')
 
@@ -165,7 +165,7 @@ export class TNTCoinGUI {
             .textField('number', 'Set Goal', 'Enter the goal amount', settings.maxCount.toString(), (goal) => {
                 this._game.giftGoal.setMaxCount(goal as number);
             })
-            .show();
+            .show(() => this._game.saveGameState());
     }
 
     /**
@@ -289,16 +289,21 @@ export class TNTCoinGUI {
         .toggle('On Top', false)
         .textField("string", "Entity Name:", "Enter the entity name", "tnt_minecart")
         .textField("number", "Amount:", "Enter the amount of entities to summon", "1")
+        .textField("number", "Batch Size:", "Enter the batch size", "5")
+        .textField("number", "Batch Delay:", "Enter the delay between batches", "5")
         .show((response) => {
             const location = response[0] as number;
             const isOnTop = response[1] as boolean;
             const entityName = response[2] as string;
             const amount = Math.max(1, response[3] as number); 
-
+            const batchSize = Math.max(1, response[4] as number);
+            const batchDelay = Math.max(1, response[5] as number);
             this._game.summonEntities(entityName,{
                 amount,
                 locationType: location === 0 ? 'random' : 'center',
                 onTop: isOnTop,
+                batchSize: batchSize,
+                delayBetweenBatches: batchDelay,
             });
         });
     }
@@ -308,7 +313,7 @@ export class TNTCoinGUI {
      */
     private showTimerForm(): void {
         new ActionForm(this._player, 'Timer')
-            .button('Start Timer', () => this._game.timerManager.start(this._game.timerDuration))
+            .button('Start Timer', this._game.timerManager.start.bind(this._game.timerManager))
             .button('Stop Timer', this._game.timerManager.stop.bind(this._game.timerManager))
             .button('Restart Timer', this._game.timerManager.restart.bind(this._game.timerManager))
             .button('Edit Timer', this.showTimerConfigForm.bind(this))
@@ -329,22 +334,22 @@ export class TNTCoinGUI {
                 'number',
                 'Time in Seconds:', 
                 'Enter the time in seconds', 
-                this._game.timerDuration.toString(),
+                this._game.timerManager.getTimerDuration().toString(),
                 (updatedValue) => {
                     const newDuration = updatedValue as number;
                     if (newDuration < 1) {
                         this._feedback.error('Time must be at least 1 second.', { sound: 'item.shield.block' });
                         return;
                     }
-                    this._game.timerDuration = newDuration;
+                    this._game.timerManager.setTimerDuration(newDuration);
+                    this._feedback.success(
+                        'Timer settings have been updated.', 
+                        { sound: 'random.levelup' }
+                    );
+                    this._game.saveGameState();
                 }
             )
-            .show(() => {
-                this._feedback.success(
-                    'Timer settings have been updated.', 
-                    { sound: 'random.levelup' }
-                );
-            });
+            .show();
     }
 
     /**
