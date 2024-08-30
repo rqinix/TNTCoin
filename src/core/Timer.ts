@@ -1,28 +1,29 @@
 import { Player } from "@minecraft/server";
-import { taskManager } from "./TaskManager";
 import { ActionBar } from "./ActionBar";
 
 type TimerCallback = () => Promise<void> | void;
 
 export class Timer {
     private player: Player;
-    private duration: number;
-    private remainingTime: number;
-    private timeoutId: string;
-    private isRunning: boolean;
     private actionBar: ActionBar;
     private taskId: string;
+    private isRunning: boolean;
+    private duration: number;
+    private remainingTime: number;
     private onEndCallbacks: TimerCallback[] = [];
 
     /**
      * Creates a new timer for the given player.
      * @param {Player} player The player for whom the timer is created.
+     * @param {number} duration The duration of the timer in seconds.
      * @param {ActionBar} actionBar The action bar instance to display the timer.
      */
-    constructor(player: Player, actionBar: ActionBar) {
+    constructor(player: Player, duration: number, actionBar: ActionBar) {
         this.player = player;
         this.actionBar = actionBar;
-        this.timeoutId = `${player.name}:timer`;
+
+        this.setTimerDuration(duration);
+
         this.taskId = `${player.name}:timer:actionbar`;
         this.isRunning = false;
     }
@@ -51,23 +52,15 @@ export class Timer {
 
     /**
      * Starts the timer.
-     * @param {number} duration The duration of the timer in seconds.
      */
-    public start(duration: number): void {
+    public start(): void {
         if (this.isRunning) {
             this.player.sendMessage('§cTimer is already running.');
             return;
         };
-        
-        this.duration = duration + 1;
-        this.remainingTime = this.duration;
+
         this.isRunning = true;
-
-        this.actionBar.addTask(this.taskId, async () => {
-            const result = await this.task();
-            return result as (string | number)[];
-        });
-
+        this.actionBar.addTask(this.taskId, async () => await this.task());
         this.player.playSound('random.orb');
     }
 
@@ -78,19 +71,18 @@ export class Timer {
         if (this.remainingTime > 0) {
             this.remainingTime--;
         } else {
-            this.isRunning = false;
-            this.clearActionBar();
-            await this.triggerOnEnd();
+            this.stop();
+            await this.executeCallbacks(this.onEndCallbacks);
         }
 
         return this.getFormattedTime();
     }
 
     /**
-     * Triggers all registered onEnd callbacks.
+     * Executes the given callbacks.
      */
-    private async triggerOnEnd(): Promise<void> {
-        for (const callback of this.onEndCallbacks) {
+    private async executeCallbacks(callbacks: TimerCallback[]): Promise<void> {
+        for (const callback of callbacks) {
             await Promise.resolve(callback());
         }
     }
@@ -99,9 +91,10 @@ export class Timer {
      * Stops the timer.
      */
     public stop(): void {
-        taskManager.clearTask(this.timeoutId);
+        if (!this.isRunning) return;
         this.isRunning = false;
         this.clearActionBar();
+        this.reset();
         this.player.playSound('random.orb');
     }
 
@@ -115,10 +108,23 @@ export class Timer {
         }
     }
 
-    /**
-     * Resets the timer to the initial duration.
-     */
     public reset(): void {
+        this.remainingTime = this.duration;
+    }
+
+    /**
+     * Gets the duration of the timer.
+     * @returns The duration of the timer.
+     */
+    public getTimerDuration(): number {
+        return this.duration - 1;
+    }
+
+    /**
+     * Sets the duration of the timer.
+     */
+    public setTimerDuration(duration: number): void {
+        this.duration = duration + 1;
         this.remainingTime = this.duration;
     }
 
