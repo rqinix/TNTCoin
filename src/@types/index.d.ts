@@ -35,6 +35,7 @@ interface GameSettings {
     useBarriers: boolean;
     randomizeBlocks: boolean;
     giftGoal: GiftGoalSettings;
+    timerDuration: number;
 }
 
 interface StructureProperties {

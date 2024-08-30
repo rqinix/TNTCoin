@@ -1,4 +1,4 @@
-import { Player, ScriptEventCommandMessageAfterEvent, system, Vector3 } from "@minecraft/server";
+import { Player, ScriptEventCommandMessageAfterEvent, Vector3 } from "@minecraft/server";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 import { Countdown } from "../core/Countdown";
 import { taskManager } from "../core/TaskManager";
@@ -6,14 +6,17 @@ import { rotateCamera360 } from "./utilities/camera/rotate360";
 import { floorVector3 } from "./utilities/math/floorVector";
 import { Timer } from "../core/Timer";
 import { event as eventHandlerRegistry } from "./events/tiktok/index";
-import { clearBlocks } from "./utilities/blocks/clearing";
 import { PlayerFeedback } from "../core/PlayerFeedback";
-import { Win } from "../core/WinManager";
-import { batch } from "./utilities/batch";
-import { onWin } from "./events/tntcoin/onWin";
-import { onLose } from "./events/tntcoin/onLose";
+import { WinManager } from "../core/WinManager";
 import { onMaxWin } from "./events/tntcoin/onMaxWin";
-import { onCountdownCancelled } from "./events/tntcoin/onCountdownCancel";
+import { onCountdownCancel } from "./events/tntcoin/onCountdownCancel";
+import { ActionBar } from "../core/ActionBar";
+import { INGAME_PLAYERS } from "./TNTCoinGui";
+import { GiftGoal } from "../core/GiftGoal";
+import { DynamicPropertiesManager } from "../core/DynamicPropertiesManager";
+import { summonEntities } from "./utilities/entities/spawner";
+import { onLose } from "./events/tntcoin/onLose";
+import { onWin } from "./events/tntcoin/onWin";
 
 /**
  * Represents a TNTCoin game instance.
@@ -23,20 +26,22 @@ export class TNTCoin {
     private readonly _structure: TNTCoinStructure;
     private readonly _feedback: PlayerFeedback;
     private readonly _countdown: Countdown;
-    private readonly _timer: Timer;
-    private readonly _winManager: Win;
-    private readonly _gameKey: string;
+    private readonly _timerManager: Timer;
+    private readonly _winManager: WinManager;
+    private readonly _actionBar: ActionBar;
+    private readonly _giftGoal: GiftGoal;
+    private readonly _propertiesManager: DynamicPropertiesManager;
+
     private _isPlayerInGame: boolean = false;
+
+    private readonly _gameKey: string;
+    private readonly _taskCameraId: string;
+    private readonly _taskFillCheckId: string;
 
     private _useBarriers: boolean = false;
     private _doesCameraRotate: boolean = true;
     private _randomizeBlocks: boolean = true;
 
-    private _timerDuration: number = 180;
-
-    private _taskCameraId: string;
-    private _taskFillCheckId: string;
-    
     /**
      * Creates a new TNTCoin game instance.
      * @param {Player} player The player to create the game for.
@@ -44,21 +49,62 @@ export class TNTCoin {
     constructor(player: Player) {
         this._gameKey = 'TNTCoinGameState';
         this._player = player;
+
         this._structure = new TNTCoinStructure(player);
         this._feedback = new PlayerFeedback(player);
+        this._actionBar = new ActionBar(player);
         this._countdown = new Countdown(10, player);
-        this._timer = new Timer(player);
-        this._winManager = new Win(10);
+        this._timerManager = new Timer(player, 180, this._actionBar);
+        this._winManager = new WinManager(10, this._actionBar);
+        this._giftGoal = new GiftGoal(player, this._actionBar);
+        this._propertiesManager = new DynamicPropertiesManager(player);
+
         this._taskFillCheckId = `${player.name}:fillcheck`;
         this._taskCameraId = `${player.name}:camera`;
+
+        this._timerManager.addOnEndCallback(() => onLose(this));
+        this._countdown.addOnEndCallback(() => onWin(this));
+        this._countdown.addOnCancelCallback(() => onCountdownCancel(this));
     }
 
-    public get key(): string {
-        return this._gameKey;
+    public get gameSettings(): GameSettings {
+        return {
+            wins: this._winManager.getCurrentWins(),
+            maxWins: this._winManager.getMaxWins(),
+            fillSettings: this._structure.fillSettings,
+            defaultCountdownTime: this._countdown.defaultCountdownTime,
+            countdownTickInterval: this._countdown.tickInterval,
+            doesCameraRotate: this._doesCameraRotate,
+            useBarriers: this._useBarriers,
+            randomizeBlocks: this._randomizeBlocks,
+            giftGoal: this._giftGoal.settings,
+            timerDuration: this.timerManager.getTimerDuration(),
+        };
+    }
+
+    public set gameSettings(settings: GameSettings) {
+        this._winManager.setWins(settings.wins);
+        this._winManager.setMaxWins(settings.maxWins);
+        this._structure.fillSettings = settings.fillSettings;
+        this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
+        this._countdown.tickInterval = settings.countdownTickInterval;
+        this._doesCameraRotate = settings.doesCameraRotate;
+        this._useBarriers = settings.useBarriers;
+        this._randomizeBlocks = settings.randomizeBlocks;
+        this._giftGoal.settings = settings.giftGoal;
+        this._timerManager.setTimerDuration(settings.timerDuration);
     }
 
     public get player(): Player {
         return this._player;
+    }
+
+    public get isPlayerInGame(): boolean {
+        return this._isPlayerInGame;
+    }
+
+    public set isPlayerInGame(value: boolean) {
+        this._isPlayerInGame = value;
     }
 
     public get structure(): TNTCoinStructure {
@@ -73,141 +119,127 @@ export class TNTCoin {
         return this._countdown;
     }
 
-    public get winManager(): Win {
+    public get winManager(): WinManager {
         return this._winManager;
     }
 
-    public get isPlayerInGame(): boolean {
-        return this._isPlayerInGame;
+    public get actionbar(): ActionBar {
+        return this._actionBar;
     }
 
-    public set isPlayerInGame(value: boolean) {
-        this._isPlayerInGame = value;
+    public get giftGoal(): GiftGoal {
+        return this._giftGoal;
     }
 
-    public set timerDuration(value: number) {
-        this._timerDuration = value;
-    }
-
-    public get timerDuration(): number {
-        return this._timerDuration;
-    }
-
-    public get isTimerRunning(): boolean {
-        return this._timer.isTimerRunning;
-    }
-
-    public get gameSettings(): GameSettings {
-        return {
-            wins: this._winManager.getCurrentWins(),
-            maxWins: this._winManager.getMaxWins(),
-            fillSettings: this._structure.fillSettings,
-            defaultCountdownTime: this._countdown.defaultCountdownTime,
-            countdownTickInterval: this._countdown.tickInterval,
-            doesCameraRotate: this._doesCameraRotate,
-            useBarriers: this._useBarriers,
-            randomizeBlocks: this._randomizeBlocks,
-        };
-    }
-
-    public set gameSettings(settings: GameSettings) {
-        this._winManager.setWins(settings.wins);
-        this._winManager.setMaxWins(settings.maxWins);
-        this._structure.fillSettings = settings.fillSettings;
-        this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
-        this._countdown.tickInterval = settings.countdownTickInterval;
-        this._doesCameraRotate = settings.doesCameraRotate;
-        this._useBarriers = settings.useBarriers;
-        this._randomizeBlocks = settings.randomizeBlocks;
+    public get timerManager(): Timer {
+        return this._timerManager;
     }
 
     /**
-     * Save the game state to the player's dynamic properties.
+     * Start the game
      */
+    public async startGame(): Promise<void> {
+        try {
+            await this._structure.generateProtectedStructure();
+            if (this.gameSettings.useBarriers) await this._structure.generateBarriers();
+
+            this._player.setSpawnPoint({ 
+                ...this._structure.structureCenter, 
+                dimension: this._player.dimension 
+            });
+            this.teleportPlayer();
+
+            this.checkGameStatus();
+            this._actionBar.start();
+
+            this.saveGameState();
+
+            this._feedback.playSound('random.anvil_use');
+            this._feedback.playSound('random.levelup');
+        } catch (error) {
+            this._feedback.error(`Failed to start game. ${error.message}`, { sound: 'item.shield.block' });
+            this.quitGame();
+            throw error;
+        }
+    }
+
     public saveGameState(): void {
         const gameState: GameState = {
             isPlayerInGame: this._isPlayerInGame,
-            structureProperties: this._structure.structureProperties,
             gameSettings: this.gameSettings,
-        }
-
-        try {
-            this._player.setDynamicProperty(this._gameKey, JSON.stringify(gameState));
-        } catch (error) {
-            this._feedback.error('Failed to save game state.', { sound: "mob.wither.death" });
-        }
+            structureProperties: this._structure.structureProperties,
+        };
+        this._propertiesManager.setProperty(this._gameKey, JSON.stringify(gameState));
     }
 
     /**
      * Load the game state from the player's dynamic properties.
      */
     public loadGameState(): void {
+        const properties = this._propertiesManager.getProperty(this._gameKey) as string;
+        const gameState = JSON.parse(properties) as GameState;
+        this._isPlayerInGame = gameState.isPlayerInGame;
+        this.gameSettings = gameState.gameSettings;
+        this._structure.structureProperties = JSON.stringify(gameState.structureProperties);
+    }
+
+    /**
+     * Load the game
+     * @returns {Promise<void>} a promise that resolves when the game has been successfully loaded.
+     */
+    public async loadGame(): Promise<void> { 
         try {
-            const gameStateString = this._player.getDynamicProperty(this._gameKey) as string;
-            if (!gameStateString) return;
-            const gameState = JSON.parse(gameStateString) as GameState;
-            this._isPlayerInGame = gameState.isPlayerInGame;
-            this._structure.structureProperties = JSON.stringify(gameState.structureProperties);
-            this.gameSettings = gameState.gameSettings;
+            this.loadGameState();
+            await this.startGame();
+            console.warn(`Game loaded for player ${this._player.name}`);
         } catch (error) {
-            this._feedback.error('Failed to load game state.', { sound: "mob.wither.death" });
+            console.error(`Error loading game: ${error}`);
         }
     }
 
     /**
-     * Restarts the game.
+     * Quit the game
+     * @returns {Promise<void>} a promise that resolves when the game has been successfully quit.
+     */
+    public async quitGame(): Promise<void> {
+        try {
+            await this.cleanGameSession();
+            this._propertiesManager.removeProperty(this._gameKey);
+            this._propertiesManager.removeProperty(this._structure.structureKey);
+            this.isPlayerInGame = false;
+            INGAME_PLAYERS.delete(this._player.name);
+        } catch (error) {
+            console.error(`Error quitting game: ${error}`);
+        }
+    }
+
+    /**
+     * Resets the game by clearing all filled blocks and camera rotation.
      * @returns {Promise<void>} A promise that resolves when the game is restarted.
      */
-    public async restartGame(): Promise<void> {
-        await this._structure.clearFilledBlocks();
+    public async resetGame(): Promise<void> {
         this.cameraClear();
-        this.timerManager('restart');
+        await this._structure.clearFilledBlocks();
     }
 
     /**
     * Cleans up the game session by stopping all activities and clearing blocks.
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
-    public async cleanGameSession(): Promise<void> {
+    public async cleanGameSession(): Promise<void> { 
         this.cameraClear();
+
         this._countdown.reset();
-        this.timerManager('stop');
+        this._actionBar.stop();
+        this._timerManager.stop();
+        this._winManager.clearActionbar();
+        this._giftGoal.clearActionbar();
+
         this._structure.fillStop();
         taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId]);
         await this._structure.clearFilledBlocks();
         await this._structure.clearProtedtedStructure();
     }
-
-    public timerManager(action: TimerAction): void {
-        const TIMER_START_SOUND = 'random.orb';
-        switch (action) {
-            case 'start':
-                if (this._timer.isTimerRunning) {
-                    this._feedback.error('Timer is already running.', { sound: "item.shield.block" });
-                    return;
-                }
-    
-                this._timer.toggleActionBar(true);
-                this._timer.start(this._timerDuration, this.handleLose.bind(this));
-                this._feedback.playSound(TIMER_START_SOUND);
-                break;
-    
-            case 'stop':
-                this._timer.stop();
-                this._feedback.playSound(TIMER_START_SOUND);
-                break;
-    
-            case 'restart':
-                if (this._timer.isTimerRunning) {
-                    this._timer.reset();
-                    this._feedback.playSound(TIMER_START_SOUND);
-                }
-                break;
-    
-            default:
-                throw new Error(`Unknown timer action: ${action}`);
-        }
-    }    
 
     /**
      * Rotates the player's camera 360 degrees around the structure.
@@ -239,31 +271,18 @@ export class TNTCoin {
     */
     public teleportPlayer(height: number = 1): void {
         const TELEPORT_SOUND = 'mob.shulker.teleport';
-        const TELEPORT_PARTICLE = 'minecraft:eyeofender_death_explode_particle';
-
-        this._player.teleport({ 
-            x: this._structure.structureCenter.x, 
-            y: this._structure.structureCenter.y + height, 
-            z: this._structure.structureCenter.z 
-        });
-        
-        try {
-            this._player.dimension.spawnParticle(
-                TELEPORT_PARTICLE, {
-                    x: this._player.location.x,
-                    y: this._player.location.y + 1,
-                    z: this._player.location.z,
-                }
-            );
-        } catch (error) {
-            console.error('Failed to spawn teleport particle.');
-        }
-
+        const { x, y, z } = this._structure.structureCenter;
+        const location = {x, y: y + height, z};
+        this._player.teleport(location);
         this._feedback.playSound(TELEPORT_SOUND);
     }
 
+    public summonEntities(entityName: string, options: SummonOptions): void {
+        summonEntities(this, entityName, options);
+    }
+
     public summonFireworks(amount: number): void {
-        this.summonEntities('fireworks_rocket', {
+        summonEntities(this, 'fireworks_rocket', {
             locationType: 'random',
             amount: amount
         });
@@ -273,7 +292,7 @@ export class TNTCoin {
      * summons TNT at random locations in the structure
      */
     public summonTNT(): void {
-        this.summonEntities('tnt_minecart', { locationType: 'random', onTop: true });
+        summonEntities(this, 'tnt_minecart', { locationType: 'random', onTop: true });
     }
 
     /**
@@ -294,66 +313,12 @@ export class TNTCoin {
             locations.push(randomLocation);
         }
     
-        this.summonEntities('lightning_bolt', {
+        summonEntities(this, 'lightning_bolt', {
             customLocations: locations,
             clearBlocksAfterSummon: true,
         });
     } 
 
-    /**
-     * Summons entities in the game based on the provided options.
-     * @param {string} entityName - The name of the entity to summon.
-     * @param {SummonOptions} options - The options for summoning entities.
-     */
-    public summonEntities(
-        entityName: string,
-        options: SummonOptions
-    ): void {
-        const {
-            locationType = 'random', 
-            onTop = false,
-            amount = 1,
-            clearBlocksAfterSummon = false,
-            customLocations = [],
-            batchSize = 10, 
-            delayBetweenBatches = 0,
-            onSummon = () => {},
-        } = options;
-
-        let locations: Vector3[] = [];
-
-        if (customLocations.length > 0) {
-            locations = customLocations;
-        } else if (locationType === 'center') {
-            const centerLocation = {
-                x: this._structure.structureCenter.x,
-                y: onTop ? this._structure.structureCenter.y + this._structure.structureHeight + 5 : this._structure.structureCenter.y + 2,
-                z: this._structure.structureCenter.z
-            };
-            locations = Array(amount).fill(centerLocation);
-        } else if (locationType === 'random') {
-            locations = Array.from({ length: amount }, () => this._structure.randomLocation(2, onTop));
-        }
-
-        batch(
-            locations,
-            batchSize,
-            (location) => {
-                try {
-                    this._player.dimension.spawnEntity(entityName, location);
-                    onSummon();
-                    if (clearBlocksAfterSummon) {
-                        clearBlocks(this._player.dimension, [location], 100);
-                    }
-                } catch (error) {
-                    this._feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });
-                }
-            },
-            {
-                delayInTicks: delayBetweenBatches
-            }
-        );
-    }
 
     /**
      * Handles script events.
@@ -387,7 +352,7 @@ export class TNTCoin {
      */
     private handleGameProgress(isStructureFilled: boolean): void {
         if (this._winManager.hasReachedMaxWins()) {
-            this.handleMaxWin();
+            onMaxWin(this);
         } else {
             this.handleCountdown(isStructureFilled);
         }
@@ -403,26 +368,7 @@ export class TNTCoin {
             this._countdown.pause();
         } else if (isStructureFilled && !this._countdown.isCountingDown) {
             this.cameraRotate360();
-            this._countdown.start({
-                onCancelled: this.handleCountdownCancelled.bind(this),
-                onEnd: this.handleWin.bind(this),
-            });
+            this._countdown.start();
         }
-    }
-
-    private handleCountdownCancelled(): void {
-        onCountdownCancelled(this);
-    }
-
-    private handleMaxWin(): void {
-        onMaxWin(this);
-    }
-
-    private async handleWin(): Promise<void> {
-        await onWin(this);
-    }
-
-    private async handleLose(): Promise<void> {
-        await onLose(this);
     }
 }
