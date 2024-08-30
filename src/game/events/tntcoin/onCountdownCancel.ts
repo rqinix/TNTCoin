@@ -1,7 +1,7 @@
 import { TNTCoin } from "../../TNTCoin";
 
 
-export async function onCountdownCancelled(game: TNTCoin): Promise<void> {
+export async function onCountdownCancel(game: TNTCoin): Promise<void> {
     const TITLE = '§cOHHH NOOOO!!!§r';
     const SOUND = 'random.totem';
 

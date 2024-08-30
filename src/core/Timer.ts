@@ -45,7 +45,7 @@ export class Timer {
      * Registers a callback to be called when the timer ends.
      * @param {TimerCallback} callback The callback function to be executed on timer end.
      */
-    public onEnd(callback: TimerCallback): void {
+    public addOnEndCallback(callback: TimerCallback): void {
         this.onEndCallbacks.push(callback);
     }
 
