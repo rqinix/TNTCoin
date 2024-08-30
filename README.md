@@ -16,14 +16,15 @@ TNT Coin is a Minecraft BE/PE add-on designed to make it easy for players to set
 
 ## Download
 
-> [!WARNING]
-> Note: This version of the addon is still under development
-> and may receive updates or changes as we continue to improve its features.
+> [!IMPORTANT]
+> **Requirement:** Enable "Beta APIs" in your world settings for this add-on to function correctly.
 
+**_Show your support by giving it a ⭐!_**
 - [Download Resource Pack](https://github.com/rqinix/RP-TNT-Coin/releases)
 - [Download Behavior Pack](https://github.com/rqinix/BP-TNT-Coin/releases)
 
-> **_Show your support by giving it a ⭐!_**
+> **Note:** This is an early release, so you might encounter some unexpected behavior. We appreciate your patience and feedback as we continue to improve TNT Coin! 
+
 
 ## 🌟 Core Features
 
