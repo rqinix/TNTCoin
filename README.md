@@ -2,7 +2,9 @@
 
 ![pack_icon](./pack_icon.png)
 
-# TNT COIN
+# TNT Coin
+
+Experience the Minecraft TNT Challenge with TNT Coin!
 
 ![license](https://img.shields.io/github/license/rqinix/BP-TNT-Coin?color=lightgreen&logo=open-source-initiative)
 ![release](https://img.shields.io/github/v/release/rqinix/BP-TNT-Coin?color=purple&logo=github)
@@ -10,69 +12,96 @@
 
 </div>
 
-TNT Coin is a Minecraft BE/PE add-on, inspired by a popular trend on TikTok live streams known as the Minecraft TNT Challenge. In this challenge, streamers try to build or maintain a structure while their viewers send virtual gifts that spawn TNT, causing chaos and destruction.
-
-TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and run the Minecraft TNT Challenge.
+TNT Coin is a Minecraft BE/PE add-on designed to make it easy for players to set up and run the Minecraft TNT Challenge. This challenge, popularized on TikTok live streams, involves players trying to fill a structure with blocks while viewers send virtual gifts that spawn TNT, causing chaos and destruction. 
 
 ## Download
+
+> [!WARNING]
+> Note: This version of the addon is still under development
+> and may receive updates or changes as we continue to improve its features.
 
 - [Download Resource Pack](https://github.com/rqinix/RP-TNT-Coin/releases)
 - [Download Behavior Pack](https://github.com/rqinix/BP-TNT-Coin/releases)
 
-## 🌟Features
+> **_Show your support by giving it a ⭐!_**
+
+## 🌟 Core Features
+
 ### Graphical User Interface (GUI)
 
-- Simply open your inventory, navigate to the Items tab, and search for "TNT Coin".
+- Simply open your inventory, navigate to the Items tab, and search for "TNT Coin", and right click to open the GUI.
 
 ![img2](./docs/images/image_2.png)
 
-<br>
-
 ![img3](./docs/images/image_3.png)
-
-<br>
-
-![img4](./docs/images/image_4.png)
-
-<br>
-
-![img5](./docs/images/image_5.png)
-
 
 ### Structure Creation
 
 - Players can select the base and side block types for the structure.
 - The width and height of the structure can be customized.
 
+![TNT Coin Structure Configuration](./docs/images/image_1.png)
 
-<img src="./docs/images/image_1.png" alt="TNT Coin Structure Configuration">
+![TNT Coin Structure](./docs/images/structure.png)
 
-<img src="./docs/images/structure.png" alt="TNT Coin Structure">
+### Settings
 
-### Barrier Generation
+![Game Settings](./docs/images/settings.png)
 
-- Enable/Disable Barriers
+#### Barrier Generation
 
-### Block Filling
+- Enable/Disable Barriers in settings.
 
-- Players can specify which block type should be used for filling.
+![Barriers](./docs/images/barriers.png)
+
+#### Block Filling
+
+- Players can specify which block type should be used for filling in settings.
 - Players can start and stop the block filling process at any time.
+- Players can modify the speed of filling process in settings.
 
-### Timer
-
-- Players can start, stop, and restart at any time.
-- The timer can be displayed on the action bar.
-
-<img src="./docs/images/timer.png" alt="Timer Actionbar">
-
-- Players can configure the timer’s duration.
-- If you run out of time, you will LOSE!
-
-### Countdown
+#### Countdown
 
 - When the structure is filled, a countdown begins, determining if the player wins or loses the round.
 - During the countdown, the player’s camera can be set to rotate around the structure.
 - Players can configure where to start counting down.
+
+#### Randomized Block Placement
+
+- This feature allows players to place a random block from a predefined list whenever they use a specific item in the game.
+- Update the `RANDOM_BLOCK_ITEM` to the desired item ID.
+- Modify the `BLOCKS` array from `scripts/config/config.js` file to include any block IDs you want to be randomly selected when the specified `RANDOM_BLOCK_ITEM` is used.
+
+```ts
+/**
+ * The item that will be used to place random block.
+ */
+export const RANDOM_BLOCK_ITEM = 'minecraft:amethyst_block';
+
+/**
+ * List of possible blocks when placing random blocks.
+ */
+export const BLOCKS = [
+    'minecraft:stone',
+    'minecraft:dirt',
+    'minecraft:grass',
+    'minecraft:diamond_block',
+    'minecraft:emerald_block',
+    'minecraft:gold_block',
+    'minecraft:iron_block',
+    "minecraft:pink_wool",
+    // ... add more blocks
+];
+```
+
+### Timer
+
+- Players can start, stop, and restart at any time.
+- Players can configure the timer’s duration.
+- If you run out of time, you will LOSE!
+- The timer can be displayed on the action bar.
+
+![Timer Actionbar](./docs/images/timer.png)
 
 ### Summon Entities
 
@@ -80,78 +109,44 @@ TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and r
 - Summon TNT
 - Summon Lightning Bolt: This randomly striking or destroying any type of blocks within the structure.
 
-### Wins/Loses
-
-- Players can edit their wins and adjust the maxixum win.
-- Tracks player wins and determines when the player reaches the maximum win threshold.
-- Use timer to lose.
-
-### Randomized Block Placement
-
-- This feature allows players to place a random block from a predefined list whenever they use a specific item in the game.
-
-<img src="./docs/images/randomblock1.png" alt="random block">
-
-- Update the `RANDOM_BLOCK_ITEM` to the desired item ID.
-- Modify the `BLOCKS` array from `scripts/config/config.js` file to include any block IDs you want to be randomly selected when the specified `RANDOM_BLOCK_ITEM` is used.
-
-```ts
-/**
- * The item that will be used to place random block.
- */
-export const RANDOM_BLOCK_ITEM = 'minecraft:amethyst_block';
-
-/**
-* List of possible blocks when placing random blocks.
-*/
-export const BLOCKS = [
-    'minecraft:stone',
-    'minecraft:dirt',
-    'minecraft:grass',
-    'minecraft:diamond_block',
-    'minecraft:emerald_block',
-    'minecraft:gold_block',
-    'minecraft:iron_block',
-    "minecraft:pink_wool",
-    // ... add more blocks
-];
-```
-
 ### Play Sound
 
-<img src="./docs/images/playsound.png" alt="playsound">
+![playsound](./docs/images/playsound.png)
 
 - You can easily modify the sounds available in the game by editing also the `scripts/config/config.js` file.
 
 ```ts
 /**
- * List of sounds that you can play
-    */
+ * List of sounds that you can play
+ */
 export const SOUNDS = [
-    {
-        name: 'Totem',
-        sound: 'random.totem'
-    },
-    {
-        name: 'LevelUp',
-        sound: 'random.levelup'
-    },
-    {
-        name: ' ... '
-        sound: ' ... '
-    },
-    // ... add more sounds
+    {
+        name: 'Totem',
+        sound: 'random.totem' // sound id
+    },
+    // ... add more sounds
 ]
 ```
 
 ### Save and Load Game State
 
-- Save player's settings.
+### Gift Goal
+
+The Gift Goal System in TNT Coin allows you to set specific gift targets for your live stream.
+
+- Choose from available gifts with emojis, set the desired target count, and toggle the display on or off as needed.
+- To enable live tracking of gift goals, connect your Minecraft world to [TikTokLiveMCBE](https://github.com/rqinix/TikTokLiveMCBE), a WebSocket server. This connection ensures that as viewers send gifts during your TikTok live stream, the progress towards the goal is updated on the action bar.
+
+![Gift Goal Settings](./docs/images/gift_goal_settings.png)
+
+![Gift Goal Actionbar](./docs/images/gift_goal_actionbar.png)
 
 ### Events
 
 - The game listens for specific script events (e.g., `tntcoin:join`) received from the WebSocket server.
-- Players can enable or disable specific events.
+- Players can enable or disable specific event actions.
+
+![TikTok Events](./docs/images/events.png)
 
 ## Using WebSocket
 
@@ -162,3 +157,7 @@ See here: [TikTokLiveMCBE](https://github.com/rqinix/TikTokLiveMCBE)
 ## Contributing
 
 Feel free to contribute by submitting issues or pull requests. Any improvements or new features are welcome!
+
+## License
+
+This project is licensed under the terms of the [MIT License](./LICENSE).

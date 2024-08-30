@@ -80,9 +80,12 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
             });
             game.player.playSound(SOUND_ON_FILL);
             game.structure.fill();
-        }
+        },
+        // ... Add your own actions here
     };
 
+    // TikTok may change the gift names, so we need to update this list and the gift names in the lang folder
+    // For example, TikTok changed the gift name 'Friendship Necklace' to 'BFF Necklace'
     const giftActions: { [key in TikTokGifts]?: () => Promise<void> | void } = {
         'Rose': () => actions.summonTNT(giftCount * 10),
         'Community Fest': () => actions.summonTNT(giftCount * 15),
@@ -97,6 +100,7 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
         // See gift names in 'lang' folder
     };
 
+    // Execute the action for the gift
     const giftAction = giftActions[giftName];
     if (giftAction) {
         await giftAction();
