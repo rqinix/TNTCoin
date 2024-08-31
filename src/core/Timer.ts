@@ -124,6 +124,7 @@ export class Timer {
      * Sets the duration of the timer.
      */
     public setTimerDuration(duration: number): void {
+        if (this.isRunning) return;
         this.duration = duration + 1;
         this.remainingTime = this.duration;
     }
