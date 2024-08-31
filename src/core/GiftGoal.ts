@@ -11,6 +11,8 @@ export class GiftGoal {
     private _maxCount: number = 100; 
     private _isActive: boolean = false;
     private _isEnabled: boolean = false;
+    private _isGoalAnnounced: boolean = false;
+
 
     constructor(player: Player, actionBar: ActionBar) {
         this._player = player;
@@ -44,6 +46,7 @@ export class GiftGoal {
         this.setGift(giftName);
         this._maxCount = maxCount;
         this._currentCount = 0;
+        this._isGoalAnnounced = false;
         this._isActive = true;
         this.updateActionBar();
     }
@@ -68,6 +71,7 @@ export class GiftGoal {
      */
     public reset(): void {
         this._currentCount = 0;
+        this._isGoalAnnounced = false; 
         this.updateActionBar();
     }
 
@@ -113,8 +117,13 @@ export class GiftGoal {
         this._isActive = this._isEnabled;
 
         if (this.isGoalReached()) {
-            this._player.sendMessage(`§aYou have reached the goal of §d${this._giftName}§a!`);
-            this._player.playSound('random.levelup');
+            if (!this._isGoalAnnounced) {
+                this._player.sendMessage(`§aYou have reached the goal of §d${this._giftName}§a!`);
+                this._player.playSound('random.levelup');
+                this._isGoalAnnounced = true; 
+            }
+        } else {
+            this._isGoalAnnounced = false; 
         }
 
         this._actionBar.addTask('giftGoal', () => {
