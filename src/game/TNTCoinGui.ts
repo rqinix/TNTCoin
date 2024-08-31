@@ -153,14 +153,16 @@ export class TNTCoinGUI {
         });
         
         const selectedGiftIndex = availableGifts.findIndex(gift => gift === settings.giftName);
-
+    
         new ModalForm(this._player, 'Set Gift Goal')
             .toggle('Enable Gift Goal', settings.isEnabled, (isEnabled) => {
                 this._game.giftGoal.setEnabled(isEnabled as boolean);
             })
-            .dropdown('Select Gift', giftOptions, selectedGiftIndex, (selectedIndex) => {
-                const selectedGiftName = availableGifts[selectedIndex];
-                this._game.giftGoal.setGift(selectedGiftName);
+            .dropdown('Select Gift', giftOptions, selectedGiftIndex >= 0 ? selectedGiftIndex : 0, (selectedIndex) => {
+                if (selectedIndex >= 0 && selectedIndex < availableGifts.length) {
+                    const selectedGiftName = availableGifts[selectedIndex];
+                    this._game.giftGoal.setGift(selectedGiftName);
+                }
             })
             .textField('number', 'Set Goal', 'Enter the goal amount', settings.maxCount.toString(), (goal) => {
                 this._game.giftGoal.setMaxCount(goal as number);
@@ -277,7 +279,6 @@ export class TNTCoinGUI {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
             if (isSettingsChanged) {
                 this._game.gameSettings = newSettings;
-                this._game.saveGameState();
                 this._feedback.success('Game settings have been updated.', { sound: 'random.levelup' });
             }
         });
@@ -346,7 +347,7 @@ export class TNTCoinGUI {
                         'Timer settings have been updated.', 
                         { sound: 'random.levelup' }
                     );
-                    this._game.saveGameState();
+                    this._game.gameSettings.timerDuration = newDuration;
                 }
             )
             .show();
