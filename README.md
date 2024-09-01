@@ -18,10 +18,13 @@ TNT Coin is a Minecraft BE/PE add-on designed to make it easy for players to set
 
 > [!IMPORTANT]
 > **Requirement:** Enable "Beta APIs" in your world settings for this add-on to function correctly.
+> **Version:** This add-on is designed for Minecraft BE/PE version **1.21.22**. Ensure your game is updated to this version or later for the best experience.
 
 **_Show your support by giving it a ⭐!_**
 - [Download Resource Pack](https://github.com/rqinix/RP-TNT-Coin/releases)
 - [Download Behavior Pack](https://github.com/rqinix/BP-TNT-Coin/releases)
+
+> **Note:** After importing the TNT Coin Resource Pack and Behavior Pack into Minecraft, make sure to move them from the `resource_packs` and `behavior_packs` folders to the `development_resource_packs` and `development_behavior_packs` folders in the `com.mojang` directory. This ensures that any changes you make during development are reflected immediately in-game.
 
 > **Note:** This is an early release, so you might encounter some unexpected behavior. We appreciate your patience and feedback as we continue to improve TNT Coin! 
 
