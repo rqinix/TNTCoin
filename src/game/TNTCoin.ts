@@ -35,6 +35,7 @@ export class TNTCoin {
     private _isPlayerInGame: boolean = false;
 
     private readonly _gameKey: string;
+    private readonly _taskAutoSaveId: string;
     private readonly _taskCameraId: string;
     private readonly _taskFillCheckId: string;
 
@@ -59,6 +60,7 @@ export class TNTCoin {
         this._giftGoal = new GiftGoal(player, this._actionBar);
         this._propertiesManager = new DynamicPropertiesManager(player);
 
+        this._taskAutoSaveId = `${player.name}:autosave`;
         this._taskFillCheckId = `${player.name}:fillcheck`;
         this._taskCameraId = `${player.name}:camera`;
 
@@ -151,8 +153,7 @@ export class TNTCoin {
 
             this.checkGameStatus();
             this._actionBar.start();
-
-            this.saveGameState();
+            this.autoSaveGameState();
 
             this._feedback.playSound('random.anvil_use');
             this._feedback.playSound('random.levelup');
@@ -163,13 +164,14 @@ export class TNTCoin {
         }
     }
 
-    public saveGameState(): void {
+    private autoSaveGameState(): void {
         const gameState: GameState = {
             isPlayerInGame: this._isPlayerInGame,
             gameSettings: this.gameSettings,
             structureProperties: this._structure.structureProperties,
         };
         this._propertiesManager.setProperty(this._gameKey, JSON.stringify(gameState));
+        taskManager.addTimeout(this._taskAutoSaveId, () => this.autoSaveGameState(), 20);
     }
 
     /**
@@ -232,7 +234,7 @@ export class TNTCoin {
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
     public async cleanGameSession(): Promise<void> { 
-        taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId]);
+        taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId, this._taskAutoSaveId]);
         this._countdown.reset();
         this._structure.fillStop();
         this._actionBar.stop();
