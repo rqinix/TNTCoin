@@ -366,6 +366,7 @@ export class TNTCoin {
         if (!isStructureFilled && this._countdown.isCountingDown) {
             this.cameraClear();
             this._countdown.pause();
+            this._countdown.reset();
         } else if (isStructureFilled && !this._countdown.isCountingDown) {
             this.cameraRotate360();
             this._countdown.start();
