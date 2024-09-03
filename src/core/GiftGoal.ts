@@ -1,4 +1,4 @@
-import { TIKTOK_GIFT } from '../lang/tiktokGifts';
+import { DEFAULT_GIFT, TIKTOK_GIFT } from '../lang/tiktokGifts';
 import { ActionBar } from './ActionBar';
 import { Player } from "@minecraft/server";
 
@@ -128,7 +128,7 @@ export class GiftGoal {
 
         this._actionBar.addTask('giftGoal', () => {
             const progress = [
-                this._gift!.icon,
+                this._gift!.emoji,
                 ' ',
                 this._giftName,
                 ': ',
@@ -179,7 +179,7 @@ export class GiftGoal {
      * @returns {string} - The emoji or icon of the gift.
      */
     public getGiftEmoji(): string {
-        return this._gift ? this._gift.icon : '';
+        return this._gift ? this._gift.emoji : DEFAULT_GIFT;
     }
 
     /**
@@ -188,6 +188,14 @@ export class GiftGoal {
      */
     public getGiftName(): string {
         return this._giftName;
+    }
+
+    /**
+     * Gets the ID of the gift.
+     * @returns {number | null} - The ID of the gift.
+     */
+    public getGiftId(): number | null {
+        return this._gift ? this._gift.id : null;
     }
 
     /**
@@ -214,8 +222,8 @@ export class GiftGoal {
      */
     public setGift(giftName: string): void {
         const gift = TIKTOK_GIFT[giftName];
-        if (!gift || !gift.icon) {
-            throw new Error('Selected gift does not have a valid icon.');
+        if (!gift || !gift.emoji) {
+            throw new Error('Selected gift does not have a valid emoji.');
         }
 
         this._gift = gift;

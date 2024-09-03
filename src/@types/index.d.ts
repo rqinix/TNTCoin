@@ -79,8 +79,9 @@ interface WinActions {
 }
 
 interface TikTokGift {
-    icon: string;
+    emoji: string;
     coins: number;
+    id: number | null;
 }
 
 interface GiftGoalSettings {

@@ -145,11 +145,11 @@ export class TNTCoinGUI {
      */
     private async showGiftGoalForm(): Promise<void> {
         const settings = this._game.gameSettings.giftGoal as GiftGoalSettings;
-        const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].icon);
+        const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].emoji);
         
         const giftOptions = availableGifts.map(giftName => {
             const gift = TIKTOK_GIFT[giftName];
-            return `${gift.icon} ${giftName}`;
+            return `${gift.emoji} ${giftName}`;
         });
         
         const selectedGiftIndex = availableGifts.findIndex(gift => gift === settings.giftName);
