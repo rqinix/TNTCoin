@@ -202,6 +202,11 @@ export class TNTCoin {
      * @returns {Promise<void>} a promise that resolves when the game has been successfully quit.
      */
     public async quitGame(): Promise<void> {
+        if (this._countdown.isCountingDown) {
+            this._feedback.warning('Cannot quit the game while countdown is active.', { sound: 'item.shield.block' });
+            return;
+        }
+
         try {
             await this.cleanGameSession();
             this._propertiesManager.removeProperty(this._gameKey);
@@ -227,16 +232,14 @@ export class TNTCoin {
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
     public async cleanGameSession(): Promise<void> { 
-        this.cameraClear();
-
+        taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId]);
         this._countdown.reset();
+        this._structure.fillStop();
         this._actionBar.stop();
         this._timerManager.stop();
         this._winManager.clearActionbar();
         this._giftGoal.clearActionbar();
-
-        this._structure.fillStop();
-        taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId]);
+        this.cameraClear();
         await this._structure.clearFilledBlocks();
         await this._structure.clearProtedtedStructure();
     }
