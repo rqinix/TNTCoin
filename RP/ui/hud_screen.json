@@ -1,0 +1,29 @@
+{
+  "namespace": "hud",
+
+  "root_panel": {
+    "modifications": [
+      {
+        "array_name": "controls",
+        "operation": "insert_front",
+        "value": [
+          { "gifts@gifts.panel": {} },
+          { "watermark@hud.watermark": {} }
+        ]
+      }
+    ]
+  },
+
+  "watermark": {
+    "type": "label",
+    "text": "TNT Coin by Rqinix(JusMC)",
+    "color": "#FFFFFF",
+    "font_size": "small", 
+    "alpha": 0.1,
+    "size": ["5%", "5%"],
+    "anchor_from": "bottom_left",
+    "anchor_to": "bottom_left",
+    "offset": ["2%", "-2%"],
+    "layer": 0
+  }
+}

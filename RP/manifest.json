@@ -1,0 +1,31 @@
+{
+	"format_version": 2,
+
+	"header": {
+		"name": "§8[RP] §b§kii§r§cTNT§eCOIN §av0.1.0§d§kii",
+		"description": "TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and run the Minecraft TNT Challenge. §bBy Rqinix§r",
+		"min_engine_version": [1, 21, 0],
+		"uuid": "755b391b-2b03-4772-8424-0201fffa54c5",
+		"version": [0, 1, 0]
+	},
+
+	"modules": [
+		{
+			"type": "resources",
+			"uuid": "e61376f9-bff0-42f9-9da1-934127647474",
+			"version": [1, 0, 0]
+		}
+	],
+
+	"dependencies": [
+		{
+			"uuid": "78edf5a1-79b8-4f95-8ca0-1daae6c9142a",
+			"version": "0.1.0-beta.1"
+		}
+	],
+
+	"metadata": {
+		"authors": ["Rqinix"],
+		"url": "https://github.com/rqinix/RP-TNT-Coin"
+	}
+}

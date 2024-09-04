@@ -1,0 +1,63 @@
+{
+  "namespace": "gifts",
+
+  "stack_panel": {
+    "type": "stack_panel",
+    "orientation": "horizontal",
+    "size": ["100%", "100%"],
+    "controls": [
+
+      {
+        "gift_1@gifts.template": {
+          "texture": "textures/tnt-coin/gifts/gift-rose.png"
+        }
+      },
+      
+      {
+        "gift_2@gifts.template": {
+          "texture": "textures/tnt-coin/gifts/gift-community_fest.png"
+        }
+      },
+
+      {
+        "gift_3@gifts.template": {
+          "texture": "textures/tnt-coin/gifts/gift-i_love_u.png"
+        }
+      },
+      
+      {
+        "gift_4@gifts.template": {
+          "texture": "textures/tnt-coin/gifts/gift-lightning_bolt.png"
+        }
+      },
+
+      {
+        "gift_5@gifts.template": {
+          "texture": "textures/tnt-coin/gifts/gift-rosa.png"
+        }
+      },
+
+      {
+        "gift_6@gifts.template": {
+          "texture": "textures/tnt-coin/gifts/gift-friendship_necklace.png"
+        }
+      }
+
+    ]
+  },
+
+  "panel": {
+    "type": "panel",
+    "size": ["90%", "50px"],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [{ "gifts@gifts.stack_panel": {} }]
+  },
+
+  "template": {
+    "type": "image",
+    "size": ["10%", "100%"],
+    "layer": 1,
+    "texture": ""
+  }
+}
