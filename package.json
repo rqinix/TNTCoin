@@ -17,6 +17,6 @@
   },
   "dependencies": {
     "@minecraft/server": "^1.13.0",
-    "@minecraft/server-ui": "^1.1.0"
+    "@minecraft/server-ui": "^1.2.0"
   }
 }

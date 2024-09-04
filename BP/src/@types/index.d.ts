@@ -1,5 +1,5 @@
 interface FormComponent {
-    type: 'button' | 'textField' | 'dropdown' | 'slider' | 'toggle';
+    type: 'button' | 'textField' | 'dropdown' | 'slider' | 'toggle' | 'submitButton';
     label: string;
     placeholder?: string;
     defaultValue?: string | number | boolean;
@@ -11,6 +11,7 @@ interface FormComponent {
     iconPath?: string;
     textfieldType?: 'string' | 'number';
 }
+
 
 interface FeedbackOptions {
     sound?: string;

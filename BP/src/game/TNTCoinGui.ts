@@ -69,6 +69,7 @@ export class TNTCoinGUI {
         .textField("string", "Side Block Type:", "Enter the block type for the sides", "minecraft:glass")
         .textField("number", "Width:", "Enter the width", "12")
         .textField("number", "Height:", "Enter the height", "12")
+        .submitButton("§2Start TNT Coin§r")
     
         .show(async (response) => {
             const baseBlockName = response[0].toString().trim();
@@ -168,6 +169,7 @@ export class TNTCoinGUI {
             .textField('number', 'Set Goal', 'Enter the goal amount', settings.maxCount.toString(), (goal) => {
                 this._game.giftGoal.setMaxCount(goal as number);
             })
+            .submitButton('§2Set Goal§r')
             .show();
     }
 
@@ -275,7 +277,7 @@ export class TNTCoinGUI {
             oldSettings.fillSettings.blocksPerTick.toString(),
             (updatedValue) => newSettings.fillSettings.blocksPerTick = updatedValue as number
         )
-
+        .submitButton('§2Update Settings§r')
         .show(() => {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
             if (isSettingsChanged) {
@@ -296,6 +298,7 @@ export class TNTCoinGUI {
         .toggle('On Top', settings.onTop)
         .textField("number", "Batch Size:", "Enter the batch size", settings.batchSize.toString())
         .textField("number", "Batch Delay:", "Enter the delay between batches", settings.delayBetweenBatches.toString())
+        .submitButton('§2Summon§r')
         .show((response) => {
             const entityName = response[0].toString().trim();
             const amount = Math.max(1, parseInt(response[1].toString().trim()));
@@ -365,6 +368,7 @@ export class TNTCoinGUI {
                     this._game.settings.timerDuration = newDuration;
                 }
             )
+            .submitButton('§2Update Timer§r')
             .show();
     }
 
@@ -374,6 +378,7 @@ export class TNTCoinGUI {
     private showPlaySoundForm(): void {
         new ModalForm(this._player, 'Play Sound')
             .dropdown('Sounds: ', SOUNDS.map(sound => sound.name), 0)
+            .submitButton('§2Play§r')
             .show((response) => {
                 const sound = SOUNDS[response[0] as number].sound;
                 this._feedback.playSound(sound);
@@ -395,7 +400,7 @@ export class TNTCoinGUI {
                 }
             });
         });
-
+        form.submitButton('§2Update§r');
         form.show();
     }
 }

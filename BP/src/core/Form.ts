@@ -19,6 +19,9 @@ class FormComponentBuilder {
             case 'toggle':
                 (form as ModalFormData).toggle(component.label, component.defaultValue as boolean);
                 break;
+            case 'submitButton':
+                (form as ModalFormData).submitButton(component.label);
+                break;
             default:
                 throw new Error(`Unknown form component type: ${component.type}`);
         }
@@ -100,6 +103,11 @@ class ModalForm extends Form {
 
     public toggle(label: string, defaultValue: boolean, callback?: (updatedValue: boolean) => void): ModalForm {
         this.addComponent({ type: 'toggle', label, defaultValue, callback });
+        return this;
+    }
+
+    public submitButton(label: string): ModalForm {
+        this.addComponent({ type: 'submitButton', label });
         return this;
     }
 
