@@ -4,7 +4,7 @@
 |
 | Author: Rqinix
 | Version: 1.0.0
-| Source Code: https://github.com/rqinix/MCBE-TNTCoin-BP
+| Source Code: https://github.com/rqinix/TNT-Coin
 |
 */
 

@@ -2,19 +2,19 @@
 	"format_version": 2,
 
 	"header": {
-		"name": "§8[BP] §b§kii§r§cTNT§eCOIN §av0.1.0§d§kii§r",
+		"name": "§8[BP]§b§kii§r§cTNT§eCOIN §av0.1.0§d§kii§r",
 		"description": "TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and run the Minecraft TNT Challenge. §bBy Rqinix§r",
-		"min_engine_version": [1, 21, 0],
+		"min_engine_version": [1, 21, 22],
 		"uuid": "78edf5a1-79b8-4f95-8ca0-1daae6c9142a",
-		"version": [ 0, 1, 0]
+		"version": [0, 1, 0]
 	},
 
 	"modules": [
 		{
-			"description": "behaviour",
+			"description": "behavior",
 			"type": "data",
 			"uuid": "145bf269-1979-4e0e-9c14-15692fd7845c",
-			"version": [1, 0, 0 ]
+			"version": [1, 0, 0]
 		},
 		{
 			"type": "script",
@@ -28,7 +28,7 @@
 	"dependencies": [
 		{
 			"uuid": "755b391b-2b03-4772-8424-0201fffa54c5",
-			"version": "0.1.0-beta.1"
+			"version": [0, 1, 0]
 		},
 		{
 			"module_name": "@minecraft/server",
