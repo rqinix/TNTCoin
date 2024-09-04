@@ -144,8 +144,8 @@ export class TNTCoinGUI {
     /**
      * Shows the form to set up or modify the gift goal.
      */
-    private async showGiftGoalForm(): Promise<void> {
-        const settings = this._game.gameSettings.giftGoal as GiftGoalSettings;
+    private showGiftGoalForm(): void {
+        const settings = this._game.settings.giftGoalSettings as GiftGoalSettings;
         const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].emoji);
         
         const giftOptions = availableGifts.map(giftName => {
@@ -180,8 +180,8 @@ export class TNTCoinGUI {
             return;
         }
 
-        const oldSettings = { ...this._game.gameSettings };
-        const newSettings = { ...this._game.gameSettings };
+        const oldSettings = { ...this._game.settings };
+        const newSettings = { ...this._game.settings };
 
         new ModalForm(this._player, 'Game Settings')
         .toggle(
@@ -208,7 +208,7 @@ export class TNTCoinGUI {
             (updatedValue) => newSettings.randomizeBlocks = updatedValue as boolean
         )
         .toggle(
-            'ActionBar',
+            'Actionbar',
             this._game.actionbar.isRunning(),
             (updatedValue) => {
                 if (updatedValue) {
@@ -279,32 +279,46 @@ export class TNTCoinGUI {
         .show(() => {
             const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
             if (isSettingsChanged) {
-                this._game.gameSettings = newSettings;
+                this._game.settings = newSettings;
                 this._feedback.success('Game settings have been updated.', { sound: 'random.levelup' });
             }
         });
     }
     
     private async showSummonEntityForm(): Promise<void> {
+        const settings = this._game.settings.summonEntitySettings;
+        const locationType = settings.locationType === 'random' ? 0 : 1;
+
         new ModalForm(this._player, 'Summon Entity')
-        .dropdown('Location', ['Random', 'Center'], 0)
-        .toggle('On Top', false)
-        .textField("string", "Entity Name:", "Enter the entity name", "tnt_minecart")
-        .textField("number", "Amount:", "Enter the amount of entities to summon", "1")
-        .textField("number", "Batch Size:", "Enter the batch size", "5")
-        .textField("number", "Batch Delay:", "Enter the delay between batches", "5")
+        .textField("string", "Entity Name:", "Enter the entity name", settings.entityName)
+        .textField("number", "Amount:", "Enter the amount of entities to summon", settings.amount.toString())
+        .dropdown('Location', ['Random', 'Center'], locationType)
+        .toggle('On Top', settings.onTop)
+        .textField("number", "Batch Size:", "Enter the batch size", settings.batchSize.toString())
+        .textField("number", "Batch Delay:", "Enter the delay between batches", settings.delayBetweenBatches.toString())
         .show((response) => {
-            const location = response[0] as number;
-            const isOnTop = response[1] as boolean;
-            const entityName = response[2] as string;
-            const amount = Math.max(1, response[3] as number); 
-            const batchSize = Math.max(1, response[4] as number);
-            const batchDelay = Math.max(1, response[5] as number);
-            this._game.summonEntities(entityName,{
+            const entityName = response[0].toString().trim();
+            const amount = Math.max(1, parseInt(response[1].toString().trim()));
+            const locationType = (response[2] as number) === 0 ? 'random' : 'center';
+            const onTop = response[3] as boolean;
+            const batchSize = Math.max(1, parseInt(response[4].toString().trim()));
+            const batchDelay = Math.max(1, parseInt(response[5].toString().trim()));
+
+            this._game.summonEntityFormSettings = {
+                entityName,
                 amount,
-                locationType: location === 0 ? 'random' : 'center',
-                onTop: isOnTop,
-                batchSize: batchSize,
+                locationType,
+                onTop,
+                batchSize,
+                delayBetweenBatches: batchDelay,
+            };
+
+            this._game.summonEntities({
+                entityName,
+                amount,
+                locationType,
+                onTop,
+                batchSize,
                 delayBetweenBatches: batchDelay,
             });
         });
@@ -348,7 +362,7 @@ export class TNTCoinGUI {
                         'Timer settings have been updated.', 
                         { sound: 'random.levelup' }
                     );
-                    this._game.gameSettings.timerDuration = newDuration;
+                    this._game.settings.timerDuration = newDuration;
                 }
             )
             .show();

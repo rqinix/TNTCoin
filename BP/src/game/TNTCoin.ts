@@ -42,6 +42,14 @@ export class TNTCoin {
     private _useBarriers: boolean = false;
     private _doesCameraRotate: boolean = true;
     private _randomizeBlocks: boolean = true;
+    private _summonEntityFormSettings: SummonOptions = {
+        entityName: 'tnt_minecart',
+        locationType: 'random',
+        onTop: false,
+        amount: 10,
+        batchSize: 5,
+        delayBetweenBatches: 5,
+    };
 
     /**
      * Creates a new TNTCoin game instance.
@@ -69,33 +77,47 @@ export class TNTCoin {
         this._countdown.addOnCancelCallback(() => onCountdownCancel(this));
     }
 
-    public get gameSettings(): GameSettings {
+    public get settings(): GameSettings {
         return {
-            wins: this._winManager.getCurrentWins(),
-            maxWins: this._winManager.getMaxWins(),
-            fillSettings: this._structure.fillSettings,
-            defaultCountdownTime: this._countdown.defaultCountdownTime,
-            countdownTickInterval: this._countdown.tickInterval,
             doesCameraRotate: this._doesCameraRotate,
             useBarriers: this._useBarriers,
             randomizeBlocks: this._randomizeBlocks,
-            giftGoal: this._giftGoal.settings,
+            wins: this._winManager.getCurrentWins(),
+            maxWins: this._winManager.getMaxWins(),
             timerDuration: this.timerManager.getTimerDuration(),
+            defaultCountdownTime: this._countdown.defaultCountdownTime,
+            countdownTickInterval: this._countdown.tickInterval,
+            fillSettings: this._structure.fillSettings,
+            giftGoalSettings: this._giftGoal.settings,
+            summonEntitySettings: this._summonEntityFormSettings,
         };
     }
 
-    public set gameSettings(settings: GameSettings) {
-        this._winManager.setWins(settings.wins);
-        this._winManager.setMaxWins(settings.maxWins);
-        this._structure.fillSettings = settings.fillSettings;
-        this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
-        this._countdown.tickInterval = settings.countdownTickInterval;
+    public set settings(settings: GameSettings) {
         this._doesCameraRotate = settings.doesCameraRotate;
         this._useBarriers = settings.useBarriers;
         this._randomizeBlocks = settings.randomizeBlocks;
-        this._giftGoal.settings = settings.giftGoal;
+        this._winManager.setWins(settings.wins);
+        this._winManager.setMaxWins(settings.maxWins);
         this._timerManager.setTimerDuration(settings.timerDuration);
+        this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
+        this._countdown.tickInterval = settings.countdownTickInterval;
+        this._structure.fillSettings = settings.fillSettings;
+        this._giftGoal.settings = settings.giftGoalSettings;
+        this._summonEntityFormSettings = settings.summonEntitySettings;
     }
+
+    public get summonEntityFormSettings(): SummonOptions {
+        return this._summonEntityFormSettings;
+    }
+
+    public set summonEntityFormSettings(settings: SummonOptions) {
+        this._summonEntityFormSettings = {
+            ...this._summonEntityFormSettings, 
+            ...settings,
+        };
+    }
+
 
     public get player(): Player {
         return this._player;
@@ -143,7 +165,7 @@ export class TNTCoin {
     public async startGame(): Promise<void> {
         try {
             await this._structure.generateProtectedStructure();
-            if (this.gameSettings.useBarriers) await this._structure.generateBarriers();
+            if (this.settings.useBarriers) await this._structure.generateBarriers();
 
             this._player.setSpawnPoint({ 
                 ...this._structure.structureCenter, 
@@ -167,7 +189,7 @@ export class TNTCoin {
     private autoSaveGameState(): void {
         const gameState: GameState = {
             isPlayerInGame: this._isPlayerInGame,
-            gameSettings: this.gameSettings,
+            gameSettings: this.settings,
             structureProperties: this._structure.structureProperties,
         };
         this._propertiesManager.setProperty(this._gameKey, JSON.stringify(gameState));
@@ -181,7 +203,7 @@ export class TNTCoin {
         const properties = this._propertiesManager.getProperty(this._gameKey) as string;
         const gameState = JSON.parse(properties) as GameState;
         this._isPlayerInGame = gameState.isPlayerInGame;
-        this.gameSettings = gameState.gameSettings;
+        this.settings = gameState.gameSettings;
         this._structure.structureProperties = JSON.stringify(gameState.structureProperties);
     }
 
@@ -282,12 +304,13 @@ export class TNTCoin {
         this._feedback.playSound(TELEPORT_SOUND);
     }
 
-    public summonEntities(entityName: string, options: SummonOptions): void {
-        summonEntities(this, entityName, options);
+    public summonEntities(options: SummonOptions): void {
+        summonEntities(this, options);
     }
 
     public summonFireworks(amount: number): void {
-        summonEntities(this, 'fireworks_rocket', {
+        this.summonEntities({
+            entityName: 'fireworks_rocket',
             locationType: 'random',
             amount: amount
         });
@@ -297,7 +320,11 @@ export class TNTCoin {
      * summons TNT at random locations in the structure
      */
     public summonTNT(): void {
-        summonEntities(this, 'tnt_minecart', { locationType: 'random', onTop: true });
+        this.summonEntities({ 
+            entityName: 'tnt_minecart',
+            locationType: 'random', 
+            onTop: true 
+        });
     }
 
     /**
@@ -318,7 +345,8 @@ export class TNTCoin {
             locations.push(randomLocation);
         }
     
-        summonEntities(this, 'lightning_bolt', {
+        this.summonEntities({
+            entityName: 'lightning_bolt',
             customLocations: locations,
             clearBlocksAfterSummon: true,
         });

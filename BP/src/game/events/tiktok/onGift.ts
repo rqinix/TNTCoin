@@ -31,13 +31,13 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
             const MESSAGE = `${giftEmoji} ${coloredNickName} sent §cTNT §d§ox${amount}§f!`
 
             game.summonEntities(
-                'tnt_minecart', 
-                { 
-                    amount: amount, 
-                    locationType: 'random', 
-                    onTop: true, 
-                    batchSize: 5, 
-                    delayBetweenBatches: 7,
+                {
+                    entityName: 'tnt_minecart',
+                    amount,
+                    locationType: 'random',
+                    onTop: true,
+                    batchSize: 5,
+                    delayBetweenBatches: 10,
                     onSummon: () => game.player.playSound('kururin')
                 }
             );
@@ -86,14 +86,10 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
     const giftActions: Array<{ id: string, name: string, action: () => Promise<void> | void }> = [
         { id: '5655', name: 'Rose', action: () => actions.summonTNT(giftCount * 10) },
         { id: '10749', name: 'Community Fest', action: () => actions.summonTNT(giftCount * 15) },
+        { id: '6671', name: 'Love You', action: () => actions.summonTNT(giftCount * 1) },
         { id: '6064', name: 'GG', action: () => actions.summonLightning(giftCount * 3) },
         { id: '8913', name: 'Rosa', action: actions.clearBlocks },
         { id: '9947', name: 'BFF Necklace', action: actions.fillStructure },
-        { id: '7934', name: 'Heart Me', action: () => actions.summonTNT(giftCount * 20) },
-        { id: '6671', name: 'Love You', action: () => actions.summonTNT(giftCount * 1) },
-        { id: '5487', name: 'Finger Heart', action: () => actions.summonTNT(giftCount * 4) },
-        { id: '5879', name: 'Doughnut', action: () => actions.summonLightning(giftCount * 5) },
-        { id: '6267', name: 'Corgi', action: () => actions.summonTNT(giftCount * 1000) },
     ];
 
     if (isGoalActive && (goalGiftName === giftName || goalGiftId === giftId)) {

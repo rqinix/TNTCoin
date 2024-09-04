@@ -6,11 +6,11 @@ import { batch } from "../batch";
 /**
  * Summons entities in the game based on the provided options.
  * @param {TNTCoin} game - The game instance to summon entities for.
- * @param {string} entityName - The name of the entity to summon.
  * @param {SummonOptions} options - The options for summoning entities.
  */
-export function summonEntities(game: TNTCoin, entityName: string, options: SummonOptions): void {
+export function summonEntities(game: TNTCoin, options: SummonOptions): void {
     const {
+        entityName,
         locationType = 'random', 
         onTop = false,
         amount = 1,

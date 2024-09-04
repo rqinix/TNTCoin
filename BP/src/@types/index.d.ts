@@ -25,27 +25,44 @@ interface Vec3 {
     z: number;
 }
 
+type TimerAction = 'start' | 'stop' | 'restart';
+
+interface SummonOptions {
+    entityName: string;
+    amount?: number;
+    locationType?: 'random' | 'center';
+    onTop?: boolean;
+    customLocations?: Vec3[];
+    batchSize?: number;
+    delayBetweenBatches?: number;
+    playSound?: string;
+    onSummon?: () => void;
+    clearBlocksAfterSummon?: boolean;
+}
+
+interface WinActions {
+    onWin: () => void;
+    onMaxWins: () => void;
+}
+
+interface TikTokGift {
+    emoji: string;
+    coins: number;
+    id: number | null;
+}
+
 interface GameSettings {
-    wins: number;
-    maxWins: number;
-    fillSettings: FillSettings;
-    defaultCountdownTime: number;
-    countdownTickInterval: number;
     doesCameraRotate: boolean;
     useBarriers: boolean;
     randomizeBlocks: boolean;
-    giftGoal: GiftGoalSettings;
+    wins: number;
+    maxWins: number;
+    defaultCountdownTime: number;
+    countdownTickInterval: number;
     timerDuration: number;
-}
-
-interface StructureProperties {
-    centerLocation: Vec3;
-    width: number;
-    height: number;
-    blockOptions: {
-        baseBlockName: string;
-        sideBlockName: string;
-    };
+    fillSettings: FillSettings;
+    giftGoalSettings: GiftGoalSettings;
+    summonEntitySettings: SummonOptions;
 }
 
 interface GameState {
@@ -60,28 +77,14 @@ interface FillSettings {
     blocksPerTick: number;
 }
 
-type TimerAction = 'start' | 'stop' | 'restart';
-
-interface SummonOptions {
-    locationType?: 'center' | 'random';
-    onTop?: boolean;
-    customLocations?: Vec3[];
-    amount?: number;
-    clearBlocksAfterSummon?: boolean;
-    batchSize?: number;
-    delayBetweenBatches?: number;
-    onSummon?: () => void;
-}
-
-interface WinActions {
-    onWin: () => void;
-    onMaxWins: () => void;
-}
-
-interface TikTokGift {
-    emoji: string;
-    coins: number;
-    id: number | null;
+interface StructureProperties {
+    centerLocation: Vec3;
+    width: number;
+    height: number;
+    blockOptions: {
+        baseBlockName: string;
+        sideBlockName: string;
+    };
 }
 
 interface GiftGoalSettings {

@@ -88,7 +88,7 @@ world.afterEvents.playerPlaceBlock.subscribe(event => {
     const blockUsed = event.block.typeId;
     const gui = INGAME_PLAYERS.get(player.name);
 
-    if (gui?.game.isPlayerInGame && gui.game.gameSettings.randomizeBlocks && blockUsed === RANDOM_BLOCK_ITEM) {
+    if (gui?.game.isPlayerInGame && gui.game.settings.randomizeBlocks && blockUsed === RANDOM_BLOCK_ITEM) {
         try {
             const randomBlockType = getRandomBlock();
             player.dimension.setBlockType(event.block.location, randomBlockType)
