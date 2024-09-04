@@ -135,6 +135,7 @@ export class TNTCoinGUI {
         .button('Gift Goal', this.showGiftGoalForm.bind(this), 'textures/tnt-coin/gui/buttons/goals.png')
         .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin/gui/buttons/clock.png')
         .button('§2§kii§r§8Events§2§kii§r', this.showEventsForm.bind(this), 'textures/tnt-coin/gui/buttons/bell.png')
+        .button('Reload', this._game.loadGame.bind(this._game), 'textures/tnt-coin/gui/buttons/reload.png')
         .button('Quit', this._game.quitGame.bind(this._game), 'textures/tnt-coin/gui/buttons/left.png')
 
         .show();
