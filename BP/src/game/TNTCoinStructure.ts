@@ -20,7 +20,7 @@ export class TNTCoinStructure {
 
     private _fillBlockName: string = "minecraft:amethyst_block";
     private _fillTickInterval: number = 1;
-    private _fillBlocksPerTick: number = 1;
+    private _fillBlocksPerTick: number = 50;
     private _isFilling: boolean = false;
     
     private _protectedBlockLocations = new Set<string>();
