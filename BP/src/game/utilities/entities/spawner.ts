@@ -17,7 +17,7 @@ export function summonEntities(game: TNTCoin, options: SummonOptions): void {
         clearBlocksAfterSummon = false,
         customLocations = [],
         batchSize = 10, 
-        delayBetweenBatches = 0,
+        batchDelay = 10,
         onSummon = () => {},
     } = options;
 
@@ -48,6 +48,6 @@ export function summonEntities(game: TNTCoin, options: SummonOptions): void {
                 game.feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });
             }
         },
-        { delayInTicks: delayBetweenBatches }
+        { delayInTicks: batchDelay }
     );
 }

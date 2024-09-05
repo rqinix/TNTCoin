@@ -34,9 +34,8 @@ interface SummonOptions {
     locationType?: 'random' | 'center';
     onTop?: boolean;
     customLocations?: Vec3[];
-    batchSize?: number;
-    delayBetweenBatches?: number;
-    playSound?: string;
+    batchSize?: number | null;
+    batchDelay?: number | null;
     onSummon?: () => void;
     clearBlocksAfterSummon?: boolean;
 }
@@ -45,6 +44,15 @@ interface WinActions {
     onWin: () => void;
     onMaxWins: () => void;
 }
+
+type GiftAction = {
+    giftName: string;
+    giftId?: number | null;
+    giftEmoji?: string | null;
+    actionType: 'Summon' | 'Clear Blocks' | 'Fill';
+    playSound?: string | null;
+    summonOptions?: SummonOptions; 
+};
 
 interface TikTokGift {
     emoji: string;
