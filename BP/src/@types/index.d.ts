@@ -45,14 +45,15 @@ interface WinActions {
     onMaxWins: () => void;
 }
 
-type GiftAction = {
+interface GiftAction {
+    eventKey: string;
     giftName: string;
-    giftId?: number | null;
-    giftEmoji?: string | null;
-    actionType: 'Summon' | 'Clear Blocks' | 'Fill';
-    playSound?: string | null;
-    summonOptions?: SummonOptions; 
-};
+    giftId?: number;
+    actionType: 'Summon' | 'Fill' | 'Clear Blocks';
+    giftEmoji: string;
+    playSound?: string;
+    summonOptions?: SummonOptions;
+}
 
 interface TikTokGift {
     emoji: string;
