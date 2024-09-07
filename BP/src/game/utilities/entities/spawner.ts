@@ -39,8 +39,8 @@ export function summonEntities(game: TNTCoin, options: SummonOptions): void {
         batchSize,
         (location) => {
             try {
-                game.player.dimension.spawnEntity(entityName, location);
-                onSummon();
+                const entity = game.player.dimension.spawnEntity(entityName, location);
+                if (options.newNameTag) entity.nameTag = options.newNameTag;
                 if (clearBlocksAfterSummon) {
                     clearBlocks(game.player.dimension, [location], 100);
                 }
