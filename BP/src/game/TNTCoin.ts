@@ -17,12 +17,14 @@ import { DynamicPropertiesManager } from "../core/DynamicPropertiesManager";
 import { summonEntities } from "./utilities/entities/spawner";
 import { onLose } from "./events/tntcoin/onLose";
 import { onWin } from "./events/tntcoin/onWin";
+import { GiftActionManager } from "./actions/GiftAction";
 
 /**
  * Represents a TNTCoin game instance.
  */
 export class TNTCoin {
     private readonly _player: Player;
+    private readonly _propertiesManager: DynamicPropertiesManager;
     private readonly _structure: TNTCoinStructure;
     private readonly _feedback: PlayerFeedback;
     private readonly _countdown: Countdown;
@@ -30,7 +32,7 @@ export class TNTCoin {
     private readonly _winManager: WinManager;
     private readonly _actionBar: ActionBar;
     private readonly _giftGoal: GiftGoal;
-    private readonly _propertiesManager: DynamicPropertiesManager;
+    private readonly _giftActionManager: GiftActionManager;
 
     private _isPlayerInGame: boolean = false;
 
@@ -48,7 +50,7 @@ export class TNTCoin {
         onTop: false,
         amount: 10,
         batchSize: 5,
-        delayBetweenBatches: 5,
+        batchDelay: 5,
     };
 
     /**
@@ -59,6 +61,7 @@ export class TNTCoin {
         this._gameKey = 'TNTCoinGameState';
         this._player = player;
 
+        this._propertiesManager = new DynamicPropertiesManager(player);
         this._structure = new TNTCoinStructure(player);
         this._feedback = new PlayerFeedback(player);
         this._actionBar = new ActionBar(player);
@@ -66,7 +69,7 @@ export class TNTCoin {
         this._timerManager = new Timer(player, 180, this._actionBar);
         this._winManager = new WinManager(10, this._actionBar);
         this._giftGoal = new GiftGoal(player, this._actionBar);
-        this._propertiesManager = new DynamicPropertiesManager(player);
+        this._giftActionManager = new GiftActionManager(player);
 
         this._taskAutoSaveId = `${player.name}:autosave`;
         this._taskFillCheckId = `${player.name}:fillcheck`;
@@ -118,7 +121,6 @@ export class TNTCoin {
         };
     }
 
-
     public get player(): Player {
         return this._player;
     }
@@ -157,6 +159,10 @@ export class TNTCoin {
 
     public get timerManager(): Timer {
         return this._timerManager;
+    }
+
+    public get giftActionManager(): GiftActionManager {
+        return this._giftActionManager;
     }
 
     /**
@@ -256,7 +262,7 @@ export class TNTCoin {
     * @returns {Promise<void>} A promise that resolves when the cleanup is complete.
     */
     public async cleanGameSession(): Promise<void> { 
-        taskManager.clearTasks([this._taskFillCheckId, this._taskCameraId, this._taskAutoSaveId]);
+        this.clearGameTasks();
         this._countdown.reset();
         this._structure.fillStop();
         this._actionBar.stop();
@@ -327,31 +333,13 @@ export class TNTCoin {
         });
     }
 
-    /**
-     * Summons lightning bolts and destroy random blocks in the structure.
-     * @param amount The amount of lightning bolts to summon. Default is 1.
-     */
-    public summonLightningBolt(amount: number = 1): void {
-        const locations: Vector3[] = [];
-    
-        for (let i = 0; i < amount; i++) {
-            if (this._structure.filledBlockLocations.size === 0) return;
-
-            const filledBlockLocationsArray = Array.from(this._structure.filledBlockLocations);
-            const randomIndex = Math.floor(Math.random() * filledBlockLocationsArray.length);
-            const randomLocationJson = filledBlockLocationsArray[randomIndex];
-            const randomLocation = JSON.parse(randomLocationJson);
-            
-            locations.push(randomLocation);
-        }
-    
-        this.summonEntities({
-            entityName: 'lightning_bolt',
-            customLocations: locations,
-            clearBlocksAfterSummon: true,
-        });
-    } 
-
+    private clearGameTasks(): void {
+        taskManager.clearTasks([
+            this._taskFillCheckId, 
+            this._taskCameraId,
+            this._taskAutoSaveId
+        ]);
+    }
 
     /**
      * Handles script events.
@@ -371,11 +359,12 @@ export class TNTCoin {
      */
     public checkGameStatus(): void {
         taskManager.addInterval(this._taskFillCheckId, () => {
-            if (!this.isPlayerInGame) {
-                taskManager.clearTask(this._taskFillCheckId);
-                throw new Error('Player is not in game.');
+            try {
+                this.handleGameProgress(this._structure.isStructureFilled());
+            } catch (error) {
+                console.error(`Error checking game status: ${error.message}`);
+                this.clearGameTasks();
             }
-            this.handleGameProgress(this._structure.isStructureFilled());
         }, 20);
     } 
 
@@ -384,10 +373,15 @@ export class TNTCoin {
      * @param {boolean} isStructureFilled - Whether the structure is fully filled.
      */
     private handleGameProgress(isStructureFilled: boolean): void {
-        if (this._winManager.hasReachedMaxWins()) {
-            onMaxWin(this);
-        } else {
-            this.handleCountdown(isStructureFilled);
+        try {
+            if (this._winManager.hasReachedMaxWins()) {
+                onMaxWin(this);
+            } else {
+                this.handleCountdown(isStructureFilled);
+            }
+        } catch (error) {
+            console.error(`Error handling game progress: ${error.message}`);
+            throw error;
         }
     }
 
