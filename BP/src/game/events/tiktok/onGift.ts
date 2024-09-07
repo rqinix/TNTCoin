@@ -1,5 +1,6 @@
 import { TNTCoin } from "../../TNTCoin";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../../lang/tiktokGifts";
+import { execute } from "../../utilities/execute";
 
 /**
  * Handles the gift event.
@@ -37,43 +38,35 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
 
             switch (action.actionType) {
                 case 'Summon':
-                    game.feedback.showFeedbackScreen({
-                        title,
-                        subtitle: `${subtitle}§r\n§asent§f §d${action.summonOptions.entityName.toUpperCase()}§f §o§c x${action.summonOptions.amount}!`
-                    });
-                    game.summonEntities({
-                        entityName: action.summonOptions.entityName,
-                        amount: action.summonOptions.amount,
-                        locationType: action.summonOptions.locationType,
-                        onTop: action.summonOptions.onTop,
-                        batchSize: action.summonOptions.batchSize,
-                        batchDelay: action.summonOptions.batchDelay,
-                        onSummon: () => game.feedback.playSound(action.playSound),
+                    game.player.sendMessage(`§e${gifterNickName} §asummoned §c${action.summonOptions.amount} ${action.summonOptions.entityName.toUpperCase()}§f!`);
+                    execute(giftCount, () => {
+                        game.summonEntities({
+                            entityName: action.summonOptions.entityName,
+                            amount: action.summonOptions.amount,
+                            locationType: action.summonOptions.locationType,
+                            onTop: action.summonOptions.onTop,
+                            batchSize: action.summonOptions.batchSize,
+                            batchDelay: action.summonOptions.batchDelay,
+                            onSummon: () => game.feedback.playSound(action.playSound),
+                        });
                     });
                     break;
                 case 'Clear Blocks':
-                    game.feedback.showFeedbackScreen({
-                        title,
-                        subtitle: `${subtitle}§r\n§c!!!Cleared the Blocks!!!`
-                    });
-                    game.structure.clearFilledBlocks();
+                    game.player.sendMessage(`§e${gifterNickName} §aremoved all blocks§f!`);
+                    execute(giftCount, () => game.structure.clearFilledBlocks());
                     break;
                 case 'Fill':
-                    game.feedback.showFeedbackScreen({
-                        title,
-                        subtitle: `${subtitle}§r\n§b!!!Filled the Structure!!!`
-                    });
-                    game.structure.fill();
+                    game.player.sendMessage(`§e${gifterNickName} §afilled the structure§f!`);
+                    execute(giftCount, () => game.structure.fill());
                     break;
                 case 'Play Sound':
-                    game.feedback.playSound(action.playSound);
+                    execute(giftCount, () => game.feedback.playSound(action.playSound));
                     break;
             }
         });
-    } else {
-        game.feedback.showFeedbackScreen({ title, subtitle });
     }
 
+    game.feedback.showFeedbackScreen({ title, subtitle });
     game.player.sendMessage(chatMessage);
     game.feedback.playSound('random.orb');
 }
