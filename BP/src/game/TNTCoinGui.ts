@@ -7,7 +7,8 @@ import { SOUNDS } from "../config/config";
 import { event as eventHandler } from "./events/tiktok/index";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { TNTCoinStructure } from "./TNTCoinStructure";
-import { TIKTOK_GIFT } from "../lang/tiktokGifts";
+import { DEFAULT_GIFT, TIKTOK_GIFT } from "../lang/tiktokGifts";
+import { GiftActionGui, GiftActionManager } from "./actions/GiftAction";
 
 /**
  * A map of player names in-game with a TNTCoinGUI instance.
@@ -22,6 +23,7 @@ export class TNTCoinGUI {
     private _game: TNTCoin;
     private _structure: TNTCoinStructure
     private _feedback: PlayerFeedback;
+    private _giftAction: GiftActionGui;
     
     /**
      * Creates an instance of the TNTCoinGameGUI class.
@@ -32,6 +34,7 @@ export class TNTCoinGUI {
         this._feedback = new PlayerFeedback(player);
         this._game = new TNTCoin(player);
         this._structure = this._game.structure;
+        this._giftAction = new GiftActionGui(player, this._game.giftActionManager);
     }
 
     public get game(): TNTCoin {
@@ -126,13 +129,12 @@ export class TNTCoinGUI {
 
         .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin/gui/buttons/npc.png')
         .button('Summon TNT', this._game.summonTNT.bind(this._game), 'textures/tnt-coin/gui/buttons/tnt.png')
-        .button('Summon Lightning Bolt', this._game.summonLightningBolt.bind(this._game), 'textures/tnt-coin/gui/buttons/lightning_bolt.png')
         .button('Fill Blocks', this._structure.fill.bind(this._structure), 'textures/tnt-coin/gui/buttons/brush.png')
         .button('Stop Filling', this._structure.fillStop.bind(this._structure), 'textures/tnt-coin/gui/buttons/stop_fill.png')
         .button('Clear Blocks', this._structure.clearFilledBlocks.bind(this._structure), 'textures/tnt-coin/gui/buttons/trash.png')
         .button('Teleport', () => this._game.teleportPlayer(this._structure.structureHeight), 'textures/tnt-coin/gui/buttons/ender_pearl.png')
-        .button('Play Sound', this.showPlaySoundForm.bind(this), 'textures/tnt-coin/gui/buttons/record_cat.png')
         .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin/gui/buttons/settings.png')
+        .button('Gift Actions', this._giftAction.showGiftActionsMenu.bind(this._giftAction), 'textures/tnt-coin/gui/buttons/gift.png')
         .button('Gift Goal', this.showGiftGoalForm.bind(this), 'textures/tnt-coin/gui/buttons/goals.png')
         .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin/gui/buttons/clock.png')
         .button('§2§kii§r§8Events§2§kii§r', this.showEventsForm.bind(this), 'textures/tnt-coin/gui/buttons/bell.png')
@@ -147,18 +149,18 @@ export class TNTCoinGUI {
      */
     private showGiftGoalForm(): void {
         const settings = this._game.settings.giftGoalSettings as GiftGoalSettings;
-        const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].emoji);
-        
+        const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].id !== null && TIKTOK_GIFT[giftName].emoji !== '');
         const giftOptions = availableGifts.map(giftName => {
             const gift = TIKTOK_GIFT[giftName];
-            return `${gift.emoji} ${giftName}`;
+            const giftEmoji = gift.emoji || DEFAULT_GIFT;
+            return `${giftEmoji} ${giftName}`;
         });
         
         const selectedGiftIndex = availableGifts.findIndex(gift => gift === settings.giftName);
     
         new ModalForm(this._player, 'Set Gift Goal')
             .toggle('Enable Gift Goal', settings.isEnabled, (isEnabled) => {
-                this._game.giftGoal.setEnabled(isEnabled as boolean);
+                this._game.giftGoal.setEnabled(isEnabled);
             })
             .dropdown('Select Gift', giftOptions, selectedGiftIndex >= 0 ? selectedGiftIndex : 0, (selectedIndex) => {
                 if (selectedIndex >= 0 && selectedIndex < availableGifts.length) {
@@ -297,7 +299,7 @@ export class TNTCoinGUI {
         .dropdown('Location', ['Random', 'Center'], locationType)
         .toggle('On Top', settings.onTop)
         .textField("number", "Batch Size:", "Enter the batch size", settings.batchSize.toString())
-        .textField("number", "Batch Delay:", "Enter the delay between batches", settings.delayBetweenBatches.toString())
+        .textField("number", "Batch Delay:", "Enter the delay between batches", settings.batchDelay.toString())
         .submitButton('§2Summon§r')
         .show((response) => {
             const entityName = response[0].toString().trim();
@@ -313,7 +315,7 @@ export class TNTCoinGUI {
                 locationType,
                 onTop,
                 batchSize,
-                delayBetweenBatches: batchDelay,
+                batchDelay,
             };
 
             this._game.summonEntities({
@@ -322,7 +324,7 @@ export class TNTCoinGUI {
                 locationType,
                 onTop,
                 batchSize,
-                delayBetweenBatches: batchDelay,
+                batchDelay,
             });
         });
     }
@@ -370,19 +372,6 @@ export class TNTCoinGUI {
             )
             .submitButton('§2Update Timer§r')
             .show();
-    }
-
-    /**
-     * Shows play sound form to the player.
-     */
-    private showPlaySoundForm(): void {
-        new ModalForm(this._player, 'Play Sound')
-            .dropdown('Sounds: ', SOUNDS.map(sound => sound.name), 0)
-            .submitButton('§2Play§r')
-            .show((response) => {
-                const sound = SOUNDS[response[0] as number].sound;
-                this._feedback.playSound(sound);
-            });
     }
 
     /**
