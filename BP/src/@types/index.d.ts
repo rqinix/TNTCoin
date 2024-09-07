@@ -49,7 +49,7 @@ interface GiftAction {
     eventKey: string;
     giftName: string;
     giftId?: number;
-    actionType: 'Summon' | 'Fill' | 'Clear Blocks';
+    actionType: 'Summon' | 'Fill' | 'Clear Blocks' | 'Play Sound';
     giftEmoji: string;
     playSound?: string;
     summonOptions?: SummonOptions;
