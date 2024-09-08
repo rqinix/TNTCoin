@@ -37,22 +37,12 @@ interface SummonOptions {
     batchSize?: number | null;
     batchDelay?: number | null;
     onSummon?: () => void;
+    newNameTag?: string;
     clearBlocksAfterSummon?: boolean;
-}
-
-interface WinActions {
-    onWin: () => void;
-    onMaxWins: () => void;
-}
-
-interface GiftAction {
-    eventKey: string;
-    giftName: string;
-    giftId?: number;
-    actionType: 'Summon' | 'Fill' | 'Clear Blocks' | 'Play Sound';
-    giftEmoji: string;
-    playSound?: string;
-    summonOptions?: SummonOptions;
+    playSound?: {
+        playSoundOnSummon: boolean;
+        sound: string;
+    }
 }
 
 interface TikTokGift {
@@ -104,3 +94,32 @@ interface GiftGoalSettings {
     isActive: boolean;
     isEnabled: boolean;
 }
+
+interface WinActions {
+    onWin: () => void;
+    onMaxWins: () => void;
+}
+
+type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle';
+
+interface EventAction {
+    eventKey: string;
+    actionType?: ActionType;
+    playSound?: string | null;
+    summonOptions?: SummonOptions;
+    screenTitle?: string;
+    screenSubtitle?: string;
+}
+
+interface GiftAction extends EventAction {
+    giftName: string;
+    giftId?: number;
+    giftEmoji: string;
+}
+
+interface MemberAction extends EventAction {}
+interface FollowAction extends EventAction {}
+interface ShareAction extends EventAction {}
+interface ShareAction extends EventAction {}
+interface LikeAction extends EventAction {}
+interface ChatAction extends EventAction {}
