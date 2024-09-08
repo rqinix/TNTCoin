@@ -18,6 +18,10 @@ export function summonEntities(game: TNTCoin, options: SummonOptions): void {
         customLocations = [],
         batchSize = 10, 
         batchDelay = 10,
+        playSound: {
+            playSoundOnSummon = false,
+            sound = 'kururin'
+        } = {},
         onSummon = () => {},
     } = options;
 
@@ -41,9 +45,9 @@ export function summonEntities(game: TNTCoin, options: SummonOptions): void {
             try {
                 const entity = game.player.dimension.spawnEntity(entityName, location);
                 if (options.newNameTag) entity.nameTag = options.newNameTag;
-                if (clearBlocksAfterSummon) {
-                    clearBlocks(game.player.dimension, [location], 100);
-                }
+                if (playSoundOnSummon) game.feedback.playSound(sound);
+                if (clearBlocksAfterSummon) clearBlocks(game.player.dimension, [location], 100);
+                onSummon();
             } catch (error) {
                 game.feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });
             }
