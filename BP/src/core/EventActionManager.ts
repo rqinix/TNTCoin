@@ -1,7 +1,7 @@
 import { Player } from "@minecraft/server";
 import { DynamicPropertiesManager } from "./DynamicPropertiesManager";
 
-export class EventActionManager<T extends { eventKey: string, actionType: string }> {
+export class EventActionManager<T extends EventAction> {
     private _player: Player;
     private _propertiesManager: DynamicPropertiesManager;
     private _propertyKey: string;
