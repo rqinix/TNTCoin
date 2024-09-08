@@ -12,22 +12,10 @@ export const RANDOM_BLOCK_ITEM = 'minecraft:amethyst_block';
  * List of possible blocks when placing random blocks.
  */
 export const BLOCKS = [
-    'minecraft:stone',
-    'minecraft:dirt',
-    'minecraft:grass',
-    'minecraft:diamond_block',
-    'minecraft:emerald_block',
-    'minecraft:gold_block',
-    'minecraft:iron_block',
     "minecraft:pink_wool",
+    "minecraft:magenta_wool",
+    "minecraft:orange_wool",
+    "minecraft:lime_wool",
+    "minecraft:yellow_wool",
+    // ... add more blocks here`
 ];
-
-/**
- * List of sounds that you can play
- */
-export const SOUNDS = [
-    {
-        name: 'Totem',
-        sound: 'random.totem'
-    }
-]
