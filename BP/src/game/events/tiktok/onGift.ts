@@ -1,6 +1,6 @@
 import { TNTCoin } from "../../TNTCoin";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../../lang/tiktokGifts";
-import { execute } from "../../utilities/execute";
+import { executeAction } from "../../actions/executeAction";
 
 /**
  * Handles the gift event.
@@ -10,17 +10,17 @@ import { execute } from "../../utilities/execute";
 export async function onGift(game: TNTCoin, message: string): Promise<void> {
     // Parse the message received from the WebSocket server (TNTCoin extension)
     const parsedMessage = JSON.parse(message);
-    const { gifterUniqueId, gifterNickName, giftName, giftId, giftCount } = parsedMessage;
+    const { uniqueId, nickname, giftName, giftId, giftCount } = parsedMessage;
 
     let matchedGift = Object.values(TIKTOK_GIFT).find(gift => gift.id === giftId);
     if (!matchedGift) matchedGift = TIKTOK_GIFT[giftName];
     const giftEmoji = (!matchedGift || matchedGift?.emoji === '') ? DEFAULT_GIFT : matchedGift.emoji;
 
-    const coloredNickName = `§e${gifterNickName}§r`;
+    const coloredNickName = `§e${nickname}§r`;
     const title = `${giftEmoji}\n§d${coloredNickName}§f`;
     const subtitle = `§asent§f §g${giftName}§f §o§c x${giftCount}!`;
     const chatMessage = `§aThank you for §c§o${giftCount} ${giftEmoji}§d${giftName}§r, §b${coloredNickName}§a!`;
-    const actions = game.giftActionManager.getActionsForGift(giftId?.toString()) || game.giftActionManager.getActionsForGift(giftName);
+    const actions = game.giftActionManager.getActionsForEvent(giftId?.toString()) || game.giftActionManager.getActionsForEvent(giftName);
 
     const goalGiftName = game.giftGoal.getGiftName();
     const goalGiftId = game.giftGoal.getGiftId();
@@ -35,33 +35,20 @@ export async function onGift(game: TNTCoin, message: string): Promise<void> {
             if (action.actionType !== 'Summon' && action?.playSound) {
                 game.feedback.playSound(action.playSound);
             }
-
-            switch (action.actionType) {
-                case 'Summon':
-                    game.player.sendMessage(`§e${gifterNickName} §asummoned §c${action.summonOptions.amount} ${action.summonOptions.entityName.toUpperCase()}§f!`);
-                    execute(giftCount, () => {
-                        game.summonEntities({
-                            entityName: action.summonOptions.entityName,
-                            amount: action.summonOptions.amount,
-                            locationType: action.summonOptions.locationType,
-                            onTop: action.summonOptions.onTop,
-                            batchSize: action.summonOptions.batchSize,
-                            batchDelay: action.summonOptions.batchDelay,
-                            onSummon: () => game.feedback.playSound(action.playSound),
-                        });
-                    });
-                    break;
-                case 'Clear Blocks':
-                    game.player.sendMessage(`§e${gifterNickName} §aremoved all blocks§f!`);
-                    execute(giftCount, () => game.structure.clearFilledBlocks());
-                    break;
-                case 'Fill':
-                    game.player.sendMessage(`§e${gifterNickName} §afilled the structure§f!`);
-                    execute(giftCount, () => game.structure.fill());
-                    break;
-                case 'Play Sound':
-                    execute(giftCount, () => game.feedback.playSound(action.playSound));
-                    break;
+            if (action.actionType === 'Summon' && action.summonOptions) {
+                const { entityName, amount } = action.summonOptions;
+                const amountToSummon = amount * giftCount;
+                game.player.sendMessage(`${coloredNickName} §asummoned §e${amountToSummon} §c${entityName.toUpperCase()}§f!`);
+                executeAction(game, {
+                    ...action,
+                    summonOptions: {
+                        ...action.summonOptions,
+                        amount: amountToSummon,
+                        newNameTag: `${coloredNickName}`,
+                    },
+                });
+            } else {
+                executeAction(game, action);
             }
         });
     }
