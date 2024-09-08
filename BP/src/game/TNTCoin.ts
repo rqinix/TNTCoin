@@ -17,7 +17,7 @@ import { DynamicPropertiesManager } from "../core/DynamicPropertiesManager";
 import { summonEntities } from "./utilities/entities/spawner";
 import { onLose } from "./events/tntcoin/onLose";
 import { onWin } from "./events/tntcoin/onWin";
-import { GiftActionManager } from "./actions/GiftAction";
+import { EventActionManager } from "../core/EventActionManager";
 
 /**
  * Represents a TNTCoin game instance.
@@ -32,7 +32,11 @@ export class TNTCoin {
     private readonly _winManager: WinManager;
     private readonly _actionBar: ActionBar;
     private readonly _giftGoal: GiftGoal;
-    private readonly _giftActionManager: GiftActionManager;
+
+    private readonly _giftActionManager: EventActionManager<GiftAction>;
+    private readonly _followActionManager: EventActionManager<FollowAction>;
+    private readonly _shareActionManager: EventActionManager<ShareAction>;
+    private readonly _memberActionManager: EventActionManager<MemberAction>;
 
     private _isPlayerInGame: boolean = false;
 
@@ -69,7 +73,11 @@ export class TNTCoin {
         this._timerManager = new Timer(player, 180, this._actionBar);
         this._winManager = new WinManager(10, this._actionBar);
         this._giftGoal = new GiftGoal(player, this._actionBar);
-        this._giftActionManager = new GiftActionManager(player);
+
+        this._giftActionManager = new EventActionManager(player);
+        this._followActionManager = new EventActionManager(player);
+        this._shareActionManager = new EventActionManager(player);
+        this._memberActionManager = new EventActionManager(player);
 
         this._taskAutoSaveId = `${player.name}:autosave`;
         this._taskFillCheckId = `${player.name}:fillcheck`;
@@ -161,8 +169,20 @@ export class TNTCoin {
         return this._timerManager;
     }
 
-    public get giftActionManager(): GiftActionManager {
+    public get giftActionManager(): EventActionManager<GiftAction> {
         return this._giftActionManager;
+    }
+
+    public get followActionManager(): EventActionManager<FollowAction> {
+        return this._followActionManager;
+    }
+
+    public get shareActionManager(): EventActionManager<ShareAction> {
+        return this._shareActionManager;
+    }
+
+    public get memberActionManager(): EventActionManager<MemberAction> {
+        return this._memberActionManager;
     }
 
     /**

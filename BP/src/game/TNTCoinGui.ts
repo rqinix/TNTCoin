@@ -3,12 +3,14 @@ import { TNTCoin } from "./TNTCoin";
 import { floorVector3 } from "./utilities/math/floorVector";
 import { getStructureCenter } from "./utilities/structure/getStructureCenter";
 import { ActionForm, ModalForm } from "../core/Form";
-import { SOUNDS } from "../config/config";
 import { event as eventHandler } from "./events/tiktok/index";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../lang/tiktokGifts";
-import { GiftActionGui, GiftActionManager } from "./actions/GiftAction";
+import { GiftActionGui } from "./actions/GiftAction";
+import { FollowActionGui } from "./actions/FollowAction";
+import { ShareActionGui } from "./actions/ShareAction";
+import { MemberActionGui } from "./actions/MemberAction";
 
 /**
  * A map of player names in-game with a TNTCoinGUI instance.
@@ -23,7 +25,11 @@ export class TNTCoinGUI {
     private _game: TNTCoin;
     private _structure: TNTCoinStructure
     private _feedback: PlayerFeedback;
+
     private _giftAction: GiftActionGui;
+    private _followAction: FollowActionGui;
+    private _shareAction: ShareActionGui;
+    private _memberAction: MemberActionGui;
     
     /**
      * Creates an instance of the TNTCoinGameGUI class.
@@ -34,7 +40,11 @@ export class TNTCoinGUI {
         this._feedback = new PlayerFeedback(player);
         this._game = new TNTCoin(player);
         this._structure = this._game.structure;
+
         this._giftAction = new GiftActionGui(player, this._game.giftActionManager);
+        this._followAction = new FollowActionGui(player, this._game.followActionManager);
+        this._shareAction = new ShareActionGui(player, this._game.shareActionManager);
+        this._memberAction = new MemberActionGui(player, this._game.memberActionManager);
     }
 
     public get game(): TNTCoin {
@@ -133,15 +143,28 @@ export class TNTCoinGUI {
         .button('Stop Filling', this._structure.fillStop.bind(this._structure), 'textures/tnt-coin/gui/buttons/stop_fill.png')
         .button('Clear Blocks', this._structure.clearFilledBlocks.bind(this._structure), 'textures/tnt-coin/gui/buttons/trash.png')
         .button('Teleport', () => this._game.teleportPlayer(this._structure.structureHeight), 'textures/tnt-coin/gui/buttons/ender_pearl.png')
-        .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin/gui/buttons/settings.png')
-        .button('Gift Actions', this._giftAction.showGiftActionsMenu.bind(this._giftAction), 'textures/tnt-coin/gui/buttons/gift.png')
-        .button('Gift Goal', this.showGiftGoalForm.bind(this), 'textures/tnt-coin/gui/buttons/goals.png')
         .button('Timer', this.showTimerForm.bind(this), 'textures/tnt-coin/gui/buttons/clock.png')
+        .button('Gift Goal', this.showGiftGoalForm.bind(this), 'textures/tnt-coin/gui/buttons/goals.png')
+        .button('§2§kii§r§8Event Actions§2§kii§r', this.showEventActionsForm.bind(this), 'textures/tnt-coin/gui/buttons/events.png')
         .button('§2§kii§r§8Events§2§kii§r', this.showEventsForm.bind(this), 'textures/tnt-coin/gui/buttons/bell.png')
+        .button('Settings', this.showInGameSettingsForm.bind(this), 'textures/tnt-coin/gui/buttons/settings.png')
         .button('Reload', this._game.loadGame.bind(this._game), 'textures/tnt-coin/gui/buttons/reload.png')
         .button('Quit', this._game.quitGame.bind(this._game), 'textures/tnt-coin/gui/buttons/left.png')
 
         .show();
+    }
+
+    private showEventActionsForm(): void {
+        try {
+            new ActionForm(this._player, 'Event Actions')
+            .button('Gift Actions', this._giftAction.show.bind(this._giftAction),  'textures/tnt-coin/gui/buttons/gift.png')
+            .button('Follow Actions', this._followAction.show.bind(this._followAction), 'textures/tnt-coin/gui/buttons/follow.png')
+            .button('Share Actions', this._shareAction.show.bind(this._shareAction), 'textures/tnt-coin/gui/buttons/share.png')
+            .button('Member Actions', this._memberAction.show.bind(this._memberAction), 'textures/tnt-coin/gui/buttons/member.png')
+            .show();
+        } catch (error) {
+            this._feedback.error(error.message, { sound: 'item.shield.block' });
+        }
     }
 
     /**
