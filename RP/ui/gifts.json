@@ -24,21 +24,15 @@
           "texture": "textures/tnt-coin/gifts/gift-i_love_u.png"
         }
       },
-      
-      {
-        "gift_4@gifts.template": {
-          "texture": "textures/tnt-coin/gifts/gift-lightning_bolt.png"
-        }
-      },
 
       {
-        "gift_5@gifts.template": {
+        "gift_4@gifts.template": {
           "texture": "textures/tnt-coin/gifts/gift-rosa.png"
         }
       },
 
       {
-        "gift_6@gifts.template": {
+        "gift_5@gifts.template": {
           "texture": "textures/tnt-coin/gifts/gift-friendship_necklace.png"
         }
       }
