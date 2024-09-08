@@ -26,9 +26,13 @@ export class GiftActionGui {
             let giftName = '';
             let giftEmoji = '';
 
-            actions.forEach((action) => {
+            actions.forEach((action, index) => {
                 giftName = action.giftName;
                 giftEmoji = action.giftEmoji;
+                if (giftName === undefined && giftEmoji === undefined) {
+                    this._manager.removeActionFromEvent(eventKey, index);
+                    console.warn(`Removed invalid action from event ${eventKey} at index ${index}`);
+                }
             });
 
             form.button(`§2§kii§r§8${giftEmoji}${giftName}§2§kii§r\n§2Actions: [${actions.length}]`, () => {
