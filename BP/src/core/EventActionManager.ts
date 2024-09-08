@@ -98,17 +98,23 @@ export class EventActionManager<T extends EventAction> {
             const serializedActions = this._propertiesManager.getProperty(this._propertyKey) as string;
             if (serializedActions && serializedActions !== "[]") {
                 const parsedActions = JSON.parse(serializedActions);
-                this._eventActions = new Map(parsedActions); 
-                console.warn("Actions loaded successfully.");
+                if (Array.isArray(parsedActions)) {
+                    this._eventActions = new Map(parsedActions);
+                    console.warn("Actions loaded successfully.");
+                } else {
+                    console.warn("Parsed actions are not in a valid format.");
+                    this._eventActions.clear();
+                }
             } else {
                 console.warn("No actions found to load.");
-                this._eventActions.clear(); 
+                this._eventActions.clear();
             }
         } catch (error) {
             console.error(`Failed to load user actions: ${error}`);
-            this._eventActions.clear(); 
+            this._eventActions.clear();
         }
     }
+
 
     /**
      * Clears all event actions.
