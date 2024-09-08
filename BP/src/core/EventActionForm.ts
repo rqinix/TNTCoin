@@ -54,6 +54,9 @@ export class EventActionForm<T extends EventAction>{
         let formTitle = `Action ${index + 1}`;
         let formBody = '';
         formBody += `Action Type: ${action.actionType}\n`;
+        if (action.actionType === 'Fill' || action.actionType === 'Clear Blocks') {
+            formBody += 'This action cannot be edited.\n';
+        }
         if (action.playSound) formBody += `Play Sound: ${action.playSound}\n`;
         if (action.screenTitle) formBody += `Screen Title: ${action.screenTitle}\n`;
         if (action.screenSubtitle) formBody += `Screen Subtitle: ${action.screenSubtitle}\n`;
@@ -65,13 +68,18 @@ export class EventActionForm<T extends EventAction>{
             formBody += `On Top: ${onTop}\n`;
             formBody += `Batch Size: ${batchSize}\n`;
             formBody += `Batch Delay: ${batchDelay}\n`;
+            if (action.summonOptions.playSound.playSoundOnSummon) {
+                formBody += `Play Sound on Summon: ${action.summonOptions.playSound.sound}\n`;
+            }
         }
 
-        new ActionForm(this._player, formTitle)
-            .body(formBody)
-            .button('Edit', () => this.showActionTypeForm(action, true, index))
-            .button('Delete', () => this.showClearActionFromEvent(action, index))
-            .show();
+        const form = new ActionForm(this._player, formTitle)
+        form.body(formBody)
+        if (action.actionType !== 'Fill' && action.actionType !== 'Clear Blocks') {
+            form.button('Edit', () => this.showActionTypeForm(action, true, index));
+        }
+        form.button('Delete', () => this.showClearActionFromEvent(action, index));
+        form.show();
     }
 
     public showSummonForm(action: T, isEdit: boolean, index?: number): void {
@@ -84,6 +92,10 @@ export class EventActionForm<T extends EventAction>{
             onTop: true,
             batchSize: 10,
             batchDelay: 10,
+            playSound: {
+                playSoundOnSummon: true,
+                sound: 'kururin',
+            }
         };
 
         let formTitle = `Summon: ${isEdit ? 'Edit' : 'Create'} Action`;
@@ -96,6 +108,8 @@ export class EventActionForm<T extends EventAction>{
             .toggle('On Top', summonOptions.onTop)
             .textField('number', 'Batch Size', 'Batch Size', summonOptions.batchSize.toString())
             .textField('number', 'Batch Delay', 'Batch Delay', summonOptions.batchDelay.toString())
+            .toggle('Play Sound on Summon', summonOptions.playSound.playSoundOnSummon)
+            .textField('string', 'Sound', 'Sound', summonOptions.playSound.sound)
             .submitButton('Confirm')
             .show(response => {
                 const updatedSummonOptions: SummonOptions = {
@@ -105,6 +119,10 @@ export class EventActionForm<T extends EventAction>{
                     onTop: response[3] as boolean,
                     batchSize: Math.max(1, response[4] as number),
                     batchDelay: Math.max(1, response[5] as number),
+                    playSound: {
+                        playSoundOnSummon: response[6] as boolean,
+                        sound: response[7] as string,
+                    }
                 };
 
                 const updatedAction: T = {
@@ -127,7 +145,7 @@ export class EventActionForm<T extends EventAction>{
     public showPlaySoundForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Play Sound') return;
 
-        const playSound = action.playSound || 'random.orb';
+        const playSound = action.playSound || 'kururin';
         let formTitle = `Play Sound: ${isEdit ? 'Edit' : 'Create'} Action`;
         formTitle += index !== undefined ? ` ${index + 1}` : '';
 
@@ -156,60 +174,36 @@ export class EventActionForm<T extends EventAction>{
 
     public showClearBlocksForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Clear Blocks') return;
-
-        const playSound = action.playSound || 'cat_laughing';
-        let formTitle = `${isEdit ? 'Edit Clear Blocks' : 'Clear Blocks Action'}`;
-
-        new ModalForm(this._player, formTitle)
-            .textField('string', 'Play Sound', 'Play Sound', playSound)
-            .submitButton('Confirm')
-            .show(response => {
-                const updatedPlaySound = response[0] as string;
-
-                const updatedAction: T = {
-                    ...action,
-                    playSound: updatedPlaySound,
-                };
-
-                if (isEdit && index !== undefined) {
-                    this._manager.updateActionInEvent(action.eventKey, index, updatedAction);
-                    this._player.sendMessage(`§aAction updated.`);
-                } else {
-                    this._manager.addActionToEvent(updatedAction);
-                    this._player.sendMessage(`§aNew action added.`);
-                }
-
+        if (isEdit) {
+            this._player.sendMessage(`§cCannot edit Clear Blocks action.`);
+            return;
+        }
+        new ActionForm(this._player, 'Clear Blocks Action')
+            .body('Confirm Clear Blocks Action')
+            .button('Confirm', () => {
+                this._manager.addActionToEvent(action);
+                this._player.sendMessage(`§aNew action added.`);
                 this._player.playSound('random.orb');
-            });
+            })
+            .button('Cancel')
+            .show();
     }
 
     public showFillForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Fill') return;
-    
-        const playSound = action.playSound || 'wait_wait_wait';
-        let formTitle = `${isEdit ? 'Edit Fill' : 'Fill Action'}`;
-    
-        new ModalForm(this._player, formTitle)
-            .textField('string', 'Play Sound', 'Play Sound', playSound)
-            .submitButton('Confirm')
-            .show(response => {
-                const updatedPlaySound = response[0] as string;
-    
-                const updatedAction: T = {
-                    ...action,
-                    playSound: updatedPlaySound,
-                };
-    
-                if (isEdit && index !== undefined) {
-                    this._manager.updateActionInEvent(action.eventKey, index, updatedAction);
-                    this._player.sendMessage(`§aAction updated.`);
-                } else {
-                    this._manager.addActionToEvent(updatedAction);
-                    this._player.sendMessage(`§aNew action added.`);
-                }
-    
+        if (isEdit) {
+            this._player.sendMessage(`§cCannot edit Fill action.`);
+            return;
+        }
+        new ActionForm(this._player, 'Fill Action')
+            .body('Confirm Fill Action')
+            .button('Confirm', () => {
+                this._manager.addActionToEvent(action);
+                this._player.sendMessage(`§aNew action added.`);
                 this._player.playSound('random.orb');
-            });
+            })
+            .button('Cancel')
+            .show();
     }
 
     public showScreenTitleForm(action: T, isEdit: boolean, index?: number): void {
