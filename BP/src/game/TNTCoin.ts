@@ -55,6 +55,10 @@ export class TNTCoin {
         amount: 10,
         batchSize: 5,
         batchDelay: 5,
+        playSound: {
+            playSoundOnSummon: true,
+            sound: 'kururin',
+        }
     };
 
     /**

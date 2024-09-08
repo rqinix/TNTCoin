@@ -323,6 +323,8 @@ export class TNTCoinGUI {
         .toggle('On Top', settings.onTop)
         .textField("number", "Batch Size:", "Enter the batch size", settings.batchSize.toString())
         .textField("number", "Batch Delay:", "Enter the delay between batches", settings.batchDelay.toString())
+        .toggle('Play Sound', settings.playSound.playSoundOnSummon)
+        .textField('string', 'Sound', 'Enter the sound name', settings.playSound.sound)
         .submitButton('§2Summon§r')
         .show((response) => {
             const entityName = response[0].toString().trim();
@@ -331,6 +333,8 @@ export class TNTCoinGUI {
             const onTop = response[3] as boolean;
             const batchSize = Math.max(1, parseInt(response[4].toString().trim()));
             const batchDelay = Math.max(1, parseInt(response[5].toString().trim()));
+            const playSound = response[6] as boolean;
+            const sound = response[7].toString().trim();
 
             this._game.summonEntityFormSettings = {
                 entityName,
@@ -339,6 +343,10 @@ export class TNTCoinGUI {
                 onTop,
                 batchSize,
                 batchDelay,
+                playSound: {
+                    playSoundOnSummon: playSound,
+                    sound,
+                }
             };
 
             this._game.summonEntities({
@@ -348,6 +356,10 @@ export class TNTCoinGUI {
                 onTop,
                 batchSize,
                 batchDelay,
+                playSound: {
+                    playSoundOnSummon: playSound,
+                    sound,
+                },
             });
         });
     }
