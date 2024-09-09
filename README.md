@@ -76,6 +76,8 @@ The Gift Goal System in TNT Coin allows you to set specific gift targets for you
 - The game listens for specific script events (e.g., `tntcoin:join`) received from the WebSocket server.
 - Players can enable or disable specific event actions.
 
+![TikTok Events](./docs/images/events.png)
+
 ### Event Actions
 
 Players can assign custom actions (e.g., **Summon**, **Fill**, **Clear Blocks**, **Play Sound**, **Screen Title**, **Screen Subtitle**) to specific events, such as receiving a gift or a follow.
@@ -146,8 +148,6 @@ export const BLOCKS = [
     // ... add more blocks here`
 ];
 ```
-
-![TikTok Events](./docs/images/events.png)
 
 ## Adding Custom Sounds
 
