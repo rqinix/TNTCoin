@@ -2,7 +2,6 @@ import { Player } from "@minecraft/server";
 import { DynamicPropertiesManager } from "./DynamicPropertiesManager";
 
 export class EventActionManager<T extends EventAction> {
-    private _player: Player;
     private _propertiesManager: DynamicPropertiesManager;
     private _propertyKey: string;
     private _eventActions: Map<string, T[]> = new Map();
@@ -10,11 +9,11 @@ export class EventActionManager<T extends EventAction> {
     /**
      * Creates a new instance of the EventActionManager class.
      * @param {Player} player The player to manage event actions for.
+     * @param {string} key The key to use for saving event actions.
      */
-    constructor(player: Player) {
-        this._player = player;
+    constructor(player: Player, key: string) {
         this._propertiesManager = new DynamicPropertiesManager(player);
-        this._propertyKey = `${player.name}:actions`; 
+        this._propertyKey = `${key}:actions`; 
         this.loadAllEventActions(); 
     }
 
@@ -86,7 +85,8 @@ export class EventActionManager<T extends EventAction> {
             this._propertiesManager.setProperty(this._propertyKey, serializedActions);
             console.warn("Actions saved successfully.");
         } catch (error) {
-            console.error(`Failed to save user actions: ${error}`);
+            console.error(`Failed to save player actions: ${error}`);
+            throw error;
         }
     }
 
@@ -110,11 +110,10 @@ export class EventActionManager<T extends EventAction> {
                 this._eventActions.clear();
             }
         } catch (error) {
-            console.error(`Failed to load user actions: ${error}`);
+            console.error(`Failed to load player actions: ${error}`);
             this._eventActions.clear();
         }
     }
-
 
     /**
      * Clears all event actions.

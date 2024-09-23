@@ -78,10 +78,10 @@ export class TNTCoin {
         this._winManager = new WinManager(10, this._actionBar);
         this._giftGoal = new GiftGoal(player, this._actionBar);
 
-        this._giftActionManager = new EventActionManager(player);
-        this._followActionManager = new EventActionManager(player);
-        this._shareActionManager = new EventActionManager(player);
-        this._memberActionManager = new EventActionManager(player);
+        this._giftActionManager = new EventActionManager(player, 'GiftActions');
+        this._followActionManager = new EventActionManager(player, 'FollowActions');
+        this._shareActionManager = new EventActionManager(player, 'ShareActions');
+        this._memberActionManager = new EventActionManager(player, 'MemberActions');
 
         this._taskAutoSaveId = `${player.name}:autosave`;
         this._taskFillCheckId = `${player.name}:fillcheck`;
