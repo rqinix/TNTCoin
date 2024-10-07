@@ -3,8 +3,8 @@
 | TNT Coin for Minecraft Bedrock
 |
 | Author: Rqinix
-| Version: 1.0.0
-| Source Code: https://github.com/rqinix/TNT-Coin
+| Version: 1.1.0
+| Source Code: https://github.com/rqinix/TNTCoin
 |
 */
 
@@ -51,7 +51,9 @@ world.beforeEvents.explosion.subscribe(event => {
     world.getAllPlayers().forEach(player => {
         const gui = INGAME_PLAYERS.get(player.name);
         if (gui?.game.isPlayerInGame) {
-            gui.game.structure.protectedBlockLocations.forEach(location => allProtectedLocations.add(location));
+            gui.game.structure.protectedBlockLocations.forEach(location => {
+                allProtectedLocations.add(location);
+            });
         }
     });
 
@@ -105,8 +107,10 @@ world.afterEvents.playerPlaceBlock.subscribe(event => {
 system.afterEvents.scriptEventReceive.subscribe((event) => {
     world.getAllPlayers().forEach(player => {
         const gui = INGAME_PLAYERS.get(player.name);
-        if (gui?.game.isPlayerInGame) {
-            gui.game.handleScriptEvents(event);
+        if (event.id === 'tntcoin:connected') {
+            const tiktokUserName = JSON.parse(event.message).tiktokUserName;
+            player.onScreenDisplay.setTitle(`§aWelcome to §cTNT§f §eCoin§f, §b${tiktokUserName}§a!`);
         }
+        if (gui?.game.isPlayerInGame) gui.game.handleScriptEvents(event);
     });
 }, { namespaces: ['tntcoin'] });
