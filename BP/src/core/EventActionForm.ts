@@ -12,6 +12,10 @@ export class EventActionForm<T extends EventAction>{
         this._manager = eventActionManager;
     }
 
+    public get actionManager(): EventActionManager<T> {
+        return this._manager;
+    }
+
     public showCreateActionForm(action: T, actionOptions: ActionType[]): void {
         const form = new ActionForm(this._player, 'Choose Action');
 
@@ -82,7 +86,7 @@ export class EventActionForm<T extends EventAction>{
         form.show();
     }
 
-    public showSummonForm(action: T, isEdit: boolean, index?: number): void {
+    private showSummonForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Summon') return;
 
         const summonOptions = action.summonOptions || {
@@ -142,7 +146,7 @@ export class EventActionForm<T extends EventAction>{
             });
     }
 
-    public showPlaySoundForm(action: T, isEdit: boolean, index?: number): void {
+    private showPlaySoundForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Play Sound') return;
 
         const playSound = action.playSound || 'kururin';
@@ -172,12 +176,9 @@ export class EventActionForm<T extends EventAction>{
             });
     }
 
-    public showClearBlocksForm(action: T, isEdit: boolean, index?: number): void {
+    private showClearBlocksForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Clear Blocks') return;
-        if (isEdit) {
-            this._player.sendMessage(`§cCannot edit Clear Blocks action.`);
-            return;
-        }
+
         new ActionForm(this._player, 'Clear Blocks Action')
             .body('Confirm Clear Blocks Action')
             .button('Confirm', () => {
@@ -189,12 +190,9 @@ export class EventActionForm<T extends EventAction>{
             .show();
     }
 
-    public showFillForm(action: T, isEdit: boolean, index?: number): void {
+    private showFillForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Fill') return;
-        if (isEdit) {
-            this._player.sendMessage(`§cCannot edit Fill action.`);
-            return;
-        }
+
         new ActionForm(this._player, 'Fill Action')
             .body('Confirm Fill Action')
             .button('Confirm', () => {
@@ -206,7 +204,7 @@ export class EventActionForm<T extends EventAction>{
             .show();
     }
 
-    public showScreenTitleForm(action: T, isEdit: boolean, index?: number): void {
+    private showScreenTitleForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Screen Title') return;
 
         const screenTitle = action.screenTitle || 'Title';
@@ -237,7 +235,7 @@ export class EventActionForm<T extends EventAction>{
             });
     }
 
-    public showScreenSubTitleForm(action: T, isEdit: boolean, index?: number): void {
+    private showScreenSubTitleForm(action: T, isEdit: boolean, index?: number): void {
         if (action.actionType !== 'Screen Subtitle') return;
 
         const screenTitle = action.screenTitle || 'Subtitle';
@@ -268,15 +266,6 @@ export class EventActionForm<T extends EventAction>{
             });
     }
 
-    public continueWithActions(reject: () => void, callback: (actions: Map<string, T[]>) => void): void {
-        const actions = this._manager.getAllActions();
-        if (actions.size === 0) {
-            reject();
-        } else {
-            callback(actions);
-        }
-    }
-
     public showClearAllActionsForm(actions: Map<string, T[]>): void {
         new ActionForm(this._player, 'Clear All Actions')
             .body('Are you sure you want to clear all actions?')
@@ -291,7 +280,7 @@ export class EventActionForm<T extends EventAction>{
             .show();
     }
 
-    public showClearActionFromEvent(action: T, index: number): void {
+    private showClearActionFromEvent(action: T, index: number): void {
         new ActionForm(this._player, 'Clear Action')
             .body(`Are you sure you want to clear this action?`)
             .button('Yes', () => {
