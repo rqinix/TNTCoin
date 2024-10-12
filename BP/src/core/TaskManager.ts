@@ -29,14 +29,15 @@ export class TaskManager {
     * @param {number} id The identifier for the interval.
     * @param {() => void} callback The function to be executed at each interval.
     * @param {number} delay The delay in ticks between each execution of the interval.
+    * @returns {number} The interval id.
     */
-    public addInterval(id: string, callback: () => void, delay: number): void {
+    public addInterval(id: string, callback: () => void, delay: number): number {
         if (this.intervals.has(id)) {
             console.warn(`Interval with id ${id} already exists. Replacing it.`);
-            system.clearRun(this.intervals.get(id)!);
         }
         const intervalId = system.runInterval(callback, delay);
         this.intervals.set(id, intervalId);
+        return intervalId;
     }
 
     /**
@@ -44,13 +45,15 @@ export class TaskManager {
      * @param {number} id The identifier for the timeout.
      * @param {() => void} callback The function to be executed after the delay.
      * @param {number} delay The delay in ticks before the function is executed.
+     * @returns {number} The timeout id.
      */
-    public addTimeout(id: string, callback: () => void, delay: number): void {
+    public addTimeout(id: string, callback: () => void, delay: number): number {
         if (this.timeouts.has(id)) {
             system.clearRun(this.timeouts.get(id)!);
         }
         const timeoutId = system.runTimeout(callback, delay);
         this.timeouts.set(id, timeoutId);
+        return timeoutId;
     }
 
     /**
