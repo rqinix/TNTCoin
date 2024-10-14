@@ -7,10 +7,12 @@ import { event as eventHandler } from "./events/tiktok/index";
 import { PlayerFeedback } from "../core/PlayerFeedback";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../lang/tiktokGifts";
-import { GiftActionGui } from "./actions/GiftAction";
-import { FollowActionGui } from "./actions/FollowAction";
-import { ShareActionGui } from "./actions/ShareAction";
-import { MemberActionGui } from "./actions/MemberAction";
+import { GiftActionForm } from "./actions/GiftAction";
+import { FollowActionForm } from "./actions/FollowAction";
+import { ShareActionForm } from "./actions/ShareAction";
+import { MemberActionForm } from "./actions/MemberAction";
+import { LikeActionForm } from "./actions/LikeAction";
+import { ChatActionForm } from "./actions/ChatAction";
 
 /**
  * A map of player names in-game with a TNTCoinGUI instance.
@@ -26,11 +28,6 @@ export class TNTCoinGUI {
     private _structure: TNTCoinStructure
     private _feedback: PlayerFeedback;
 
-    private _giftAction: GiftActionGui;
-    private _followAction: FollowActionGui;
-    private _shareAction: ShareActionGui;
-    private _memberAction: MemberActionGui;
-    
     /**
      * Creates an instance of the TNTCoinGameGUI class.
      * @param {Player} player 
@@ -40,11 +37,6 @@ export class TNTCoinGUI {
         this._feedback = new PlayerFeedback(player);
         this._game = new TNTCoin(player);
         this._structure = this._game.structure;
-
-        this._giftAction = new GiftActionGui(player, this._game.giftActionManager);
-        this._followAction = new FollowActionGui(player, this._game.followActionManager);
-        this._shareAction = new ShareActionGui(player, this._game.shareActionManager);
-        this._memberAction = new MemberActionGui(player, this._game.memberActionManager);
     }
 
     public get game(): TNTCoin {
@@ -64,7 +56,7 @@ export class TNTCoinGUI {
     /**
     * Shows the GUI to the player.
     */
-    public showGui(): void {
+    public showForm(): void {
         if (INGAME_PLAYERS.has(this._player.name) && this._game.isPlayerInGame) {
             this.showInGameForm();
         } else {
@@ -80,6 +72,7 @@ export class TNTCoinGUI {
     
         .textField("string", "Base Block Type:", "Enter the block type for the base", "minecraft:quartz_block")
         .textField("string", "Side Block Type:", "Enter the block type for the sides", "minecraft:glass")
+        .textField("string", "Floor Block Type", "Enter the block type for the floor", "minecraft:gold_block")
         .textField("number", "Width:", "Enter the width", "12")
         .textField("number", "Height:", "Enter the height", "12")
         .submitButton("§2Start TNT Coin§r")
@@ -87,8 +80,9 @@ export class TNTCoinGUI {
         .show(async (response) => {
             const baseBlockName = response[0].toString().trim();
             const sideBlockName = response[1].toString().trim();
-            const widthStr = response[2].toString().trim();
-            const heightStr = response[3].toString().trim();
+            const floorBlockName = response[2].toString().trim();
+            const widthStr = response[3].toString().trim();
+            const heightStr = response[4].toString().trim();
     
             const width = parseInt(widthStr);
             const height = parseInt(heightStr);
@@ -96,6 +90,7 @@ export class TNTCoinGUI {
             try {
                 BlockPermutation.resolve(baseBlockName);
                 BlockPermutation.resolve(sideBlockName);
+                BlockPermutation.resolve(floorBlockName);
             } catch (error) {
                 this._feedback.error(`Invalid block names: ${error.message}`, { sound: 'item.shield.block' });
                 return;
@@ -113,7 +108,8 @@ export class TNTCoinGUI {
                 height,
                 blockOptions: { 
                     baseBlockName,
-                    sideBlockName 
+                    sideBlockName,
+                    floorBlockName
                 },
             };
     
@@ -133,8 +129,9 @@ export class TNTCoinGUI {
         new ActionForm(this._player, '§1§kii§r§c§lTNT§eCOIN§r§5§kii§r')
 
         .body(
-            `[§bWINS§f]: ${wins < 0 ? '§c' : '§a' }${wins}§f/§a${maxWin}§f\n` +
-            `[§bBLOCKS TO FILL§f]: §a${this._structure.airBlockLocations.length}§f\n` 
+            `§aWelcome§f to §cTNT §eCOIN§f!\n\n` +
+            `§bWins§f: ${wins < 0 ? '§c' : '§a' }${wins}§f/§a${maxWin}§f\n` +
+            `§bBlock to Place§f: §a${this._structure.airBlockLocations.length}§f\n` 
         )
 
         .button('Summon Entity', this.showSummonEntityForm.bind(this), 'textures/tnt-coin/gui/buttons/npc.png')
@@ -155,16 +152,21 @@ export class TNTCoinGUI {
     }
 
     private showEventActionsForm(): void {
-        try {
-            new ActionForm(this._player, 'Event Actions')
-            .button('Gift Actions', this._giftAction.show.bind(this._giftAction),  'textures/tnt-coin/gui/buttons/gift.png')
-            .button('Follow Actions', this._followAction.show.bind(this._followAction), 'textures/tnt-coin/gui/buttons/follow.png')
-            .button('Share Actions', this._shareAction.show.bind(this._shareAction), 'textures/tnt-coin/gui/buttons/share.png')
-            .button('Member Actions', this._memberAction.show.bind(this._memberAction), 'textures/tnt-coin/gui/buttons/member.png')
+        const giftAction = new GiftActionForm(this._player, this._game.giftActionManager);
+        const followAction = new FollowActionForm(this._player, this._game.followActionManager);
+        const shareAction = new ShareActionForm(this._player, this._game.shareActionManager);
+        const memberAction = new MemberActionForm(this._player, this._game.memberActionManager);
+        const likeAction = new LikeActionForm(this._player, this._game.likeActionManager);
+        const chatAction = new ChatActionForm(this._player, this._game.chatActionManager);
+
+        new ActionForm(this._player, 'Event Actions')
+            .button('Gift Actions', giftAction.show.bind(giftAction),  'textures/tnt-coin/gui/buttons/gift.png')
+            .button('Like Actions', likeAction.show.bind(likeAction), 'textures/tnt-coin/gui/buttons/heart.png')
+            .button('Member Actions', memberAction.show.bind(memberAction), 'textures/tnt-coin/gui/buttons/member.png')
+            .button('Follow Actions', followAction.show.bind(followAction), 'textures/tnt-coin/gui/buttons/follow.png')
+            .button('Chat Actions', chatAction.show.bind(chatAction), 'textures/tnt-coin/gui/buttons/chat.png')
+            .button('Share Actions', shareAction.show.bind(shareAction), 'textures/tnt-coin/gui/buttons/share.png')
             .show();
-        } catch (error) {
-            this._feedback.error(error.message, { sound: 'item.shield.block' });
-        }
     }
 
     /**
@@ -172,6 +174,7 @@ export class TNTCoinGUI {
      */
     private showGiftGoalForm(): void {
         const settings = this._game.settings.giftGoalSettings as GiftGoalSettings;
+
         const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].id !== null && TIKTOK_GIFT[giftName].emoji !== '');
         const giftOptions = availableGifts.map(giftName => {
             const gift = TIKTOK_GIFT[giftName];
@@ -372,40 +375,35 @@ export class TNTCoinGUI {
             .button('Start Timer', this._game.timerManager.start.bind(this._game.timerManager))
             .button('Stop Timer', this._game.timerManager.stop.bind(this._game.timerManager))
             .button('Restart Timer', this._game.timerManager.restart.bind(this._game.timerManager))
-            .button('Edit Timer', this.showTimerConfigForm.bind(this))
-            .show();
-    }
-
-    /**
-     * Shows Timer Configuration Form to the player.
-     */
-    private showTimerConfigForm(): void {
-        if (this._game.timerManager.isTimerRunning) {
-            this._feedback.error('Cannot change timer settings while timer is running.', { sound: 'item.shield.block' });
-            return;
-        }
-
-        new ModalForm(this._player, 'Timer Configuration')
-            .textField(
-                'number',
-                'Time in Seconds:', 
-                'Enter the time in seconds', 
-                this._game.timerManager.getTimerDuration().toString(),
-                (updatedValue) => {
-                    const newDuration = updatedValue as number;
-                    if (newDuration < 1) {
-                        this._feedback.error('Time must be at least 1 second.', { sound: 'item.shield.block' });
-                        return;
-                    }
-                    this._game.timerManager.setTimerDuration(newDuration);
-                    this._feedback.success(
-                        'Timer settings have been updated.', 
-                        { sound: 'random.levelup' }
-                    );
-                    this._game.settings.timerDuration = newDuration;
+            .button('Edit Timer', () => {
+                if (this._game.timerManager.isTimerRunning) {
+                    this._feedback.error('Cannot change timer settings while timer is running.', { sound: 'item.shield.block' });
+                    return;
                 }
-            )
-            .submitButton('§2Update Timer§r')
+        
+                new ModalForm(this._player, 'Timer Configuration')
+                    .textField(
+                        'number',
+                        'Time in Seconds:', 
+                        'Enter the time in seconds', 
+                        this._game.timerManager.getTimerDuration().toString(),
+                        (updatedValue) => {
+                            const newDuration = updatedValue as number;
+                            if (newDuration < 1) {
+                                this._feedback.error('Time must be at least 1 second.', { sound: 'item.shield.block' });
+                                return;
+                            }
+                            this._game.timerManager.setTimerDuration(newDuration);
+                            this._feedback.success(
+                                'Timer settings have been updated.', 
+                                { sound: 'random.levelup' }
+                            );
+                            this._game.settings.timerDuration = newDuration;
+                        }
+                    )
+                    .submitButton('§2Update Timer§r')
+                    .show();
+            })
             .show();
     }
 

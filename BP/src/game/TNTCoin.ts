@@ -1,4 +1,4 @@
-import { Player, ScriptEventCommandMessageAfterEvent, Vector3 } from "@minecraft/server";
+import { Player, ScriptEventCommandMessageAfterEvent, Vector3, world } from "@minecraft/server";
 import { TNTCoinStructure } from "./TNTCoinStructure";
 import { Countdown } from "../core/Countdown";
 import { taskManager } from "../core/TaskManager";
@@ -18,6 +18,7 @@ import { summonEntities } from "./utilities/entities/spawner";
 import { onLose } from "./events/tntcoin/onLose";
 import { onWin } from "./events/tntcoin/onWin";
 import { EventActionManager } from "../core/EventActionManager";
+import { batch } from "./utilities/batch";
 
 /**
  * Represents a TNTCoin game instance.
@@ -33,10 +34,12 @@ export class TNTCoin {
     private readonly _actionBar: ActionBar;
     private readonly _giftGoal: GiftGoal;
 
-    private readonly _giftActionManager: EventActionManager<GiftAction>;
-    private readonly _followActionManager: EventActionManager<FollowAction>;
-    private readonly _shareActionManager: EventActionManager<ShareAction>;
-    private readonly _memberActionManager: EventActionManager<MemberAction>;
+    public readonly giftActionManager: EventActionManager<GiftAction>;
+    public readonly followActionManager: EventActionManager<FollowAction>;
+    public readonly shareActionManager: EventActionManager<ShareAction>;
+    public readonly memberActionManager: EventActionManager<MemberAction>;
+    public readonly likeActionManager: EventActionManager<LikeAction>;
+    public readonly chatActionManager: EventActionManager<ChatAction>;
 
     private _isPlayerInGame: boolean = false;
 
@@ -78,10 +81,12 @@ export class TNTCoin {
         this._winManager = new WinManager(10, this._actionBar);
         this._giftGoal = new GiftGoal(player, this._actionBar);
 
-        this._giftActionManager = new EventActionManager(player, 'GiftActions');
-        this._followActionManager = new EventActionManager(player, 'FollowActions');
-        this._shareActionManager = new EventActionManager(player, 'ShareActions');
-        this._memberActionManager = new EventActionManager(player, 'MemberActions');
+        this.giftActionManager = new EventActionManager(player, 'GiftActions');
+        this.followActionManager = new EventActionManager(player, 'FollowActions');
+        this.shareActionManager = new EventActionManager(player, 'ShareActions');
+        this.memberActionManager = new EventActionManager(player, 'MemberActions');
+        this.likeActionManager = new EventActionManager(player, 'LikeActions');
+        this.chatActionManager = new EventActionManager(player, 'ChatActions');
 
         this._taskAutoSaveId = `${player.name}:autosave`;
         this._taskFillCheckId = `${player.name}:fillcheck`;
@@ -171,22 +176,6 @@ export class TNTCoin {
 
     public get timerManager(): Timer {
         return this._timerManager;
-    }
-
-    public get giftActionManager(): EventActionManager<GiftAction> {
-        return this._giftActionManager;
-    }
-
-    public get followActionManager(): EventActionManager<FollowAction> {
-        return this._followActionManager;
-    }
-
-    public get shareActionManager(): EventActionManager<ShareAction> {
-        return this._shareActionManager;
-    }
-
-    public get memberActionManager(): EventActionManager<MemberAction> {
-        return this._memberActionManager;
     }
 
     /**
@@ -339,10 +328,14 @@ export class TNTCoin {
     }
 
     public summonFireworks(amount: number): void {
-        this.summonEntities({
-            entityName: 'fireworks_rocket',
-            locationType: 'random',
-            amount: amount
+        const locations = Array.from({ length: amount }, () => this._structure.randomLocation(2));
+        const particle = 'tntcoin:firework_1';
+        batch(locations, 3, (location: Vector3) => {
+            this._player.dimension.spawnParticle(particle, location);
+            this.player.playSound('firework.large_blast');
+            this.player.playSound('firework.twinkle');
+        }, {
+            delayInTicks: 10
         });
     }
     

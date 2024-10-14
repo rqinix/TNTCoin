@@ -256,24 +256,36 @@ export class TNTCoinStructure {
         this._airBlockLocations.clear();
 
         const { width, height, centerLocation, blockOptions } = this.structureProperties;
-        const { baseBlockName, sideBlockName } = blockOptions;
+        const { baseBlockName, sideBlockName, floorBlockName } = blockOptions;
 
         const heightMinRange = this._dimension.heightRange.min;
         const heightMaxRange = this._dimension.heightRange.max;
 
         try {
             iterateBlocks(startingPosition, (blockLocation) => {
+                const { x, y, z } = blockLocation;
+
                 // Check if block is out of bounds
-                if (blockLocation.y < heightMinRange || blockLocation.y > heightMaxRange) {
+                if (y < heightMinRange || y > heightMaxRange) {
                     throw new Error('Block out of bounds.');
                 } 
 
                 const blockPosition = JSON.stringify(getRelativeBlockLocation(centerLocation, blockLocation));
-                const blockName = isBlockOnBoundary(blockLocation.y, height) ? baseBlockName : sideBlockName;
+
                 const isOnPerimeter = isBlockOnPerimeter(blockLocation, width, height);
-                const isOnBottomLayer = isBlockOnBottomLayer(blockLocation.y);
+                const isOnBottomLayer = isBlockOnBottomLayer(y);
+                const isOnBoundary = isBlockOnBoundary(y, height);
+                const isOnBorder = isBlockOnBorder({x, z}, width);
                 
-                if (isOnPerimeter || isOnBottomLayer) {
+                let blockName: string | null = null;
+
+                if (isOnBottomLayer) {
+                    blockName = isOnBorder ? baseBlockName : floorBlockName;
+                } else if (isOnPerimeter) {
+                    blockName = isOnBoundary ? baseBlockName : sideBlockName;
+                }
+
+                if (blockName) {
                     handleBlock(JSON.parse(blockPosition), blockName);
                     this._protectedBlockLocations.add(blockPosition);
                 } else {

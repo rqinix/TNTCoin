@@ -84,6 +84,7 @@ interface StructureProperties {
     blockOptions: {
         baseBlockName: string;
         sideBlockName: string;
+        floorBlockName: string;
     };
 }
 
@@ -121,5 +122,9 @@ interface MemberAction extends EventAction {}
 interface FollowAction extends EventAction {}
 interface ShareAction extends EventAction {}
 interface ShareAction extends EventAction {}
-interface LikeAction extends EventAction {}
-interface ChatAction extends EventAction {}
+interface LikeAction extends EventAction {
+    likeCount: number;
+}
+interface ChatAction extends EventAction {
+    chat: string;
+}
