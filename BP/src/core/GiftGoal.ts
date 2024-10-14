@@ -38,20 +38,6 @@ export class GiftGoal {
     }
 
     /**
-     * Sets up the gift goal.
-     * @param giftName - The name of the gift.
-     * @param maxCount - The maximum number of gifts to reach the goal.
-     */
-    public setupGiftGoal(giftName: string, maxCount: number): void {
-        this.setGift(giftName);
-        this._maxCount = maxCount;
-        this._currentCount = 0;
-        this._isGoalAnnounced = false;
-        this._isActive = true;
-        this.updateActionBar();
-    }
-
-    /**
      * Increases the current count of gifts.
      * @param count - The number of gifts to add.
      */
@@ -217,7 +203,7 @@ export class GiftGoal {
     }
 
     /**
-     * Sets the gift for the goal.
+     * Sets the gift for the goal and resets the current count.
      * @param giftName - The name of the gift.
      */
     public setGift(giftName: string): void {
@@ -228,7 +214,9 @@ export class GiftGoal {
 
         this._gift = gift;
         this._giftName = giftName;
+        this.reset();
         this.updateActionBar();
+        this._player.playSound('random.orb');
     }
 }
 
