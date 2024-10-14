@@ -2,37 +2,36 @@ import { Player } from "@minecraft/server";
 import { EventActionManager } from "../../core/EventActionManager";
 import { EventActionForm } from "../../core/EventActionForm";
 import { ActionForm } from "../../core/Form";
+import { EventActionFormBase } from "./EventActionFormBase";
 
-export class MemberActionGui {
-    private readonly _player: Player;
-    private readonly _eventActionForm: EventActionForm<MemberAction>;
+export class MemberActionForm extends EventActionFormBase<MemberAction> {
     private readonly _eventKey: string = 'member';
-    private readonly _options: ActionType[] = ['Summon', 'Play Sound', 'Fill', 'Clear Blocks', 'Screen Title', 'Screen Subtitle'];
 
     constructor(player: Player, memberActionManager: EventActionManager<MemberAction>) {
-        this._player = player;
-        this._eventActionForm = new EventActionForm(player, memberActionManager);
+        super(player, new EventActionForm(player, memberActionManager));
     }
 
     public show(): void {
-        const memberActions = this._eventActionForm.actionManager.getAllActions().get(this._eventKey);
+        const memberActions = this._eventActionForm.actionManager.getAllEvents().get(this._eventKey);
         const form = new ActionForm(this._player, 'Member Actions');
 
-        form.body(`§2§kii§r§fTotal Actions: §d${memberActions.length}§2§kii§r\nThese Actions will be executed when a new user join to your live.`);
+        if (memberActions) {
+            form.body(`§2§kii§r§fTotal Actions: §d${memberActions?.length ?? 0}§2§kii§r\nExecuted when viewer join your live!`);
 
-        memberActions.forEach((action, index) => {
-            form.button(`§2§kii§r§8${index + 1}. ${action.actionType}§2§kii§r`, () => {
-                this._eventActionForm.showActionInfo(action, index);
+            memberActions.forEach((action, index) => {
+                form.button(`§2§kii§r§8${index + 1}. ${action.actionType}§2§kii§r`, () => {
+                    this._eventActionForm.showActionInfo(action, index);
+                });
             });
-        });
+        }
 
         form.button('Create New Member Action', () => {
             this._eventActionForm.showCreateActionForm({
                 eventKey: this._eventKey,
-            }, this._options);
+            }, this._actionOptions);
         });
 
-        form.button('Clear All Member Actions', () => {
+        form.button('Clear All Actions', () => {
             this._eventActionForm.showClearAllActionsFromEvent(this._eventKey)
         });
 

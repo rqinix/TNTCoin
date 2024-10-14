@@ -4,18 +4,17 @@ import { TNTCoin } from "../../TNTCoin";
 /**
  * Handles the Share event.
  * @param {TNTCoin} game the TNT Coin game instance.
- * @param {string} message
+ * @param {string} message the message sent by TikTokLiveMCBE
  */
 export function onShare(game: TNTCoin, message: string): void {
-    const data = JSON.parse(message);
-    const { nickname, uniqueId } = data;
+    const { nickname, uniqueId } = JSON.parse(message);
 
-    game.player.sendMessage(`§aThank you for sharing the stream, §e${nickname} §a(${uniqueId})§f!`);
-
-    const actions = game.shareActionManager.getAllActions().get('share') || [];
+    const actions = game.shareActionManager.getAllEvents().get('share') || [];
     if (actions.length > 0) {
         for (const action of actions) {
             executeAction(game, action);
         }
     }
+
+    game.player.sendMessage(`§7[§aShare§7]: §aThank you for sharing the stream, §e${nickname} §a(${uniqueId})§f!`);
 }

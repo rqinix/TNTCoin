@@ -143,10 +143,10 @@ export class EventActionManager<T extends EventAction> {
     }
 
     /**
-     * Retrieves all event actions.
-     * @returns A map of all event actions.
+     * Retrieves all events.
+     * @returns A map of all events.
      */
-    public getAllActions(): Map<string, T[]> {
+    public getAllEvents(): Map<string, T[]> {
         return this._eventActions;
     }
 }

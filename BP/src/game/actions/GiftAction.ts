@@ -3,48 +3,39 @@ import { EventActionManager } from "../../core/EventActionManager";
 import { ActionForm, ModalForm } from "../../core/Form";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../lang/tiktokGifts";
 import { EventActionForm } from "../../core/EventActionForm";
+import { EventActionFormBase } from "./EventActionFormBase";
 
-export class GiftActionGui {
-    private _player: Player;
-    private _manager: EventActionManager<GiftAction>;
-    private _eventActionForm: EventActionForm<GiftAction>;
-    private _actionOptions: ActionType[] = ['Summon', 'Play Sound', 'Fill', 'Clear Blocks', 'Screen Title', 'Screen Subtitle'];
+export class GiftActionForm extends EventActionFormBase<GiftAction> {
 
     constructor(player: Player, giftActionManager: EventActionManager<GiftAction>) {
-        this._player = player;
-        this._manager = giftActionManager;
-        this._eventActionForm = new EventActionForm(player, giftActionManager);
+        super(player, new EventActionForm(player, giftActionManager));
     }
 
     public show(): void {
-        const giftActions = this._manager.getAllActions();
+        const giftEvents = this._eventActionForm.actionManager.getAllEvents();
         const form = new ActionForm(this._player, 'Gift Actions')
 
-        form.body('§2§kii§r§fTotal Gift Actions: §d' + giftActions.size + '§2§kii§r\nThese Actions will be executed when someone sends you a gift.');
-
-        giftActions.forEach((actions, eventKey) => {
+        giftEvents.forEach((actions, eventKey) => {
             let giftName = '';
             let giftEmoji = '';
 
             actions.forEach((action, index) => {
                 giftName = action.giftName;
-                giftEmoji = action.giftEmoji;
-                if (giftName === undefined && giftEmoji === undefined) {
-                    this._manager.removeActionFromEvent(eventKey, index);
-                    console.warn(`Removed invalid action from event ${eventKey} at index ${index}`);
-                }
+                giftEmoji = action.giftEmoji; 
             });
 
-            form.button(`§2§kii§r§8${giftEmoji}${giftName}§2§kii§r\n§2Actions: [${actions.length}]`, () => {
-                this.showGiftActions(eventKey, `Actions for ${giftEmoji}${giftName}`, actions);
+            form.button(`§2§kii§r§8${giftEmoji}§e${giftName}§2§kii§r\n§2Actions: [${actions.length}]`, () => {
+                this.showGiftActions(eventKey, giftEmoji, giftName, actions);
             });
         });
 
-        form.button('Create New Gift Action', this.createNewGiftAction.bind(this));
+        form.button('Create New Gift Action', this.showCreateNewActionForm.bind(this));
+        form.button('Clear All Actions', () => this._eventActionForm.showClearAllActionsForm(giftEvents));
+
         form.show();
     }
 
-    private createNewGiftAction(): void {
+    private showCreateNewActionForm(): void {
         const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].id !== null && TIKTOK_GIFT[giftName].emoji !== '');
         const giftOptions = availableGifts.map(giftName => {
             const gift = TIKTOK_GIFT[giftName];
@@ -72,24 +63,29 @@ export class GiftActionGui {
             });
     }
 
-    private showGiftActions(eventKey: string, formTitle: string, giftActions: GiftAction[]): void {
-        const form = new ActionForm(this._player, formTitle);
-        form.body(`§2§kii§r§fTotal Actions: §d${giftActions.length}§2§kii§r\nThese Actions will be executed when someone sends you this gift.`);
+    private showGiftActions(eventKey: string, giftEmoji: string, giftName: string, giftActions: GiftAction[]): void {
+        const form = new ActionForm(this._player, `Actions for ${giftEmoji}${giftName}`);
+
+        form.body(`§2§kii§r§fTotal Actions: §d${giftActions.length}§2§kii§r\nExecuted when viewer sends a §e${giftEmoji}${giftName}§f gift.`);
+
         giftActions.forEach((action, index) => {
             let text: string = '';
-            switch (action.actionType) {
-                case 'Summon':
-                    text += ` - ${action.summonOptions.entityName.toUpperCase()} x${action.summonOptions?.amount}`;
-                    break;
-                case 'Play Sound':
-                    text += ` - ${action.playSound}`;
-                    break;
+
+            if (action.actionType === 'Summon') {
+                text += ` - ${action.summonOptions.entityName.toUpperCase()} x${action.summonOptions?.amount}`;
+            } else if (action.actionType === 'Play Sound') {
+                text += ` - ${action.playSound}`;
             }
+
             form.button(`§2§kii§r§8${index + 1}. ${action.actionType}${text}§2§kii§r`, () => {
                 this._eventActionForm.showActionInfo(action, index);
             });
         });
-        form.button('Clear All Actions for this Gift', () => this._eventActionForm.showClearAllActionsFromEvent(eventKey)); 
+
+        form.button('Clear All Actions for this Gift', () => {
+            this._eventActionForm.showClearAllActionsFromEvent(eventKey);
+        }); 
+
         form.show();
     }
 }

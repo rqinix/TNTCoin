@@ -20,14 +20,11 @@ export async function onWin(game: TNTCoin): Promise<void> {
     const SUBTITLE = '§eYou win!§r';
     const SOUND = 'random.levelup';
 
-    // Run the fireworks and show feedback screen after a delay of 20 ticks.
     taskManager.runTimeout(() => {
         game.summonFireworks(20);
         game.feedback.showFeedbackScreen({ title: TITLE, subtitle: SUBTITLE, sound: SOUND });
         game.player.dimension.spawnParticle('minecraft:totem_particle', game.player.location);
     }, 20);
-
-    game.player.playSound('wait_wait_wait');
 
     await game.resetGame();
     game.timerManager.restart();
