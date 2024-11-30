@@ -190,13 +190,13 @@ Each gift occupies `10%` of the total width, allowing a maximum of 10 gifts to b
 
       {
         "gift_1@gifts.template": {
-          "texture": "textures/tnt-coin/gifts/gift-rose.png"
+          "texture": "textures/tnt-coin/gifts/20241129_113143.png"
         }
       },
 
       {
         "MY_GIFT@gifts.template": {
-          "texture": "textures/tnt-coin/gifts/MY-GIFT.png"
+          "texture": "textures/tnt-coin/gifts/20241129_113143.png"
         }
       }
 
