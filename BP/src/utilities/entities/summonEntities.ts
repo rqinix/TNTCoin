@@ -1,14 +1,14 @@
 import { Vector3 } from "@minecraft/server";
-import { TNTCoin } from "../../TNTCoin";
-import { clearBlocks } from "../blocks/clearing";
+import { TntCoin } from "app/game/TntCoin";
+import BlockUtils from "../blocks/BlockUtils";
 import { batch } from "../batch";
 
 /**
  * Summons entities in the game based on the provided options.
- * @param {TNTCoin} game - The game instance to summon entities for.
+ * @param {TntCoin} game - The game instance to summon entities for.
  * @param {SummonOptions} options - The options for summoning entities.
  */
-export function summonEntities(game: TNTCoin, options: SummonOptions): void {
+export function summonEntities(game: TntCoin, options: SummonOptions): void {
     const {
         entityName,
         locationType = 'random', 
@@ -46,7 +46,7 @@ export function summonEntities(game: TNTCoin, options: SummonOptions): void {
                 const entity = game.player.dimension.spawnEntity(entityName, location);
                 if (options.newNameTag) entity.nameTag = options.newNameTag;
                 if (playSoundOnSummon) game.feedback.playSound(sound);
-                if (clearBlocksAfterSummon) clearBlocks(game.player.dimension, [location], 100);
+                if (clearBlocksAfterSummon) BlockUtils.clearBlocks(game.player.dimension, [location], 100);
                 onSummon();
             } catch (error) {
                 game.feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });

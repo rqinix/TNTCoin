@@ -1,5 +1,5 @@
 import { Player, Vector3, EasingType } from "@minecraft/server";
-import { taskManager } from "../../core/Managers/TaskManager";
+import { taskManager } from "../../lib/Managers/TaskManager";
 import MathUtils from "../math/MathUtils";
 
 interface Camera360Options {
@@ -51,13 +51,13 @@ export default class CameraUtils {
                     player.camera.clear();
                     return;
                 }
-                taskManager.addTimeout(taskId, updateCamera, tickInterval);
+                taskManager.addTask(taskId, updateCamera, tickInterval);
             } else {
                 player.camera.clear();
             }
         };
 
-        taskManager.addTimeout(taskId, updateCamera, tickInterval);
+        taskManager.addTask(taskId, updateCamera, tickInterval);
         return taskId;
     }
 
