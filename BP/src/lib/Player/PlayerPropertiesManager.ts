@@ -3,7 +3,7 @@ import { Player, Vector3 } from "@minecraft/server";
 /**
  * A manager class for handling dynamic properties for players.
  */
-export class DynamicPropertiesManager {
+export class PlayerPropertiesManager {
     private _player: Player;
 
     /**

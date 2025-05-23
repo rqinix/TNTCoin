@@ -1,20 +1,20 @@
-import { DEFAULT_GIFT, TIKTOK_GIFT } from '../lang/tiktokGifts';
-import { ActionBar } from './ActionBar';
 import { Player } from "@minecraft/server";
+import { DEFAULT_GIFT, TIKTOK_GIFT } from 'lang/tiktokGifts';
+import { Actionbar } from "./Actionbar";
 
-export class GiftGoal {
+export class TikTokGiftGoal {
     private _player: Player;
-    private _actionBar: ActionBar;
+    private _actionBar: Actionbar;
     private _gift: TikTokGift | null = null;
     private _giftName: string = '';
     private _currentCount: number = 0;
-    private _maxCount: number = 100; 
+    private _maxCount: number = 100;
     private _isActive: boolean = false;
     private _isEnabled: boolean = false;
     private _isGoalAnnounced: boolean = false;
 
 
-    constructor(player: Player, actionBar: ActionBar) {
+    constructor(player: Player, actionBar: Actionbar) {
         this._player = player;
         this._actionBar = actionBar;
     }
@@ -28,7 +28,7 @@ export class GiftGoal {
             isEnabled: this._isEnabled
         };
     }
-    
+
     public set settings(data: GiftGoalSettings) {
         if (data.giftName) this.setGift(data.giftName);
         if (data.maxCount) this.setMaxCount(data.maxCount);
@@ -57,7 +57,7 @@ export class GiftGoal {
      */
     public reset(): void {
         this._currentCount = 0;
-        this._isGoalAnnounced = false; 
+        this._isGoalAnnounced = false;
         this.updateActionBar();
     }
 
@@ -106,26 +106,29 @@ export class GiftGoal {
             if (!this._isGoalAnnounced) {
                 this._player.sendMessage(`§aYou have reached the goal of §d${this._giftName}§a!`);
                 this._player.playSound('random.levelup');
-                this._isGoalAnnounced = true; 
+                this._isGoalAnnounced = true;
             }
         } else {
-            this._isGoalAnnounced = false; 
+            this._isGoalAnnounced = false;
         }
 
-        this._actionBar.addTask('giftGoal', () => {
-            const progress = [
-                this._gift!.emoji,
-                ' ',
-                this._giftName,
-                ': ',
-                this.isGoalReached() ? '§a§l' : '§c',
-                this._currentCount,
-                '§r/',
-                '§d',
-                this._maxCount,
-                '§f'
-            ];
-            return progress;
+        this._actionBar.addTask('giftGoal', {
+            id: 'giftGoal',
+            callback: () => {
+                const progress = [
+                    this._gift!.emoji,
+                    ' ',
+                    this._giftName,
+                    ': ',
+                    this.isGoalReached() ? '§a§l' : '§c',
+                    this._currentCount,
+                    '§r/',
+                    '§d',
+                    this._maxCount,
+                    '§f'
+                ];
+                return progress;
+            }
         });
     }
 

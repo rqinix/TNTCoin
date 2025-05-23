@@ -1,0 +1,200 @@
+interface FeedbackOptions {
+    sound?: string;
+    title?: string;
+    subtitle?: string;
+    actionBar?: string;
+}
+
+interface Vec3 {
+    x: number;
+    y: number;
+    z: number;
+}
+
+interface SummonOptions {
+    entityName: string;
+    amount?: number;
+    locationType?: 'random' | 'center';
+    onTop?: boolean;
+    customLocations?: Vec3[];
+    batchSize?: number | null;
+    batchDelay?: number | null;
+    onSummon?: () => void;
+    newNameTag?: string;
+    clearBlocksAfterSummon?: boolean;
+    playSound?: {
+        playSoundOnSummon: boolean;
+        sound: string;
+    }
+}
+
+interface TikTokGift {
+    emoji: string;
+    coins: number;
+    id: number | null;
+}
+
+interface GameSettings {
+    doesCameraRotate: boolean;
+    useBarriers: boolean;
+    randomizeBlocks: boolean;
+    wins: number;
+    maxWins: number;
+    defaultCountdownTime: number;
+    countdownTickInterval: number;
+    timerDuration: number;
+    fillSettings: FillSettings;
+    giftGoalSettings: GiftGoalSettings;
+    summonEntitySettings: SummonOptions;
+}
+
+interface TntCoinState {
+    isPlayerInGame: boolean;
+    structureProperties: StructureProperties;
+    settings: GameSettings;
+}
+
+interface FillSettings {
+    blockName: string;
+    tickInterval: number;
+    blocksPerTick: number;
+}
+
+interface StructureProperties {
+    centerLocation: Vec3;
+    width: number;
+    height: number;
+    blockOptions: {
+        baseBlockName: string;
+        sideBlockName: string;
+        floorBlockName: string;
+    };
+}
+
+interface GiftGoalSettings {
+    giftName: string;
+    maxCount: number;
+    currentCount: number;
+    isActive: boolean;
+    isEnabled: boolean;
+}
+
+type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command';
+
+interface EventAction {
+    eventKey: string;
+    actionType?: ActionType;
+    playSound?: string | null;
+    summonOptions?: SummonOptions;
+    screenTitle?: string;
+    screenSubtitle?: string;
+    command?: string;
+}
+
+interface EventDefinitionInterface<T = any> {
+    name: string;
+    description?: string;
+}
+
+interface ActionbarTask {
+    id: string;
+    callback: () => (string | number | undefined)[] | Promise<(string | number | undefined)[]>;
+}
+
+interface GiftAction extends EventAction { giftName: string; giftId?: number; giftEmoji: string; }
+interface MemberAction extends EventAction {}
+interface FollowAction extends EventAction {}
+interface ShareAction extends EventAction {}
+interface ShareAction extends EventAction {}
+interface LikeAction extends EventAction { likeCount: number; }
+interface ChatAction extends EventAction { chat: string; }
+
+interface ChatProps { 
+    uniqueId: string, 
+    nickname: string,
+    comment: string
+}
+interface GiftProps {
+    uniqueId: string,
+    nickname: string, 
+    giftName: string, 
+    giftId: number, 
+    giftCount: number 
+}
+
+interface LikeProps {
+    uniqueId: string, 
+    nickname: string,
+    likeCount: number
+}
+
+interface FollowProps {
+    uniqueId: string, 
+    nickname: string 
+}
+
+interface JoinProps {
+    uniqueId: string, 
+    nickname: string 
+}
+
+interface ShareProps {
+    uniqueId: string, 
+    nickname: string 
+}
+
+interface ChatProps { 
+    username: string, 
+    nickname: string,
+    comment: string
+}
+
+interface GiftProps {
+    username: string,
+    nickname: string,
+    giftName: string,
+    giftId: number,
+    repeatCount: number
+    giftType: number,
+    diamondCount: number,
+    repeatEnd: number,
+}
+
+interface LikeProps {
+    username: string;
+    nickname: string;
+    likeCount: number;
+    totalLikeCount: number;
+}
+
+interface FollowProps {
+    username: string, 
+    nickname: string 
+}
+
+interface JoinProps {
+    username: string, 
+    nickname: string 
+}
+
+interface ShareProps {
+    username: string, 
+    nickname: string 
+}
+
+/**
+ * Interface for form component types
+ */
+interface FormComponent {
+    type: 'button' | 'textField' | 'dropdown' | 'slider' | 'toggle' | 'submitButton' | 'divider' | 'header' | 'label';
+    label?: string | RawMessage;
+    iconPath?: string;
+    placeholder?: string | RawMessage;
+    defaultValue?: string | number | boolean;
+    options?: string[] | RawMessage[];
+    min?: number;
+    max?: number;
+    step?: number;
+    callback?: (value: any) => Promise<void> | void;
+    textfieldType?: 'string' | 'number';
+}

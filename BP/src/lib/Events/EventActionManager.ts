@@ -1,10 +1,10 @@
 import { Player } from "@minecraft/server";
-import { DynamicPropertiesManager } from "./DynamicPropertiesManager";
+import { PlayerPropertiesManager } from "../Player/PlayerPropertiesManager";
 
-export class EventActionManager<T extends EventAction> {
-    private _propertiesManager: DynamicPropertiesManager;
+export class EventActionManager<Action extends EventAction> {
+    private _propertiesManager: PlayerPropertiesManager;
     private _propertyKey: string;
-    private _eventActions: Map<string, T[]> = new Map();
+    private _eventActions: Map<string, Action[]>;
 
     /**
      * Creates a new instance of the EventActionManager class.
@@ -12,88 +12,24 @@ export class EventActionManager<T extends EventAction> {
      * @param {string} key The key to use for saving event actions.
      */
     constructor(player: Player, key: string) {
-        this._propertiesManager = new DynamicPropertiesManager(player);
-        this._propertyKey = `${key}:actions`; 
-        this.loadAllEventActions(); 
+        this._propertiesManager = new PlayerPropertiesManager(player);
+        this._propertyKey = `${key}:actions:${player.name}`;
+        this._eventActions = new Map<string, Action[]>();
+        this.loadEvents();
     }
 
     /**
-     * Adds a new action to an event.
-     * @param action The action to add.
+     * Retrieves all events.
+     * @returns A map of all events.
      */
-    public addActionToEvent(action: T): void {
-        const actions = this._eventActions.get(action.eventKey) || [];
-        actions.push(action);
-        this._eventActions.set(action.eventKey, actions);
-        this.saveAllEventActions();
+    public getEvents(): Map<string, Action[]> {
+        return this._eventActions;
     }
 
     /**
-     * Removes a specific action from an event.
-     * @param {string} eventKey The name of the event.
-     * @param {number} index The index of the action to remove.
+     * Load all events from dynamic properties of the player.
      */
-    public removeActionFromEvent(eventKey: string, index: number): void {
-        const actions = this._eventActions.get(eventKey);
-        if (actions && actions[index]) {
-            actions.splice(index, 1);
-            actions.length === 0 ? this._eventActions.delete(eventKey) : this._eventActions.set(eventKey, actions);
-            this.saveAllEventActions();
-        } else {
-            console.warn(`No action found at index ${index} for event ${eventKey}`);
-        }
-    }
-
-    /**
-     * Removes all actions from a specific event.
-     * @param {string} eventKey The name of the event.
-     */
-    public removeAllActionsFromEvent(eventKey: string): void {
-        this._eventActions.delete(eventKey);
-        this.saveAllEventActions();
-    }
-
-    /**
-     * Updates a specific action in an event.
-     * @param {string} eventKey The name of the event.
-     * @param {number} index The index of the action to update.
-     * @param updatedAction The updated action properties.
-     */
-    public updateActionInEvent(eventKey: string, index: number, updatedAction: Partial<T>): void {
-        const actions = this._eventActions.get(eventKey);
-
-        if (actions && actions[index]) {
-            const action = actions[index];
-            Object.keys(updatedAction).forEach((key) => {
-                const value = updatedAction[key as keyof T];
-                if (value !== undefined) {
-                    (action[key as keyof T] as any) = value; 
-                }
-            });
-            this.saveAllEventActions();
-        } else {
-            console.warn(`No action found at index ${index} for event ${eventKey}`);
-        }
-    }
-
-    /**
-     * Save all event actions to dynamic properties of the player.
-     */
-    public saveAllEventActions(): void {
-        try {
-            const serializedActions = this._eventActions.size === 0 ? "[]" : JSON.stringify(Array.from(this._eventActions.entries())); 
-            this._propertiesManager.setProperty(this._propertyKey, serializedActions);
-            console.warn("Actions saved successfully.");
-        } catch (error) {
-            console.error(`Failed to save player actions: ${error}`);
-            throw error;
-        }
-    }
-
-    /**
-     * Load all event actions from dynamic properties of the player.
-     */
-    public loadAllEventActions(): void {
+    public loadEvents(): void {
         try {
             const serializedActions = this._propertiesManager.getProperty(this._propertyKey) as string;
             if (serializedActions && serializedActions !== "[]") {
@@ -106,7 +42,7 @@ export class EventActionManager<T extends EventAction> {
                     this._eventActions.clear();
                 }
             } else {
-                console.warn("No actions found to load.");
+                console.warn(`No ${this._propertyKey} found.`);
                 this._eventActions.clear();
             }
         } catch (error) {
@@ -116,21 +52,84 @@ export class EventActionManager<T extends EventAction> {
     }
 
     /**
-     * Clears all event actions.
+     * Adds a new action to an event.
+     * @param action The action to add.
      */
-    public clearAllEventActions(): void {
-        if (this._eventActions.size === 0) return;
-        this._eventActions.clear();
-        this.saveAllEventActions();
+    public addActionToEvent(action: Action): void {
+        const actions = this._eventActions.get(action.eventKey) || [];
+        actions.push(action);
+        this._eventActions.set(action.eventKey, actions);
+        this.save();
     }
 
     /**
-     * Clears all actions for a specific event.
+     * Removes a specific action from an event.
+     * @param {string} eventKey The name of the event.
+     * @param {number} index The index of the action to remove.
+     */
+    public removeActionFromEvent(eventKey: string, index: number): void {
+        const actions = this._eventActions.get(eventKey);
+        if (actions && actions[index]) {
+            actions.splice(index, 1);
+            actions.length === 0 ? this._eventActions.delete(eventKey) : this._eventActions.set(eventKey, actions);
+            this.save();
+        } else {
+            console.warn(`No action found at index ${index} for event ${eventKey}`);
+        }
+    }
+
+    /**
+     * Removes all actions from a specific event.
      * @param {string} eventKey The name of the event.
      */
-    public clearActionsForEvent(eventKey: string): void {
+    public clearActionsFromEvent(eventKey: string): void {
         this._eventActions.delete(eventKey);
-        this.saveAllEventActions();
+        this.save();
+    }
+
+    /**
+     * Updates a specific action in an event.
+     * @param {string} eventKey The name of the event.
+     * @param {number} index The index of the action to update.
+     * @param updatedAction The updated action properties.
+     */
+    public updateActionInEvent(eventKey: string, index: number, updatedAction: Partial<Action>): void {
+        const actions = this._eventActions.get(eventKey);
+        if (actions && actions[index]) {
+            const action = actions[index];
+            Object.keys(updatedAction).forEach((key) => {
+                const value = updatedAction[key as keyof Action];
+                if (value !== undefined) {
+                    (action[key as keyof Action] as any) = value;
+                }
+            });
+            this.save();
+        } else {
+            console.warn(`No action found at index ${index} for event ${eventKey}`);
+        }
+    }
+
+    /**
+     * Save all event actions to dynamic properties of the player.
+     */
+    public save(): void {
+        try {
+            const serializedActions = this._eventActions.size === 0 ? "[]" : JSON.stringify(Array.from(this._eventActions.entries()));
+            this._propertiesManager.setProperty(this._propertyKey, serializedActions);
+            console.warn("Actions saved successfully.");
+        } catch (error) {
+            console.error(`Failed to save player actions: ${error}`);
+            throw error;
+        }
+    }
+
+    /**
+     * Clears all event actions.
+     */
+    public clearAllEvents(): void {
+        if (this._eventActions.size === 0) return;
+        this._eventActions.clear();
+        this.save();
     }
 
     /**
@@ -138,15 +137,7 @@ export class EventActionManager<T extends EventAction> {
      * @param {string} eventKey The name of the event.
      * @returns An array of actions or undefined if no actions are found.
      */
-    public getActionsForEvent(eventKey: string): T[] | undefined {
+    public getActionsForEvent(eventKey: string): Action[] | undefined {
         return this._eventActions.get(eventKey);
-    }
-
-    /**
-     * Retrieves all events.
-     * @returns A map of all events.
-     */
-    public getAllEvents(): Map<string, T[]> {
-        return this._eventActions;
     }
 }

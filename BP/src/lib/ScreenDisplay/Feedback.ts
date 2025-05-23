@@ -1,6 +1,6 @@
 import { Player } from "@minecraft/server";
 
-export class PlayerFeedback {
+export class Feedback {
     private player: Player;
     
     constructor(player: Player) {
@@ -55,7 +55,7 @@ export class PlayerFeedback {
         this.player.onScreenDisplay.setActionBar(actionBar);
     }
 
-    public showFeedbackScreen({ title, subtitle, sound }: { title?: string, subtitle?: string, sound?: string }): void {
+    public displayScreen({ title, subtitle, sound }: { title?: string, subtitle?: string, sound?: string }): void {
         if (title) this.setTitle(title);
         if (subtitle) this.setSubtitle(subtitle);
         if (sound) this.playSound(sound);

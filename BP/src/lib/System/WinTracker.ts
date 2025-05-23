@@ -1,12 +1,12 @@
-import { ActionBar } from "./ActionBar";
+import { Actionbar } from "../ScreenDisplay/Actionbar";
 
-export class WinManager {
+export class WinTracker {
     private _currentWins: number = 0;
     private _maxWins: number;
-    private _actionBar: ActionBar;
+    private _actionBar: Actionbar;
     private _taskId: string = 'wins:actionbar';
 
-    constructor(maxWins: number, actionBar: ActionBar) {
+    constructor(maxWins: number, actionBar: Actionbar) {
         this._maxWins = maxWins;
         this._actionBar = actionBar;
         this.setupActionBar();
@@ -16,25 +16,28 @@ export class WinManager {
      * Sets up the ActionBar to display the current and maximum wins.
      */
     private setupActionBar(): void {
-        this._actionBar.addTask(this._taskId, () => {
-            const currentWins = this._currentWins;
-            const maxWins = this._maxWins;
-            let countColor = '§a';
+        this._actionBar.addTask(this._taskId, {
+            id: this._taskId,
+            callback: () => {
+                const currentWins = this._currentWins;
+                const maxWins = this._maxWins;
 
-            if (currentWins < 0) {
-                countColor = '§c';
-            } else if (currentWins >= maxWins) {
-                countColor = '§c';
-            }
+                let countColor = '§a';
+                if (currentWins < 0) {
+                    countColor = '§c';
+                } else if (currentWins >= maxWins) {
+                    countColor = '§c';
+                }
 
-            return ['Wins: ', countColor, currentWins, '§f/', '§a', maxWins];
+                return ['Wins: ', countColor, currentWins, '§f/', '§a', maxWins];
+            },
         });
     }
 
     /**
      * Increments the win count by 1.
      */
-    public incrementWin(): void {
+    public increment(): void {
         this._currentWins++;
         this._actionBar.updateDisplay();
     }
@@ -42,7 +45,7 @@ export class WinManager {
     /**
      * Decrements the win count by 1.
      */
-    public decrementWin(): void {
+    public decrement(): void {
         this._currentWins--;
         this._actionBar.updateDisplay();
     }
@@ -50,7 +53,7 @@ export class WinManager {
     /**
      * Resets the win count to 0.
      */
-    public resetWins(): void {
+    public reset(): void {
         this._currentWins = 0;
         this._actionBar.updateDisplay();
     }

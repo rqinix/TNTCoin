@@ -1,16 +1,17 @@
 import { Player } from "@minecraft/server";
-import { ActionBar } from "./ActionBar";
+import { Actionbar } from "../ScreenDisplay/Actionbar";
+import EventEmitter from "lib/Events/EventEmitter";
+import { EVENTS } from "app/events/eventTypes";
 
 type TimerCallback = () => Promise<void> | void;
 
 export class Timer {
     private player: Player;
-    private actionBar: ActionBar;
+    private actionBar: Actionbar;
     private taskId: string;
     private isRunning: boolean;
     private duration: number;
     private remainingTime: number;
-    private onEndCallbacks: TimerCallback[] = [];
 
     /**
      * Creates a new timer for the given player.
@@ -18,7 +19,7 @@ export class Timer {
      * @param {number} duration The duration of the timer in seconds.
      * @param {ActionBar} actionBar The action bar instance to display the timer.
      */
-    constructor(player: Player, duration: number, actionBar: ActionBar) {
+    constructor(player: Player, duration: number, actionBar: Actionbar) {
         this.player = player;
         this.actionBar = actionBar;
 
@@ -43,14 +44,6 @@ export class Timer {
     }
 
     /**
-     * Registers a callback to be called when the timer ends.
-     * @param {TimerCallback} callback The callback function to be executed on timer end.
-     */
-    public addOnEndCallback(callback: TimerCallback): void {
-        this.onEndCallbacks.push(callback);
-    }
-
-    /**
      * Starts the timer.
      */
     public start(): void {
@@ -60,31 +53,31 @@ export class Timer {
         };
 
         this.isRunning = true;
-        this.actionBar.addTask(this.taskId, async () => await this.task());
+        this.actionBar.addTask(this.taskId, {
+            id: this.taskId,
+            callback: async () => await this.task(),
+        });
+
+        this.player.sendMessage('§aTimer started!');
         this.player.playSound('random.orb');
+
+        EventEmitter.getInstance().publish(EVENTS.TIMER_STARTED, { player: this.player });
     }
 
     /**
      * The main task that runs the timer.
      */
     private async task(): Promise<(string | number | undefined)[]> {
+        const event = EventEmitter.getInstance();
         if (this.remainingTime > 0) {
             this.remainingTime--;
+            event.publish(EVENTS.TIMER_TICK, { player: this.player, remainingTime: this.remainingTime });
         } else {
             this.stop();
-            await this.executeCallbacks(this.onEndCallbacks);
+            event.publish(EVENTS.TIMER_ENDED, { player: this.player });
         }
 
         return this.getFormattedTime();
-    }
-
-    /**
-     * Executes the given callbacks.
-     */
-    private async executeCallbacks(callbacks: TimerCallback[]): Promise<void> {
-        for (const callback of callbacks) {
-            await Promise.resolve(callback());
-        }
     }
 
     /**

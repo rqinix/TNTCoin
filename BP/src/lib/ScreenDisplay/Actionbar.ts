@@ -1,12 +1,12 @@
 import { Player } from "@minecraft/server";
-import { taskManager } from "./TaskManager";
+import { taskManager } from "../Managers/TaskManager";
 
 /**
  * Class for managing and updating the action bar display for a player.
  */
-export class ActionBar {
+export class Actionbar {
     private _player: Player;
-    private _tasks: Map<string, () => (string | number | undefined)[] | Promise<(string | number | undefined)[]>> = new Map();
+    private _tasks: Map<string, ActionbarTask> = new Map();
     private _isRunning: boolean = false;
 
     constructor(player: Player) {
@@ -16,10 +16,10 @@ export class ActionBar {
     /**
      * Adds a task to the action bar display.
      * @param {string} id - Unique identifier for the task.
-     * @param {() => (string | number | undefined)[] | Promise<(string | number | undefined)[]>} callback 
+     * @param {ActionbarTask} callback 
      * - Function that returns an array of strings, numbers, or undefined values to be displayed, or a promise that resolves to such an array.
      */
-    public addTask(id: string, callback: () => (string | number | undefined)[] | Promise<(string | number | undefined)[]>): void {
+    public addTask(id: string, callback: ActionbarTask): void {
         this._tasks.set(id, callback);
         this.updateDisplay();
     }
@@ -74,7 +74,7 @@ export class ActionBar {
     private scheduleUpdate(interval: number): void {
         if (!this._isRunning) return;
 
-        taskManager.addTimeout(`actionbar:${this._player.name}`, () => {
+        taskManager.addTask(`actionbar:${this._player.name}`, () => {
             this.updateDisplay();
             this.scheduleUpdate(interval);
         }, interval);
@@ -92,8 +92,8 @@ export class ActionBar {
         const taskArray = Array.from(this._tasks.values());
 
         for (let i = 0; i < taskArray.length; i += tasksPerLine) {
-            const linePromises = taskArray.slice(i, i + tasksPerLine).map(async (callback) => {
-                const result = await callback();
+            const linePromises = taskArray.slice(i, i + tasksPerLine).map(async (task) => {
+                const result = await task.callback();
                 return this.formatTask(result);
             });
 
