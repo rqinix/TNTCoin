@@ -1,0 +1,17 @@
+export const EVENTS = {
+    COUNTDOWN_STARTED: "countdown:started",
+    COUNTDOWN_CANCELLED: "countdown:cancelled",
+    COUNTDOWN_ENDED: "countdown:ended",
+    COUNTDOWN_PAUSED: "countdown:paused",
+    TIMER_STARTED: "timer:started",
+    TIMER_TICK: "timer:tick",
+    TIMER_ENDED: "timer:ended",
+    TIMER_PAUSED: "timer:paused",
+    TIMER_RESUMED: "timer:resumed",
+    CHAT: "tntcoin:chat",
+    GIFT: "tntcoin:gift",
+    FOLLOW: "tntcoin:follow",
+    SHARE: "tntcoin:share",
+    LIKE: "tntcoin:like",
+    JOIN: "tntcoin:join",
+}

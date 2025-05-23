@@ -1,0 +1,10 @@
+export { onGift } from './tiktok/onGift';
+export { onFollow } from './tiktok/onFollow';
+export { onLike } from './tiktok/onLike';
+export { onShare } from './tiktok/onShare';
+export { onChat } from './tiktok/onChat';
+export { onJoin } from './tiktok/onJoin';
+export { onCountdownEnd } from './tntcoin/onCountdownEnd';
+export { onCountdownCancel } from './tntcoin/onCountdownCancel';
+export { onLose } from './tntcoin/onLose';
+export { onMaxWin } from './tntcoin/onMaxWin';
