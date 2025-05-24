@@ -1,9 +1,9 @@
-import { TNTCoin } from "../TNTCoin";
+import { TntCoin } from "../tntcoin/TntCoin";
 
-export function executeAction<T extends EventAction>(game: TNTCoin, action: T): void {
+export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T): void {
     switch(action.actionType) {
         case 'Summon':
-            game.summonEntities({
+            tntcoin.summonEntities({
                 entityName: action.summonOptions.entityName,
                 amount: action.summonOptions.amount,
                 locationType: action.summonOptions.locationType,
@@ -16,24 +16,27 @@ export function executeAction<T extends EventAction>(game: TNTCoin, action: T): 
                 },
                 onSummon: () => {
                     if (action.summonOptions.playSound.playSoundOnSummon) {
-                        game.feedback.playSound(action.summonOptions.playSound.sound);
+                        tntcoin.feedback.playSound(action.summonOptions.playSound.sound);
                     }
                 },
             });
             break;
         case 'Clear Blocks':
-            game.structure.clearFilledBlocks();
+            tntcoin.structure.clearFilledBlocks();
             break;
         case 'Fill':
-            game.structure.fill();
+            tntcoin.structure.fill();
             break;
         case 'Play Sound':
-            game.feedback.playSound(action.playSound);
+            tntcoin.feedback.playSound(action.playSound);
             break;
         case 'Screen Title':
-            game.feedback.setTitle(action.screenTitle);
+            tntcoin.feedback.setTitle(action.screenTitle);
             break;
         case 'Screen Subtitle':
-            game.feedback.setSubtitle(action.screenSubtitle);
+            tntcoin.feedback.setSubtitle(action.screenSubtitle);
+        case 'Run Command':
+            tntcoin.player.runCommand(action.command);
+            break;
     }
 }

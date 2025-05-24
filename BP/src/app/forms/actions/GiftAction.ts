@@ -1,8 +1,9 @@
 import { Player } from "@minecraft/server";
-import { EventActionManager } from "../../core/EventActionManager";
-import { ActionForm, ModalForm } from "../../core/Form";
-import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../lang/tiktokGifts";
-import { EventActionForm } from "../../core/EventActionForm";
+import { EventActionManager } from "lib/Events/EventActionManager";
+import ModalForm from "lib/Forms/ModalForm";
+import ActionForm from "lib/Forms/ActionForm";
+import { EventActionForm } from "app/forms/EventActionForm";
+import { DEFAULT_GIFT, TIKTOK_GIFT } from "lang/tiktokGifts";
 import { EventActionFormBase } from "./EventActionFormBase";
 
 export class GiftActionForm extends EventActionFormBase<GiftAction> {
@@ -12,27 +13,28 @@ export class GiftActionForm extends EventActionFormBase<GiftAction> {
     }
 
     public show(): void {
-        const giftEvents = this._eventActionForm.actionManager.getAllEvents();
-        const form = new ActionForm(this._player, 'Gift Actions')
-
+        const giftEvents = this._eventActionForm.actionManager.getEvents();
+        const form = new ActionForm(this._player, 'Gift Actions');
+        form.setParent(this._parentForm);
         giftEvents.forEach((actions, eventKey) => {
             let giftName = '';
             let giftEmoji = '';
-
-            actions.forEach((action, index) => {
+            actions.forEach((action) => {
                 giftName = action.giftName;
                 giftEmoji = action.giftEmoji; 
             });
-
             form.button(`§2§kii§r§8${giftEmoji}§e${giftName}§2§kii§r\n§2Actions: [${actions.length}]`, () => {
                 this.showGiftActions(eventKey, giftEmoji, giftName, actions);
             });
         });
-
-        form.button('Create New Gift Action', this.showCreateNewActionForm.bind(this));
-        form.button('Clear All Actions', () => this._eventActionForm.showClearAllActionsForm(giftEvents));
-
-        form.show();
+        form.button('§2Create New Gift Action', this.showCreateNewActionForm.bind(this))
+            .button(
+                '§cClear All', 
+                this._eventActionForm.showClearAllActionsForm.bind(this._eventActionForm, giftEvents, form)
+            )
+            .show(response => {
+                response.canceled && this._parentForm.show();
+            });
     }
 
     private showCreateNewActionForm(): void {
@@ -42,50 +44,51 @@ export class GiftActionForm extends EventActionFormBase<GiftAction> {
             const giftEmoji = gift.emoji || DEFAULT_GIFT;
             return `${giftEmoji} ${giftName}`;
         });
-
-        new ModalForm(this._player, 'Create New Gift Action')
-            .dropdown('Select Gift to Add Action', giftOptions, 5)
+        const form = this.createModalForm('Create New Gift Action');
+        form.dropdown('Select Gift to Add Action', giftOptions, 5)
             .submitButton('Continue')
-            .show(response => {
+            .show((response, isCanceled) => {
+                isCanceled && this.show();
                 const selectedGift = response[0] as number;
-
                 const giftName = availableGifts[selectedGift];
                 const gift = TIKTOK_GIFT[giftName];
                 const giftId = gift.id;
                 const giftEmoji = gift.emoji || DEFAULT_GIFT;
-
-                this._eventActionForm.showCreateActionForm({
-                    eventKey: giftId?.toString() || giftName,
-                    giftName: giftName,
-                    giftId: giftId,
-                    giftEmoji: giftEmoji,
-                }, this._actionOptions);
+                this._eventActionForm.showActionSelectionForm(
+                    {
+                        eventKey: giftId?.toString() || giftName,
+                        giftName: giftName,
+                        giftId: giftId,
+                        giftEmoji: giftEmoji,
+                    }, 
+                    this._actionOptions,
+                    form
+                );
             });
-    }
-
+    }    
+    
     private showGiftActions(eventKey: string, giftEmoji: string, giftName: string, giftActions: GiftAction[]): void {
-        const form = new ActionForm(this._player, `Actions for ${giftEmoji}${giftName}`);
-
-        form.body(`§2§kii§r§fTotal Actions: §d${giftActions.length}§2§kii§r\nExecuted when viewer sends a §e${giftEmoji}${giftName}§f gift.`);
-
+        const parentForm = this._parentForm;
+        const form = new ActionForm(this._player, `Actions for ${giftEmoji}${giftName}`)
+            .body(`§2§kii§r§fTotal Actions: §d${giftActions.length}§2§kii§r\nExecuted when viewer sends a §e${giftEmoji}${giftName}§f gift.`);
+        form.setParent(parentForm);
         giftActions.forEach((action, index) => {
             let text: string = '';
-
             if (action.actionType === 'Summon') {
                 text += ` - ${action.summonOptions.entityName.toUpperCase()} x${action.summonOptions?.amount}`;
             } else if (action.actionType === 'Play Sound') {
                 text += ` - ${action.playSound}`;
             }
-
             form.button(`§2§kii§r§8${index + 1}. ${action.actionType}${text}§2§kii§r`, () => {
-                this._eventActionForm.showActionInfo(action, index);
+                this._eventActionForm.showActionInfo(action, index, form);
             });
         });
-
-        form.button('Clear All Actions for this Gift', () => {
-            this._eventActionForm.showClearAllActionsFromEvent(eventKey);
-        }); 
-
-        form.show();
+        form.button(
+            '§cClear All Actions', 
+            this._eventActionForm.showConfirmationForm.bind(this._eventActionForm, eventKey, form))
+            .show(response => {
+                response.canceled && parentForm && parentForm.show();
+            }
+        );
     }
 }
