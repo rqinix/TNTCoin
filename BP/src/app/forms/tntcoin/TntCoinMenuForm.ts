@@ -33,8 +33,8 @@ export class TntCoinMenuForm extends BaseForm {
     show(): void {
         const wins = this.tntcoin.wins.getCurrentWins();
         const maxWin = this.tntcoin.wins.getMaxWins();
-        const totalBlocks = this.structure.locationManager.filledBlocksCount + this.structure.locationManager.airBlocksCount;
-        const blocksPlaced = this.structure.locationManager.filledBlocksCount;
+        const totalBlocks = this.structure.blocksManager.filledBlocksCount + this.structure.blocksManager.airBlocksCount;
+        const blocksPlaced = this.structure.blocksManager.filledBlocksCount;
         const menuForm = new ActionForm(this.player, '§1§kii§r§c§lTNT§eCOIN§r§5§kii§r');
         this.parentForm = menuForm;
         this.summonEntityForm.setParentForm(menuForm);
@@ -50,12 +50,12 @@ export class TntCoinMenuForm extends BaseForm {
             .button('Summon Entity', () => this.summonEntityForm.show(), 'textures/tnt-coin/gui/buttons/npc.png')
             .button('Summon TNT', this.tntcoin.summonTNT.bind(this.tntcoin), 'textures/tnt-coin/gui/buttons/tnt.png')
             .button(
-                this.structure.isFilling ? '§c§kii§r§c§o§lStop Filling§r§c§kii§r' : 'Fill Blocks',
-                this.structure.isFilling ? this.structure.stopFilling.bind(this.structure) : this.structure.fill.bind(this.structure),
-                this.structure.isFilling ? 'textures/ui/button_red.png' : 'textures/ui/filledBar.png'
+                this.structure.fillConfig.isActive ? '§c§kii§r§c§o§lStop Filling§r§c§kii§r' : 'Fill Blocks',
+                this.structure.fillConfig.isActive ? this.structure.stopFilling.bind(this.structure) : this.structure.fill.bind(this.structure),
+                this.structure.fillConfig.isActive ? 'textures/ui/button_red.png' : 'textures/ui/filledBar.png'
             )
             if (blocksPlaced > 0) {
-                menuForm.button('§cClear Blocks', this.structure.clearFilledBlocks.bind(this.structure), 'textures/ui/hud_mob_effect_background.png');
+                menuForm.button('§cClear Blocks', this.structure.clearBlocks.bind(this.structure), 'textures/ui/hud_mob_effect_background.png');
             }
             menuForm.button('Teleport', () => this.tntcoin.teleportPlayer(this.structure.structureHeight), 'textures/gui/newgui/mob_effects/invisibility_effect.png')
             .button('Timer', () => this.timerForm.show(), 'textures/ui/timer.png')

@@ -35,11 +35,11 @@ export class TntCoinStructureConfigForm extends BaseForm {
 
                 this.tntCoinGuiInstance.registerPlayer();
 
-                this.structure.setStructureProperties({
+                this.structure.structureProperties = {
                     width, height,
                     centerLocation: getStructureCenter(this.player, width),
                     blockOptions: { baseBlockName, sideBlockName, floorBlockName },
-                });
+                };
 
                 this.tntcoin.settings.updateTntCoinSettings({
                     ...this.tntcoin.settings.getTntCoinSettings(),
