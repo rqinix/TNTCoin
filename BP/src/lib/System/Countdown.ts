@@ -37,25 +37,23 @@ export class Countdown {
      */
     public start(): void {
         if (this.isCountingDown) return;
-
         this.isCountingDown = true; 
-        this.countdownStep();
-    }
-
+        this._countdownStep();
+    }    
+    
     /**
      * The countdown step.
      */
-    private async countdownStep(): Promise<void> {
+    private async _countdownStep(): Promise<void> {
         if (!this.isCountingDown) {
-            this.reset();
-            this._event.publish(EVENTS.COUNTDOWN_CANCELLED, { player: this._player });
+            console.warn('Countdown is not active, cannot proceed with counting down.');
             return;
         }
 
-        this.displayCountdown();
+        this._displayCountdown();
 
         if (this._countdownTime === 0) {
-            this.reset();
+            this.stop();
             this._event.publish(EVENTS.COUNTDOWN_ENDED, { player: this._player });
             return;
         }
@@ -63,31 +61,23 @@ export class Countdown {
         this._countdownTime--;
 
         this._timeoutId = `${this._player.name}:countdown`;
-        taskManager.addTask(this._timeoutId, () => this.countdownStep(), this.tickInterval);
+        taskManager.addTask(this._timeoutId, () => this._countdownStep(), this.tickInterval);
     }
 
     /**
-     * Pauses the countdown.
+     * Stops the countdown.
      */
-    public pause(): void {
+    public stop(): void {
+        if (!this.isCountingDown) {
+            return;
+        }
         this.isCountingDown = false;
         if (this._timeoutId) {
             taskManager.clearTask(this._timeoutId);
             this._timeoutId = undefined;
         }
-        this._event.publish(EVENTS.COUNTDOWN_PAUSED, { player: this._player });
-    }
-
-    /**
-     * Resets the countdown.
-     */
-    public reset(): void {
-        this.isCountingDown = false;
         this._countdownTime = this._defaultCountdownTime;
-        if (this._timeoutId) {
-            taskManager.clearTask(this._timeoutId);
-            this._timeoutId = undefined;
-        }
+        this._event.publish(EVENTS.COUNTDOWN_STOPPED, { player: this._player });
     }
 
     /**
@@ -95,7 +85,7 @@ export class Countdown {
     * @param {number} countdown the time remaining.
     * @returns {string} the color code for the countdown.
     */
-    private getCountdownColor(countdown: number): string {
+    private _getCountdownColor(countdown: number): string {
         switch (true) {
             case countdown >= 8:
                 return '§a';
@@ -113,8 +103,8 @@ export class Countdown {
     /**
     * Display countdown on the player's screen.
     */
-    private displayCountdown(): void {
-        const textColor = this.isCountingDown ? this.getCountdownColor(this._countdownTime) : '§4';
+    private _displayCountdown(): void {
+        const textColor = this.isCountingDown ? this._getCountdownColor(this._countdownTime) : '§4';
         this._feedback.setTitle(`§l${textColor}${this._countdownTime}`);
         this._feedback.setSubtitle('countdown');
         this._feedback.playSound(this._countdownTime >= 1 ? "respawn_anchor.charge" : "block.bell.hit");

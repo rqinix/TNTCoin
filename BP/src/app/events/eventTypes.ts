@@ -1,8 +1,8 @@
 export const EVENTS = {
     COUNTDOWN_STARTED: "countdown:started",
-    COUNTDOWN_CANCELLED: "countdown:cancelled",
     COUNTDOWN_ENDED: "countdown:ended",
-    COUNTDOWN_PAUSED: "countdown:paused",
+    COUNTDOWN_STOPPED: "countdown:stopped",
+    COUNTDOWN_INTERRUPTED: "countdown:interrupted",
     TIMER_STARTED: "timer:started",
     TIMER_TICK: "timer:tick",
     TIMER_ENDED: "timer:ended",

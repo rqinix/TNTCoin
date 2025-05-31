@@ -1,4 +1,4 @@
-import { TntCoin } from "../../game/TntCoin";
+import { TntCoin } from "../../tntcoin/TntCoin";
 
 /**
  * Handles the event when the player reaches the maximum number of wins.
@@ -16,7 +16,7 @@ export async function onMaxWin(tntcoin: TntCoin): Promise<void> {
     });
     tntcoin.summonFireworks(20);
 
-    await tntcoin.resetTntCoin();
+    await tntcoin.reset();
     tntcoin.wins.reset();
     tntcoin.timer.stop();
 }

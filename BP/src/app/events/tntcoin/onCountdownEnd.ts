@@ -1,5 +1,6 @@
 import { taskManager } from "lib/Managers/TaskManager";
-import { TntCoin } from "app/game/TntCoin";
+import { TntCoin } from "app/tntcoin/TntCoin";
+import CameraUtils from "utilities/camera/CameraUtils";
 
 /**
  * Handles the event when the countdown ends in the TNT Coin.
@@ -7,6 +8,9 @@ import { TntCoin } from "app/game/TntCoin";
  * @returns {Promise<void>} - A promise that resolves when the countdown end.
  */
 export async function onCountdownEnd(tntcoin: TntCoin): Promise<void> {
+    tntcoin.isInProcess = true;
+    
+    CameraUtils.clearTaskCamera(tntcoin.player, `rotateCamera360`);
     tntcoin.wins.increment();
 
     taskManager.executeTask(() => {
@@ -19,6 +23,7 @@ export async function onCountdownEnd(tntcoin: TntCoin): Promise<void> {
         tntcoin.player.dimension.spawnParticle('minecraft:totem_particle', tntcoin.player.location);
     }, 20);
 
-    await tntcoin.resetTntCoin();
+    await tntcoin.reset();
     tntcoin.timer.restart();
+    tntcoin.isInProcess = false;
 }

@@ -1,4 +1,4 @@
-import { TntCoin } from "app/game/TntCoin";
+import { TntCoin } from "app/tntcoin/TntCoin";
 
 /**
  * Handles the event when the player loses the game.
@@ -6,6 +6,8 @@ import { TntCoin } from "app/game/TntCoin";
  * @returns {Promise<void>} - A promise that resolves when the player loses the game.
  */
 export async function onLose(tntcoin: TntCoin): Promise<void> {
+    tntcoin.isInProcess = true;
+    
     tntcoin.wins.decrement();
 
     tntcoin.feedback.displayScreen({ 
@@ -14,6 +16,7 @@ export async function onLose(tntcoin: TntCoin): Promise<void> {
         sound: 'random.totem'
     });
     
-    await tntcoin.resetTntCoin();
+    await tntcoin.reset();
     tntcoin.timer.start();
+    tntcoin.isInProcess = false;
 }
