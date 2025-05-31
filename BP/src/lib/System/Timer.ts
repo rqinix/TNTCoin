@@ -7,26 +7,44 @@ type TimerCallback = () => Promise<void> | void;
 
 export class Timer {
     private player: Player;
-    private actionBar: Actionbar;
+    private actionbar: Actionbar;
     private taskId: string;
     private isRunning: boolean;
     private duration: number;
     private remainingTime: number;
+    private label: string;
+    private title: string;
 
     /**
      * Creates a new timer for the given player.
      * @param {Player} player The player for whom the timer is created.
      * @param {number} duration The duration of the timer in seconds.
-     * @param {ActionBar} actionBar The action bar instance to display the timer.
+     * @param {ActionBar} actionbar The action bar instance to display the timer.
+     * @param {string} label The label to display with the timer (default: "Time Left").
      */
-    constructor(player: Player, duration: number, actionBar: Actionbar) {
+    constructor(player: Player, duration: number, actionbar: Actionbar, label: string = "Time Left", title: string = "Timer") {
         this.player = player;
-        this.actionBar = actionBar;
-
+        this.actionbar = actionbar;
+        this.label = label;
+        this.title = title;
         this.setTimerDuration(duration);
-
-        this.taskId = `${player.name}:timer:actionbar`;
+        this.taskId = `${player.name}:${label}:actionbar`;
         this.isRunning = false;
+    }
+    
+    /**
+     * Gets the timer label.
+     */
+    public get timerLabel(): string {
+        return this.label;
+    }
+
+    /**
+     * Sets the timer label.
+     * @param label The new label for the timer.
+     */
+    public setTimerLabel(label: string): void {
+        this.label = label;
     }
 
     /**
@@ -48,19 +66,16 @@ export class Timer {
      */
     public start(): void {
         if (this.isRunning) {
-            this.player.sendMessage('§cTimer is already running.');
+            this.player.sendMessage(`§c${this.title} is already running.`);
             return;
-        };
+        }
 
         this.isRunning = true;
-        this.actionBar.addTask(this.taskId, {
+        this.actionbar.addTask(this.taskId, {
             id: this.taskId,
             callback: async () => await this.task(),
         });
-
-        this.player.sendMessage('§aTimer started!');
         this.player.playSound('random.orb');
-
         EventEmitter.getInstance().publish(EVENTS.TIMER_STARTED, { player: this.player });
     }
 
@@ -76,7 +91,6 @@ export class Timer {
             this.stop();
             event.publish(EVENTS.TIMER_ENDED, { player: this.player });
         }
-
         return this.getFormattedTime();
     }
 
@@ -121,19 +135,19 @@ export class Timer {
         this.duration = duration + 1;
         this.remainingTime = this.duration;
     }
-
+    
     /**
      * Gets the formatted time string for the action bar display.
      */
     private getFormattedTime(): (string | number | undefined)[] {
         const timeColor = this.remainingTime <= 10 ? '§c' : '§a';
-        return ['Time Left: ', timeColor, this.remainingTime];
+        return [this.label + ': ', timeColor, this.remainingTime];
     }
 
     /**
      * Clears the action bar display.
      */
     private clearActionBar(): void {
-        this.actionBar.removeTasks([this.taskId]);
+        this.actionbar.removeTasks([this.taskId]);
     }
 }
