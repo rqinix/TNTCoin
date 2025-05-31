@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
+  "version": "1.2.0",
   "name": "tnt-coin",
-  "description": "TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and run the Minecraft TNT Challenge.",
+  "description": "TNT Coin is created to make it easy for players to set up and run the \"Minecraft TNT Challenge\" in Minecraft Bedrock/Pocket Edition.",
   "type": "module",
   "main": "scripts/index.js",
   "scripts": {},
@@ -10,13 +10,13 @@
     "tiktok",
     "tnt"
   ],
-  "author": "Rqinix (JusMC)",
+  "author": "Rqinix",
   "license": "ISC",
   "devDependencies": {
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@minecraft/server": "^1.13.0",
-    "@minecraft/server-ui": "^1.2.0"
+    "@minecraft/server": "^1.19.0",
+    "@minecraft/server-ui": "^1.3.0"
   }
 }

@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
+    "baseUrl": "BP/src",
     "rootDir": "BP/src",
     "outDir": "BP/scripts",
     "module": "ES2022",
     "target": "ES2022",
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
   },
-  "include": ["BP/src/**/**/*.ts"],
+  "include": ["BP/src/**/*.ts"],
   "exclude": ["node_modules"]
 }

@@ -3,7 +3,6 @@ import { taskManager } from "lib/Managers/TaskManager";
 import MathUtils from "utilities/math/MathUtils";
 import CameraUtils from "utilities/camera/CameraUtils";
 import { onMaxWin } from "app/events/tntcoin/onMaxWin";
-import { EVENTS } from "app/events/eventTypes";
 
 export default class TntCoinProgressManager {
 
@@ -61,7 +60,6 @@ export default class TntCoinProgressManager {
         if (!isStructureFilled && tntcoin.countdown.isCountingDown) {
             CameraUtils.clearTaskCamera(tntcoin.player, `rotateCamera360`);
             tntcoin.countdown.stop();
-            tntcoin.event.publish
         } else if (isStructureFilled && !tntcoin.countdown.isCountingDown) {
             if (tntcoin.settings.getTntCoinSettings().doesCameraRotate) {
                 CameraUtils.rotateCamera360(tntcoin.player, {

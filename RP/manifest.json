@@ -2,8 +2,8 @@
 	"format_version": 2,
 
 	"header": {
-		"name": "§8[RP]§b§kii§r§cTNT§eCOIN §av1.1.0§d§kii§r",
-		"description": "TNT Coin is designed to make it easy for Minecraft BE/PE players to set up and run the Minecraft TNT Challenge. §bBy Rqinix§r",
+		"name": "§cTNT§eCOIN §av1.2.0§5§kii§r§bRP§r",
+		"description": "TNT Coin is created to make it easy for players to set up and run the \"Minecraft TNT Challenge\" in Minecraft Bedrock/Pocket Edition. §bBy Rqinix§r",
 		"min_engine_version": [1, 21, 22],
 		"uuid": "755b391b-2b03-4772-8424-0201fffa54c5",
 		"version": [1, 1, 0]
