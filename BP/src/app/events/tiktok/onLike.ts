@@ -1,4 +1,4 @@
-import { TntCoin } from "app/game/index";
+import { TntCoin } from "app/tntcoin/index";
 import { executeAction } from "app/actions/executeAction";
 import { EventActionManager } from "lib/Events/EventActionManager";
 import ServiceRegistry from "lib/System/ServiceRegistry";

@@ -22,7 +22,7 @@ export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T
             });
             break;
         case 'Clear Blocks':
-            tntcoin.structure.clearFilledBlocks();
+            tntcoin.structure.clearBlocks();
             break;
         case 'Fill':
             tntcoin.structure.fill();

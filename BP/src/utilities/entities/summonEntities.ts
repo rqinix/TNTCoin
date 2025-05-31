@@ -1,5 +1,5 @@
 import { Vector3 } from "@minecraft/server";
-import { TntCoin } from "app/game/TntCoin";
+import { TntCoin } from "app/tntcoin/TntCoin";
 import BlockUtils from "../blocks/BlockUtils";
 import { batch } from "../batch";
 

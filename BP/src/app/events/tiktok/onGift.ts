@@ -1,7 +1,7 @@
 import { EventActionManager } from "lib/Events/EventActionManager";
 import { executeAction } from "../../actions/executeAction";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../../lang/tiktokGifts";
-import { TntCoin } from "app/game/index";
+import { TntCoin } from "app/tntcoin/index";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 
 /**

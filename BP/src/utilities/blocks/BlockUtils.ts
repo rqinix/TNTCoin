@@ -1,5 +1,5 @@
 import { BlockPermutation, Dimension, Vector3 } from "@minecraft/server";
-import { TntCoinConfigManager } from "app/game/TntCoinConfigManager";
+import { TntCoinConfigManager } from "app/tntcoin/TntCoinConfigManager";
 import { batch } from "../batch";
 import MathUtils from "../math/MathUtils";
 import BlockState from "./BlockState";

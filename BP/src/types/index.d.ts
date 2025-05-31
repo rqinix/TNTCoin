@@ -34,7 +34,7 @@ interface TikTokGift {
     id: number | null;
 }
 
-interface GameSettings {
+interface TntCoinSettingsInterface {
     doesCameraRotate: boolean;
     useBarriers: boolean;
     randomizeBlocks: boolean;
@@ -48,10 +48,10 @@ interface GameSettings {
     summonEntitySettings: SummonOptions;
 }
 
-interface TntCoinState {
+interface TntCoinSession {
     isPlayerInGame: boolean;
     structureProperties: StructureProperties;
-    settings: GameSettings;
+    settings: TntCoinSettingsInterface;
 }
 
 interface FillSettings {
@@ -114,34 +114,6 @@ interface ChatProps {
     nickname: string,
     comment: string
 }
-interface GiftProps {
-    uniqueId: string,
-    nickname: string, 
-    giftName: string, 
-    giftId: number, 
-    giftCount: number 
-}
-
-interface LikeProps {
-    uniqueId: string, 
-    nickname: string,
-    likeCount: number
-}
-
-interface FollowProps {
-    uniqueId: string, 
-    nickname: string 
-}
-
-interface JoinProps {
-    uniqueId: string, 
-    nickname: string 
-}
-
-interface ShareProps {
-    uniqueId: string, 
-    nickname: string 
-}
 
 interface ChatProps { 
     username: string, 
@@ -164,7 +136,7 @@ interface LikeProps {
     username: string;
     nickname: string;
     likeCount: number;
-    totalLikeCount: number;
+    totalLiveLikeCount: number;
 }
 
 interface FollowProps {
