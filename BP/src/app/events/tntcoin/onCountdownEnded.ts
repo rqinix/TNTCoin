@@ -7,7 +7,7 @@ import CameraUtils from "utilities/camera/CameraUtils";
  * @param {TntCoin} tntcoin - The current instance of the TNT Coin.
  * @returns {Promise<void>} - A promise that resolves when the countdown end.
  */
-export async function onCountdownEnd(tntcoin: TntCoin): Promise<void> {
+export async function onCountdownEnded(tntcoin: TntCoin): Promise<void> {
     tntcoin.isInProcess = true;
     
     CameraUtils.clearTaskCamera(tntcoin.player, `rotateCamera360`);

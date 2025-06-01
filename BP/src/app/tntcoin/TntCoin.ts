@@ -5,7 +5,7 @@ import TntCoinEventDispatcher from "./TntCoinEventDispatcher";
 import EventEmitter from "lib/Events/EventEmitter";
 import { Countdown } from "lib/System/Countdown";
 import { taskManager } from "lib/Managers/TaskManager";
-import { Timer } from "lib/System/Timer";
+import { Timer, TimerEventData } from "lib/System/Timer";
 import { Feedback } from "lib/ScreenDisplay/Feedback";
 import { WinTracker } from "lib/System/WinTracker";
 import { Actionbar } from "lib/ScreenDisplay/Actionbar";
@@ -43,7 +43,7 @@ export class TntCoin {
     public eventMap: {
         onCountdownInterrupted: { id: string, handler: (data: any) => void },
         onCountdownEnded: { id: string, handler: (data: any) => void },
-        onTimerEnded: { id: string, handler: () => void }
+        onTntCoinTimerEnded: { id: string, handler: (data: TimerEventData) => void }
     };
 
     /**
@@ -61,7 +61,7 @@ export class TntCoin {
         this.structure = structure ?? new TntCoinStructure(player);
         this.actionbar = new Actionbar(player);
         this.countdown = new Countdown(10, player);
-        this.timer = new Timer(player, 180, this.actionbar);
+        this.timer = new Timer(player, 180, this.actionbar, "Time Left", "TNT Coin Timer");
         this.wins = new WinTracker(10, this.actionbar);
         this.giftGoal = new TikTokGiftGoal(player, this.actionbar);
         this.settings = new TntCoinSettings(this.structure, this.countdown, this.timer, this.wins, this.giftGoal);

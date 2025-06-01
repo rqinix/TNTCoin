@@ -83,7 +83,7 @@ export class LifeCycleService {
     public async clean(tntcoin: TntCoin): Promise<void> {
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownInterrupted);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownEnded);
-        tntcoin.event.unsubscribe(tntcoin.eventMap.onTimerEnded);
+        tntcoin.event.unsubscribe(tntcoin.eventMap.onTntCoinTimerEnded);
         CameraUtils.clearTaskCamera(tntcoin.player, `rotateCamera360`);
         tntcoin.clearTasks();
         tntcoin.structure.stopFilling();

@@ -5,7 +5,7 @@ import { TntCoin } from "app/tntcoin/TntCoin";
  * @param {TntCoin} tntcoin - The current instance of the TNT Coin.
  * @returns {Promise<void>} - A promise that resolves when the player loses the game.
  */
-export async function onLose(tntcoin: TntCoin): Promise<void> {
+export async function onTntCoinTimerEnded(tntcoin: TntCoin): Promise<void> {
     tntcoin.isInProcess = true;
     
     tntcoin.wins.decrement();

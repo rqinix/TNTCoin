@@ -1,19 +1,30 @@
 import { Player } from "@minecraft/server";
 import { Actionbar } from "../ScreenDisplay/Actionbar";
 import EventEmitter from "lib/Events/EventEmitter";
-import { EVENTS } from "app/events/eventTypes";
 
-type TimerCallback = () => Promise<void> | void;
+export interface TimerEventData {
+    player: Player;
+    timer: Timer;
+    remainingTime?: number;
+    title: string;
+    label: string;
+}
 
 export class Timer {
     private player: Player;
     private actionbar: Actionbar;
     private taskId: string;
     private isRunning: boolean;
+    private _isManuallyStarted: boolean;
     private duration: number;
     private remainingTime: number;
     private label: string;
     private title: string;
+    private customEvents: {
+        started: string;
+        tick: string;
+        ended: string;
+    };
 
     /**
      * Creates a new timer for the given player.
@@ -28,10 +39,25 @@ export class Timer {
         this.label = label;
         this.title = title;
         this.setTimerDuration(duration);
-        this.taskId = `${player.name}:${label}:actionbar`;
+        this.taskId = `timer:${player.name}:${label}:actionbar`;
         this.isRunning = false;
+        this._isManuallyStarted = false;
+        this._initializeTimerEvents();
+        console.warn(`Timer '${title}' created.`);
     }
-    
+
+    /**
+     * Initializes custom event names for this timer instance.
+     */
+    private _initializeTimerEvents(): void {
+        const eventPrefix = `timer:${this.title.toLowerCase().replace(/\s+/g, '_')}:${this.label.toLowerCase().replace(/\s+/g, '_')}`;
+        this.customEvents = {
+            started: `${eventPrefix}:started`,
+            tick: `${eventPrefix}:tick`,
+            ended: `${eventPrefix}:ended`,
+        };
+    }
+
     /**
      * Gets the timer label.
      */
@@ -45,6 +71,30 @@ export class Timer {
      */
     public setTimerLabel(label: string): void {
         this.label = label;
+        this._initializeTimerEvents();
+    }
+
+    /**
+     * Gets the timer title.
+     */
+    public get timerTitle(): string {
+        return this.title;
+    }
+
+    /**
+     * Sets the timer title.
+     * @param title The new title for the timer.
+     */
+    public setTimerTitle(title: string): void {
+        this.title = title;
+        this._initializeTimerEvents();
+    }
+
+    /**
+     * Gets the custom event names for this timer.
+     */
+    public get events() {
+        return { ...this.customEvents };
     }
 
     /**
@@ -60,7 +110,7 @@ export class Timer {
     public get timeRemaining(): number {
         return this.remainingTime;
     }
-
+    
     /**
      * Starts the timer.
      */
@@ -69,54 +119,64 @@ export class Timer {
             this.player.sendMessage(`§c${this.title} is already running.`);
             return;
         }
-
         this.isRunning = true;
+        this._isManuallyStarted = true;
         this.actionbar.addTask(this.taskId, {
             id: this.taskId,
-            callback: async () => await this.task(),
+            callback: async () => await this._task(),
         });
         this.player.playSound('random.orb');
-        EventEmitter.getInstance().publish(EVENTS.TIMER_STARTED, { player: this.player });
+        const eventData: TimerEventData = {
+            player: this.player,
+            timer: this,
+            title: this.title,
+            label: this.label
+        };
+        EventEmitter.getInstance().publish(this.customEvents.started, eventData);
     }
 
     /**
      * The main task that runs the timer.
      */
-    private async task(): Promise<(string | number | undefined)[]> {
+    private async _task(): Promise<(string | number | undefined)[]> {
         const event = EventEmitter.getInstance();
-        if (this.remainingTime > 0) {
-            this.remainingTime--;
-            event.publish(EVENTS.TIMER_TICK, { player: this.player, remainingTime: this.remainingTime });
-        } else {
+        const eventData: TimerEventData = {
+            player: this.player,
+            timer: this,
+            title: this.title,
+            label: this.label,
+            remainingTime: this.remainingTime
+        };
+        if (this.remainingTime <= 0) {
             this.stop();
-            event.publish(EVENTS.TIMER_ENDED, { player: this.player });
+            event.publish(this.customEvents.ended, eventData);
+        } else {
+            event.publish(this.customEvents.tick, eventData);
+            this.remainingTime--;
         }
         return this.getFormattedTime();
     }
-
+    
     /**
      * Stops the timer.
      */
     public stop(): void {
         if (!this.isRunning) return;
         this.isRunning = false;
+        this._isManuallyStarted = false;
+        this.remainingTime = this.duration;
         this.clearActionBar();
-        this.reset();
         this.player.playSound('random.orb');
     }
-
+    
     /**
-     * Restarts the timer with the initial duration.
+     * Stops the current timer and starts fresh.
      */
     public restart(): void {
-        if (this.isRunning) {
-            this.reset();
-            this.player.playSound('random.orb');
-        }
-    }
-
-    public reset(): void {
+        if (!this._isManuallyStarted) return;
+        this.stop();
         this.remainingTime = this.duration;
+        this.start();
     }
 
     /**
@@ -135,7 +195,7 @@ export class Timer {
         this.duration = duration + 1;
         this.remainingTime = this.duration;
     }
-    
+
     /**
      * Gets the formatted time string for the action bar display.
      */

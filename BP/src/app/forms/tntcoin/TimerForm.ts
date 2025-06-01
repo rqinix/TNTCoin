@@ -5,8 +5,10 @@ import { BaseForm } from "./BaseForm";
 export class TimerForm extends BaseForm {
     show(): void {
         new ActionForm(this.player, 'Timer')
-            .button('Start Timer', this.tntcoin.timer.start.bind(this.tntcoin.timer))
-            .button('Stop Timer', this.tntcoin.timer.stop.bind(this.tntcoin.timer))
+            .button(
+                this.tntcoin.timer.isTimerRunning ? '§c§kii§r§c§o§lStop Timer§r§c§kii§r' : 'Start Timer',
+                this.tntcoin.timer.isTimerRunning ? this.tntcoin.timer.stop.bind(this.tntcoin.timer) : this.tntcoin.timer.start.bind(this.tntcoin.timer),
+            )
             .button('Restart Timer', this.tntcoin.timer.restart.bind(this.tntcoin.timer))
             .button('Edit Timer', this.showTimerEditForm.bind(this))
             .setParent(this.parentForm)
