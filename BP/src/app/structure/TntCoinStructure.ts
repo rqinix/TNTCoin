@@ -93,7 +93,7 @@ export default class TntCoinStructure {
         const adjustedWidth = width - (offset * 2);
         const adjustedHeight = onTop ? 1 : height - offset;
         const randomX = Math.floor(Math.random() * adjustedWidth) - Math.floor(adjustedWidth / 2);
-        const randomY = onTop ? height : Math.floor(Math.random() * adjustedHeight);
+        const randomY = onTop ? height + 5 : Math.floor(Math.random() * adjustedHeight);
         const randomZ = Math.floor(Math.random() * adjustedWidth) - Math.floor(adjustedWidth / 2);
         return {
             x: centerLocation.x + randomX,
