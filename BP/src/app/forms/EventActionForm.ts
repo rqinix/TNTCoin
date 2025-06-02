@@ -93,6 +93,9 @@ export class EventActionForm<T extends EventAction> {
             case 'Win Action':
                 this.showWinActionForm(action, isEdit, index, parentForm);
                 break;
+            case 'TNT Rain':
+                this.showTntRainForm(action, isEdit, index, parentForm);
+                break;
         }
     }
 
@@ -128,6 +131,13 @@ export class EventActionForm<T extends EventAction> {
             formBody += `${this.COLORS.LABEL}Operation: ${this.COLORS.VALUE}${action.winOptions.operation}\n`;
             formBody += `${this.COLORS.LABEL}Amount: ${this.COLORS.VALUE}${action.winOptions.amount}\n`;
         }
+        if (action.tntRainOptions) {
+            formBody += `${this.COLORS.HEADER}TNT Rain Options:\n`;
+            formBody += `${this.COLORS.LABEL}Entity Type: ${this.COLORS.VALUE}${action.tntRainOptions.entityType}\n`;
+            formBody += `${this.COLORS.LABEL}Duration: ${this.COLORS.VALUE}${action.tntRainOptions.duration}s\n`;
+            formBody += `${this.COLORS.LABEL}Intensity: ${this.COLORS.VALUE}${action.tntRainOptions.intensity}x\n`;
+            formBody += `${this.COLORS.LABEL}Enable Camera Shake: ${this.COLORS.VALUE}${action.tntRainOptions.enableCameraShake}\n`;
+        }
         if (action.summonOptions) {
             const { entityName, amount, locationType, onTop, batchSize, batchDelay } = action.summonOptions;
             formBody += `${this.COLORS.HEADER}Summon Options:\n`;
@@ -156,6 +166,49 @@ export class EventActionForm<T extends EventAction> {
         }     
         
         form.show();
+    }
+
+    /**
+     * Form for configuring TNT rain options
+     */
+    private showTntRainForm(action: T, isEdit: boolean, index?: number, parentForm?: ActionForm): void {
+        if (action.actionType !== 'TNT Rain') return;
+        const tntRainOptions = action.tntRainOptions || {
+            entityType: 'tnt',
+            duration: 30,
+            intensity: 2.0,
+            enableCameraShake: true,
+            rainCoin: true
+        };
+        const formTitle = this.createActionFormTitle('TNT Coin Rain', isEdit, index);
+        const form = new ModalForm(this._player, formTitle)
+            .textField('string', `${this.COLORS.LABEL}Entity Type`, 'Entity Type (e.g., tnt)', tntRainOptions.entityType)
+            .textField('number', `${this.COLORS.LABEL}Duration (seconds)`, 'Duration (minimum 10 seconds)', tntRainOptions.duration.toString())
+            .textField('number', `${this.COLORS.LABEL}Intensity Multiplier`, 'Intensity (1.0 - 2.0)', tntRainOptions.intensity.toString())
+            .toggle(`${this.COLORS.LABEL}Enable Camera Shake`, tntRainOptions.enableCameraShake)
+            .toggle(`${this.COLORS.LABEL}Rain Coin`, tntRainOptions.rainCoin)
+            .submitButton('Confirm');
+        if (parentForm) {
+            form.setParent(parentForm);
+        } else if (this._parentForm) {
+            form.setParent(this._parentForm);
+        }
+        form.show(response => {
+            const entityType = response[0] as string;
+            const duration = Math.max(10, response[1] as number);
+            const intensity = Math.max(1.0, Math.min(2.0, response[2] as number));
+            const enableCameraShake = response[3] as boolean;
+            const rainCoin = response[4] as boolean;
+            const updatedTntRainOptions: TntRainOptions = {
+                entityType: entityType,
+                duration: duration,
+                intensity: intensity,
+                enableCameraShake: enableCameraShake,
+                rainCoin: rainCoin
+            };
+            const updatedAction: T = { ...action, tntRainOptions: updatedTntRainOptions, };
+            this.handleActionSubmission(action, updatedAction, isEdit, index);
+        });
     }
 
     /**

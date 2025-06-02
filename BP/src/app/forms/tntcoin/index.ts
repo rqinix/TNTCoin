@@ -1,6 +1,7 @@
 export * from './BaseForm';
 export * from './TntCoinStructureConfigForm';
 export * from './TntCoinMenuForm';
+export * from './TntCoinRainForm';
 export * from './EventActionsForm';
 export * from './GiftGoalForm';
 export * from './TntCoinSettingsForm';

@@ -83,6 +83,7 @@ world.beforeEvents.explosion.subscribe(event => {
             protectedLocations.forEach(location => {
                 const flooredLocation = MathUtils.floorVector3(location);
                 allProtectedLocations.add(`${flooredLocation.x},${flooredLocation.y},${flooredLocation.z}`);
+                gui.tntCoinStructure.clearFillCache();
             });
         }
     });

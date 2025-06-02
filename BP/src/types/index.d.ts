@@ -81,7 +81,7 @@ interface GiftGoalSettings {
     isEnabled: boolean;
 }
 
-type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail' | 'Win Action';
+type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail' | 'Win Action' | 'TNT Rain';
 
 interface EventAction {
     eventKey: string;
@@ -93,6 +93,7 @@ interface EventAction {
     command?: string;
     jailOptions?: JailActionOptions;
     winOptions?: WinActionOptions;
+    tntRainOptions?: TntRainOptions;
 }
 
 interface JailActionOptions {
@@ -103,6 +104,14 @@ interface JailActionOptions {
 interface WinActionOptions {
     operation: 'increment' | 'decrement';
     amount: number;
+}
+
+interface TntRainOptions {
+    duration: number;
+    intensity: number;
+    entityType: string;
+    enableCameraShake: boolean;
+    rainCoin: boolean;
 }
 
 interface EventDefinitionInterface<T = any> {

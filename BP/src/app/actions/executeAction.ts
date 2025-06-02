@@ -1,4 +1,6 @@
 import { TntCoin } from "../tntcoin/TntCoin";
+import { TntRainService } from "../tntcoin/services/TntRainService";
+import ServiceRegistry from "lib/System/ServiceRegistry";
 
 export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T): void {
     switch(action.actionType) {
@@ -50,6 +52,34 @@ export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T
                     tntcoin.wins.incrementBy(action.winOptions.amount);
                 } else if (action.winOptions.operation === 'decrement') {
                     tntcoin.wins.decrementBy(action.winOptions.amount);
+                }
+            }
+            break;
+        case 'TNT Rain':
+            if (action.tntRainOptions) {
+                try {
+                    const serviceRegistry = ServiceRegistry.getInstance();
+                    let rainService = serviceRegistry.get('TntRainService') as TntRainService;
+                    if (!rainService) {
+                        rainService = new TntRainService(tntcoin.player, tntcoin, tntcoin.structure, tntcoin.actionbar);
+                        serviceRegistry.register('TntRainService', rainService);
+                    }
+
+                    if (rainService.isRainActive) {
+                        tntcoin.feedback.error('TNT Rain is already active!', { sound: 'item.shield.block' });
+                        return;
+                    }
+
+                    // Start the rain
+                    rainService.startRain(
+                        action.tntRainOptions.duration, 
+                        action.tntRainOptions.intensity, 
+                        action.tntRainOptions.entityType,
+                        action.tntRainOptions.enableCameraShake, 
+                        action.tntRainOptions.rainCoin
+                    );
+                } catch (error) {
+                    tntcoin.feedback.error(`Failed to start TNT Rain: ${error}`, { sound: 'item.shield.block' });
                 }
             }
             break;

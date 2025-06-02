@@ -8,7 +8,8 @@ export abstract class EventActionFormBase<T extends EventAction> {
     protected readonly _eventActionForm: EventActionForm<T>;
     protected readonly _actionOptions: ActionType[] = [
         'Summon', 'Play Sound', 'Fill', 'Clear Blocks', 
-        'Screen Title', 'Screen Subtitle', 'Run Command', 'Jail', 'Win Action'
+        'Screen Title', 'Screen Subtitle', 'Run Command', 'Jail', 'Win Action',
+        'TNT Rain'
     ];
     protected _parentForm: ActionForm | ModalForm | null = null;
 

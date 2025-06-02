@@ -1,6 +1,8 @@
 import { TntCoin } from "../index";
 import TntCoinPlayerRegistry from "../TntCoinPlayerRegistry";
 import CameraUtils from "utilities/camera/CameraUtils";
+import ServiceRegistry from "lib/System/ServiceRegistry";
+import { TntRainService } from "./TntRainService";
 
 /**
  * Manages the core TNT Coin lifecycle methods for the TNT Coin
@@ -16,13 +18,14 @@ export class LifeCycleService {
             if (tntcoin.settings.getTntCoinSettings().useBarriers) {
                 await tntcoin.structure.generateBarriers();
             }
-            this.teleportPlayer(tntcoin);
+            tntcoin.teleportPlayer(tntcoin.structure.structureHeight);
             tntcoin.player.setSpawnPoint();
             tntcoin.isPlayerInSession = true;
             tntcoin.actionbar.start();
             tntcoin.checkStatus();
             tntcoin.autoSaveSession();
             tntcoin.jailService.loadJailState();
+            this.initializeTntRainService(tntcoin);
             tntcoin.feedback.playSound('random.anvil_use');
             tntcoin.feedback.playSound('random.levelup');
         } catch (error) {
@@ -38,6 +41,7 @@ export class LifeCycleService {
      */
     public async load(tntcoin: TntCoin): Promise<void> {
         try {
+            this.stopTntRain(tntcoin);
             tntcoin.clearTasks();
             const properties = tntcoin.propertiesManager.getProperty(tntcoin.key) as string;
             const session = JSON.parse(properties) as TntCoinSession;
@@ -59,6 +63,10 @@ export class LifeCycleService {
             tntcoin.feedback.warning('Cannot quit the game while countdown is active.', { sound: 'item.shield.block' });
             return;
         }
+        if (this.isTntRainActive()) {
+            tntcoin.feedback.warning('Stopping active TNT Rain...', { sound: 'mob.wither.spawn' });
+            this.stopTntRain(tntcoin);
+        }
         try {
             await this.clean(tntcoin);
             const registry = TntCoinPlayerRegistry.getInstance();
@@ -73,6 +81,10 @@ export class LifeCycleService {
      * @param tntcoin The TntCoin instance to reset
      */
     public async clearTntCoinEnvironment(tntcoin: TntCoin): Promise<void> {
+        if (this.isTntRainActive()) {
+            tntcoin.feedback.info('Stopping TNT Rain during environment reset...', { sound: 'random.pop' });
+            this.stopTntRain(tntcoin);
+        }
         CameraUtils.clearTaskCamera(tntcoin.player, `rotateCamera360`);
         await tntcoin.structure.clearBlocks();
     }
@@ -82,6 +94,7 @@ export class LifeCycleService {
      * @param tntcoin The TntCoin instance to clean
      */
     public async clean(tntcoin: TntCoin): Promise<void> {
+        this.cleanupTntRainService(tntcoin);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownInterrupted);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownEnded);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onTntCoinTimerEnded);
@@ -104,14 +117,80 @@ export class LifeCycleService {
     }
 
     /**
-     * Teleports the player to the center of the structure
+     * Initializes the TNT Rain service for the session
      * @param tntcoin The TntCoin instance
-     * @param height Optional height offset, defaults to 1
      */
-    public teleportPlayer(tntcoin: TntCoin, height: number = 1): void {
-        const { x, y, z } = tntcoin.structure.structureCenter;
-        const location = { x, y: y + height, z };
-        tntcoin.player.teleport(location);
-        tntcoin.feedback.playSound('mob.shulker.teleport');
+    private initializeTntRainService(tntcoin: TntCoin): void {
+        try {
+            const serviceRegistry = ServiceRegistry.getInstance();
+            let rainService = serviceRegistry.get('TntRainService') as TntRainService;
+            if (!rainService) {
+                rainService = new TntRainService(
+                    tntcoin.player,
+                    tntcoin,
+                    tntcoin.structure,
+                    tntcoin.actionbar
+                );
+                serviceRegistry.register('TntRainService', rainService);
+                console.warn(`TNT Rain service initialized for player: ${tntcoin.player.name}`);
+            } else {
+                if (rainService.isRainActive) {
+                    rainService.stopRain();
+                }
+            }
+        } catch (error) {
+            console.warn(`Failed to initialize TNT Rain service: ${error}`);
+        }
+    }
+
+    /**
+     * Checks if TNT Rain is currently active
+     * @param tntcoin The TntCoin instance
+     * @returns True if TNT Rain is active
+     */
+    private isTntRainActive(): boolean {
+        try {
+            const serviceRegistry = ServiceRegistry.getInstance();
+            const rainService = serviceRegistry.get('TntRainService') as TntRainService;
+            return rainService?.isRainActive ?? false;
+        } catch (error) {
+            console.warn(`Error checking TNT Rain status: ${error}`);
+            return false;
+        }
+    }
+
+    /**
+     * Stops TNT Rain if it's currently active
+     * @param tntcoin The TntCoin instance
+     */
+    private stopTntRain(tntcoin: TntCoin): void {
+        try {
+            const serviceRegistry = ServiceRegistry.getInstance();
+            const rainService = serviceRegistry.get('TntRainService') as TntRainService;
+            if (rainService?.isRainActive) {
+                rainService.stopRain();
+            }
+        } catch (error) {
+            console.warn(`Error stopping TNT Rain: ${error}`);
+        }
+    }
+
+    /**
+     * Cleans up TNT Rain service and removes it from registry
+     * @param tntcoin The TntCoin instance
+     */
+    public cleanupTntRainService(tntcoin: TntCoin): void {
+        try {
+            const serviceRegistry = ServiceRegistry.getInstance();
+            const rainService = serviceRegistry.get('TntRainService') as TntRainService;
+            if (rainService) {
+                if (rainService.isRainActive) {
+                    rainService.stopRain();
+                }
+                serviceRegistry.remove('TntRainService');
+            }
+        } catch (error) {
+            console.warn(`Error during TNT Rain service cleanup: ${error}`);
+        }
     }
 }

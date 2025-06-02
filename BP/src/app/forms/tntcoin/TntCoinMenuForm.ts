@@ -8,6 +8,7 @@ import { TntCoinSettingsForm } from "./TntCoinSettingsForm";
 import { Player } from "@minecraft/server";
 import { TntCoin, TntCoinStructure } from "app/tntcoin";
 import { TntCoinForm } from "../TntCoinForm";
+import { TntCoinRainForm } from "./TntCoinRainForm";
 
 export class TntCoinMenuForm extends BaseForm {
     private summonEntityForm: SummonEntityForm;
@@ -15,6 +16,7 @@ export class TntCoinMenuForm extends BaseForm {
     private giftGoalForm: GiftGoalForm;
     private eventActionsForm: EventActionsForm;
     private tntCoinSettingsForm: TntCoinSettingsForm;
+    private tntCoinRainForm: TntCoinRainForm;
 
     constructor(
         player: Player,
@@ -28,6 +30,7 @@ export class TntCoinMenuForm extends BaseForm {
         this.giftGoalForm = new GiftGoalForm(player, tntcoin, structure, form);
         this.eventActionsForm = new EventActionsForm(player, tntcoin, structure, form);
         this.tntCoinSettingsForm = new TntCoinSettingsForm(player, tntcoin, structure, form);
+        this.tntCoinRainForm = new TntCoinRainForm(player, tntcoin, structure, form);
     }
 
     show(): void {
@@ -49,6 +52,7 @@ export class TntCoinMenuForm extends BaseForm {
             )
             .button('Summon Entity', () => this.summonEntityForm.show(), 'textures/tnt-coin/gui/buttons/npc.png')
             .button('Summon TNT', this.tntcoin.summonTNT.bind(this.tntcoin), 'textures/tnt-coin/gui/buttons/tnt.png')
+            .button('§c§kii§r§c§o§lTNT COIN RAIN§r§c§kii§r', () => this.tntCoinRainForm.show(), 'textures/blocks/tnt_bottom.png')
             .button(
                 this.structure.fillConfig.isActive ? '§c§kii§r§c§o§lStop Filling§r§c§kii§r' : 'Fill Blocks',
                 this.structure.fillConfig.isActive ? this.structure.stopFilling.bind(this.structure) : this.structure.fill.bind(this.structure),
