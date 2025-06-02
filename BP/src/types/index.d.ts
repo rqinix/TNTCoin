@@ -35,6 +35,7 @@ interface TikTokGift {
 }
 
 interface TntCoinSettingsInterface {
+    editStructure: boolean;
     doesCameraRotate: boolean;
     useBarriers: boolean;
     randomizeBlocks: boolean;

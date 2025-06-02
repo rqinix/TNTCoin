@@ -19,7 +19,6 @@ export default class TntCoinSettings {
     ) {
         this.initializeDefaultSettings();
     }
-
     
     private initializeDefaultSettings(): void {
         console.warn('§aInitializing TNT Coin Settings...');
@@ -60,6 +59,17 @@ export default class TntCoinSettings {
         const config = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
         this.configManager.setConfig('TNT_COIN_SETTINGS', { ...config, doesCameraRotate: value });
     }
+
+    // --- Structure Settings ---
+    get structureEditMode(): boolean {
+        return this._structure.editMode;
+    }
+
+    set structureEditMode(value: boolean) {
+        this._structure.editMode = value;
+        this.configManager.setConfig('TNT_COIN_SETTINGS', { ...this.configManager.getConfig<any>('TNT_COIN_SETTINGS'), editStructure: value });
+    }
+    
 
     // --- Barrier Settings ---
 
@@ -122,6 +132,9 @@ export default class TntCoinSettings {
 
     public getTntCoinSettings(): TntCoinSettingsInterface {
         return {
+            editStructure: this._structure.editMode, 
+            giftGoalSettings: this._giftGoal.settings,
+            summonEntitySettings: this._summonEntityFormSettings,
             doesCameraRotate: this.doesCameraRotate,
             useBarriers: this.useBarriers,
             randomizeBlocks: this.randomizeBlocks,
@@ -131,8 +144,6 @@ export default class TntCoinSettings {
             defaultCountdownTime: this._countdown.defaultCountdownTime,
             countdownTickInterval: this._countdown.tickInterval,
             fillSettings: this._structure.fillSettings,
-            giftGoalSettings: this._giftGoal.settings,
-            summonEntitySettings: this._summonEntityFormSettings,
             jailSettings: this._jailSettings,
         };
     }
@@ -142,6 +153,7 @@ export default class TntCoinSettings {
      */
     public updateTntCoinSettings(settings: TntCoinSettingsInterface): void {
         console.warn('§aUpdating TNT Coin Settings...');
+        this._structure.editMode = settings.editStructure;
         this._giftGoal.settings = settings.giftGoalSettings;
         this._summonEntityFormSettings = settings.summonEntitySettings;
         this.doesCameraRotate = settings.doesCameraRotate;

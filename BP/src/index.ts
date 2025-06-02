@@ -155,7 +155,7 @@ world.beforeEvents.playerBreakBlock.subscribe(event => {
                     location.y === blockLocation.y &&
                     location.z === blockLocation.z;
             });
-            if (isProtectedBlock) {
+            if (isProtectedBlock && !gui.tntcoin.settings.structureEditMode) {
                 event.cancel = true;
                 system.run(() => player.playSound("item.shield.block"));
             }

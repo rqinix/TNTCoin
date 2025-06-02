@@ -92,6 +92,22 @@ export class TntCoinMenuForm extends BaseForm {
                 },
                 this.tntcoin.settings.getTntCoinSettings().useBarriers ? 'textures/ui/button_red.png' : 'textures/blocks/barrier.png'
             )
+            .button(
+                this.tntcoin.settings.structureEditMode ? '§c§kii§r§c§o§lLock Structure§r§c§kii§r' : '§2§kii§r§2§o§lUnlock Structure§r§2§kii§r',
+                () => {
+                    this.tntcoin.settings.structureEditMode = !this.tntcoin.settings.structureEditMode;
+                    this.feedback.playSound(this.tntcoin.settings.structureEditMode ? 'random.anvil_use' : 'note.bassattack');
+                    if (this.tntcoin.settings.structureEditMode) {
+                        this.tntcoin.actionbar.addTask(`StructureEditMode:${this.player.name}`, {
+                            id: `StructureEditMode:${this.player.name}`,
+                            callback: () => ['§c§lStructure Edit Mode is ON!§r']
+                        });
+                    } else {
+                        this.tntcoin.actionbar.removeTasks([`StructureEditMode:${this.player.name}`]);
+                    }
+                },
+                this.tntcoin.settings.structureEditMode ? 'textures/ui/unLock.png' : 'textures/ui/lock_color.png'
+            )
             .button('Settings', () => this.tntCoinSettingsForm.show(), 'textures/ui/gear.png')
             .button('Reload', this.tntcoin.load.bind(this.tntcoin), 'textures/ui/refresh_light.png')
             .button('About', () => {

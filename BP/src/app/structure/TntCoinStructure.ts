@@ -12,6 +12,7 @@ export default class TntCoinStructure {
     private readonly _feedback: Feedback;
     private readonly _propertiesManager: StructurePropertiesManager;
     public blocksManager: StructureBlocksManager;
+    public editMode: boolean = false;
 
     public fillConfig = {
         isActive: false,
