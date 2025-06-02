@@ -90,6 +90,9 @@ export class EventActionForm<T extends EventAction> {
             case 'Jail':
                 this.showJailForm(action, isEdit, index, parentForm);
                 break;
+            case 'Win Action':
+                this.showWinActionForm(action, isEdit, index, parentForm);
+                break;
         }
     }
 
@@ -120,6 +123,11 @@ export class EventActionForm<T extends EventAction> {
             formBody += `${this.COLORS.LABEL}Duration: ${this.COLORS.VALUE}${action.jailOptions.duration}s\n`;
             formBody += `${this.COLORS.LABEL}Enable Effects: ${this.COLORS.VALUE}${action.jailOptions.enableEffects}\n`;
         }
+        if (action.winOptions) {
+            formBody += `${this.COLORS.HEADER}Win Options:\n`;
+            formBody += `${this.COLORS.LABEL}Operation: ${this.COLORS.VALUE}${action.winOptions.operation}\n`;
+            formBody += `${this.COLORS.LABEL}Amount: ${this.COLORS.VALUE}${action.winOptions.amount}\n`;
+        }
         if (action.summonOptions) {
             const { entityName, amount, locationType, onTop, batchSize, batchDelay } = action.summonOptions;
             formBody += `${this.COLORS.HEADER}Summon Options:\n`;
@@ -148,6 +156,38 @@ export class EventActionForm<T extends EventAction> {
         }     
         
         form.show();
+    }
+
+    /**
+     * Form for configuring win action options
+     */
+    private showWinActionForm(action: T, isEdit: boolean, index?: number, parentForm?: ActionForm): void {
+        if (action.actionType !== 'Win Action') return;
+        const winOptions = action.winOptions || {
+            operation: 'increment',
+            amount: 1
+        };
+        const formTitle = this.createActionFormTitle('Win Action', isEdit, index);
+        const form = new ModalForm(this._player, formTitle)
+            .dropdown(`${this.COLORS.LABEL}Operation`, ['Increment', 'Decrement'], winOptions.operation === 'increment' ? 0 : 1)
+            .textField('number', `${this.COLORS.LABEL}Amount`, 'Amount to change', winOptions.amount.toString())
+            .submitButton('Confirm');
+        if (parentForm) {
+            form.setParent(parentForm);
+        } else if (this._parentForm) {
+            form.setParent(this._parentForm);
+        }
+        form.show(response => {
+            const updatedWinOptions: WinActionOptions = {
+                operation: response[0] === 0 ? 'increment' : 'decrement',
+                amount: Math.max(1, response[1] as number)
+            };
+            const updatedAction: T = {
+                ...action,
+                winOptions: updatedWinOptions,
+            };
+            this.handleActionSubmission(action, updatedAction, isEdit, index);
+        });
     }
 
     /**

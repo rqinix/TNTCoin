@@ -51,6 +51,24 @@ export class WinTracker {
     }
 
     /**
+     * Increments the win count by a specific amount.
+     * @param amount The amount to increment by
+     */
+    public incrementBy(amount: number): void {
+        this._currentWins += amount;
+        this._actionBar.updateDisplay();
+    }
+
+    /**
+     * Decrements the win count by a specific amount.
+     * @param amount The amount to decrement by
+     */
+    public decrementBy(amount: number): void {
+        this._currentWins -= amount;
+        this._actionBar.updateDisplay();
+    }
+
+    /**
      * Resets the win count to 0.
      */
     public reset(): void {

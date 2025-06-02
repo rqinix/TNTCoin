@@ -80,7 +80,7 @@ interface GiftGoalSettings {
     isEnabled: boolean;
 }
 
-type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail';
+type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail' | 'Win Action';
 
 interface EventAction {
     eventKey: string;
@@ -91,11 +91,17 @@ interface EventAction {
     screenSubtitle?: string;
     command?: string;
     jailOptions?: JailActionOptions;
+    winOptions?: WinActionOptions;
 }
 
 interface JailActionOptions {
     duration: number;
     enableEffects: boolean;
+}
+
+interface WinActionOptions {
+    operation: 'increment' | 'decrement';
+    amount: number;
 }
 
 interface EventDefinitionInterface<T = any> {

@@ -44,5 +44,14 @@ export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T
                 tntcoin.jailPlayer(action.jailOptions.duration, action.jailOptions.enableEffects);
             }
             break;
+        case 'Win Action':
+            if (action.winOptions) {
+                if (action.winOptions.operation === 'increment') {
+                    tntcoin.wins.incrementBy(action.winOptions.amount);
+                } else if (action.winOptions.operation === 'decrement') {
+                    tntcoin.wins.decrementBy(action.winOptions.amount);
+                }
+            }
+            break;
     }
 }
