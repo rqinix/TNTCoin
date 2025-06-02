@@ -34,7 +34,9 @@ export class EventActionForm<T extends EventAction> {
 
     public get actionManager(): EventActionManager<T> {
         return this._manager;
-    }    /**
+    }
+
+    /**
      * Displays a form for selecting an action type
      */
     public showActionSelectionForm(action: T, actionOptions: ActionType[], parentForm?: ActionForm | ModalForm): void {
@@ -85,8 +87,13 @@ export class EventActionForm<T extends EventAction> {
             case 'Run Command':
                 this.showRunCommandForm(action, isEdit, index, parentForm);
                 break;
+            case 'Jail':
+                this.showJailForm(action, isEdit, index, parentForm);
+                break;
         }
-    }    /**
+    }
+
+    /**
      * Displays detailed information about an action
      */
     public showActionInfo(action: T, index: number, parentForm?: ActionForm): void {
@@ -105,6 +112,14 @@ export class EventActionForm<T extends EventAction> {
         if (action.screenSubtitle) {
             formBody += `${this.COLORS.LABEL}Screen Subtitle: ${this.COLORS.VALUE}${action.screenSubtitle}\n`;
         } 
+        if (action.command) {
+            formBody += `${this.COLORS.LABEL}Command: ${this.COLORS.VALUE}${action.command}\n`;
+        }
+        if (action.jailOptions) {
+            formBody += `${this.COLORS.HEADER}Jail Options:\n`;
+            formBody += `${this.COLORS.LABEL}Duration: ${this.COLORS.VALUE}${action.jailOptions.duration}s\n`;
+            formBody += `${this.COLORS.LABEL}Enable Effects: ${this.COLORS.VALUE}${action.jailOptions.enableEffects}\n`;
+        }
         if (action.summonOptions) {
             const { entityName, amount, locationType, onTop, batchSize, batchDelay } = action.summonOptions;
             formBody += `${this.COLORS.HEADER}Summon Options:\n`;
@@ -133,6 +148,38 @@ export class EventActionForm<T extends EventAction> {
         }     
         
         form.show();
+    }
+
+    /**
+     * Form for configuring jail options
+     */
+    private showJailForm(action: T, isEdit: boolean, index?: number, parentForm?: ActionForm): void {
+        if (action.actionType !== 'Jail') return;
+        const jailOptions = action.jailOptions || {
+            duration: 30,
+            enableEffects: true
+        };
+        const formTitle = this.createActionFormTitle('Jail', isEdit, index);
+        const form = new ModalForm(this._player, formTitle)
+            .textField('number', `${this.COLORS.LABEL}Jail Duration (seconds)`, 'Duration in seconds', jailOptions.duration.toString())
+            .toggle(`${this.COLORS.LABEL}Enable Jail Effects`, jailOptions.enableEffects)
+            .submitButton('Confirm');
+        if (parentForm) {
+            form.setParent(parentForm);
+        } else if (this._parentForm) {
+            form.setParent(this._parentForm);
+        }
+        form.show(response => {
+            const updatedJailOptions: JailActionOptions = {
+                duration: Math.max(1, response[0] as number),
+                enableEffects: response[1] as boolean
+            };
+            const updatedAction: T = {
+                ...action,
+                jailOptions: updatedJailOptions,
+            };
+            this.handleActionSubmission(action, updatedAction, isEdit, index);
+        });
     }
 
     /**

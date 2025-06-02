@@ -9,8 +9,14 @@ export class TntCoinSettingsForm extends BaseForm {
             return;
         }
 
-        const oldSettings = { ...this.tntcoin.settings.getTntCoinSettings() };
-        const newSettings = { ...this.tntcoin.settings.getTntCoinSettings() };
+        const oldSettings = this.tntcoin.settings.getTntCoinSettings();
+        const newSettings = {
+            ...oldSettings,
+            fillSettings: { ...oldSettings.fillSettings },
+            giftGoalSettings: { ...oldSettings.giftGoalSettings },
+            summonEntitySettings: { ...oldSettings.summonEntitySettings },
+            jailSettings: { ...oldSettings.jailSettings }
+        };
 
         new ModalForm(this.player, 'TNT Coin Settings')
             .toggle(
@@ -121,13 +127,36 @@ export class TntCoinSettingsForm extends BaseForm {
                     }
                 }
             )
+            .textField(
+                "number", 
+                "[§cJAIL§r] Jail Duration (seconds):", 
+                'Enter the jail duration in seconds', 
+                oldSettings.jailSettings.jailTime.toString(), 
+                (updatedValue) => {
+                    if (updatedValue as number <= 0) {
+                        this.feedback.error('Jail duration must be greater than zero', { sound: 'item.shield.block' });
+                    } else {
+                        newSettings.jailSettings.jailTime = updatedValue as number;
+                    }
+                }
+            )
+            .toggle(
+                '[§cJAIL§r] Enable Jail Effects', 
+                oldSettings.jailSettings.enableEffects, 
+                (updatedValue) => newSettings.jailSettings.enableEffects = updatedValue as boolean
+            )
             .submitButton("Update Settings")
             .setParent(this.parentForm)
             .show(() => {
                 const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
+                console.warn('§e[TNT COIN SETTINGS] Settings changed:', isSettingsChanged);
+                
                 if (isSettingsChanged) {
+                    console.warn('§a[TNT COIN SETTINGS] Updating settings...');
                     this.tntcoin.settings.updateTntCoinSettings(newSettings);
                     this.feedback.success('TNT Coin settings updated.', { sound: 'random.levelup' });
+                } else {
+                    console.warn('§c[TNT COIN SETTINGS] No settings changes detected');
                 }
             });
     }

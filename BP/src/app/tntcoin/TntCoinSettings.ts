@@ -4,6 +4,7 @@ import { Timer } from "lib/System/Timer";
 import { WinTracker } from "lib/System/WinTracker";
 import { TikTokGiftGoal } from "lib/ScreenDisplay/TikTokGiftGoal";
 import { TntCoinConfigManager } from "./TntCoinConfigManager";
+import { JailService } from "./services";
 
 export default class TntCoinSettings {
     private readonly configManager = TntCoinConfigManager.getInstance();
@@ -13,65 +14,91 @@ export default class TntCoinSettings {
         private readonly _countdown: Countdown,
         private readonly _timer: Timer,
         private readonly _winTracker: WinTracker,
-        private readonly _giftGoal: TikTokGiftGoal
+        private readonly _giftGoal: TikTokGiftGoal,
+        private readonly _jailService: JailService
     ) {
-        this.initializeFromConfig();
+        this.initializeDefaultSettings();
     }
 
-    /**
-     * Initialize settings from config manager
-     */
-    private initializeFromConfig(): void {
-        const tntCoinConfig = this.configManager.getConfig<any>('TNT_COIN_CONFIG');
+    
+    private initializeDefaultSettings(): void {
+        console.warn('§aInitializing TNT Coin Settings...');
+        const tntCoinSettings = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
         const summonEntityConfig = this.configManager.getConfig<SummonOptions>('SUMMON_ENTITY_CONFIG');
+        const jailConfig = this.configManager.getConfig<JailConfigInterface>('JAIL_CONFIG');
 
-        if (tntCoinConfig) {
-            this._winTracker.setWins(tntCoinConfig.wins || 0);
-            this._winTracker.setMaxWins(tntCoinConfig.maxWins || 10);
-            this._timer.setTimerDuration(tntCoinConfig.timerDuration || 180);
-            this._countdown.defaultCountdownTime = tntCoinConfig.defaultCountdownTime || 10;
-            this._countdown.tickInterval = tntCoinConfig.countdownTickInterval || 20;
+        if (tntCoinSettings) {
+            this._winTracker.setWins(tntCoinSettings.wins || 0);
+            this._winTracker.setMaxWins(tntCoinSettings.maxWins || 10);
+            this._timer.setTimerDuration(tntCoinSettings.timerDuration || 180);
+            this._countdown.defaultCountdownTime = tntCoinSettings.defaultCountdownTime || 10;
+            this._countdown.tickInterval = tntCoinSettings.countdownTickInterval || 20;
         }
 
         if (summonEntityConfig) {
             this._summonEntityFormSettings = { ...summonEntityConfig };
         }
+
+        if (jailConfig) {
+            this._jailSettings = { ...jailConfig };
+            if (this._jailService && this._jailService.jailConfig) {
+                this._jailService.jailConfig = jailConfig;
+            }
+        }
+
+        console.warn('§aTNT Coin Settings initialized.');
     }
 
-    // Camera settings
+    // --- Camera settings ---
+
     get doesCameraRotate(): boolean {
-        const config = this.configManager.getConfig<any>('TNT_COIN_CONFIG');
+        const config = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
         return config?.doesCameraRotate ?? true;
     }
 
     set doesCameraRotate(value: boolean) {
-        const config = this.configManager.getConfig<any>('TNT_COIN_CONFIG');
-        this.configManager.setConfig('TNT_COIN_CONFIG', { ...config, doesCameraRotate: value });
+        const config = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
+        this.configManager.setConfig('TNT_COIN_SETTINGS', { ...config, doesCameraRotate: value });
     }
-    
-    // Structure settings
+
+    // --- Barrier Settings ---
+
     get useBarriers(): boolean {
-        const config = this.configManager.getConfig<any>('TNT_COIN_CONFIG');
+        const config = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
         return config?.useBarriers ?? false;
     }
 
     set useBarriers(value: boolean) {
-        const config = this.configManager.getConfig<any>('TNT_COIN_CONFIG');
-        this.configManager.setConfig('TNT_COIN_CONFIG', { ...config, useBarriers: value });
+        const config = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
+        this.configManager.setConfig('TNT_COIN_SETTINGS', { ...config, useBarriers: value });
     }
-    
-    // Block settings
+
+    // --- Block settings ----
+
     get randomizeBlocks(): boolean {
-        const config = this.configManager.getConfig<any>('TNT_COIN_CONFIG');
+        const config = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
         return config?.randomizeBlocks ?? true;
     }
 
     set randomizeBlocks(value: boolean) {
-        const config = this.configManager.getConfig<any>('TNT_COIN_CONFIG');
-        this.configManager.setConfig('TNT_COIN_CONFIG', { ...config, randomizeBlocks: value });
+        const config = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
+        this.configManager.setConfig('TNT_COIN_SETTINGS', { ...config, randomizeBlocks: value });
     }
 
-    // Entity settings
+    // --- Entity settings ----
+
+    get summonEntitySettings(): SummonOptions {
+        return this._summonEntityFormSettings;
+    }
+
+    set summonEntitySettings(settings: SummonOptions) {
+        this._summonEntityFormSettings = {
+            ...this._summonEntityFormSettings,
+            ...settings
+        };
+        this.configManager.setConfig('SUMMON_ENTITY_CONFIG', this._summonEntityFormSettings);
+    }
+
     private _summonEntityFormSettings: SummonOptions = this.configManager.getConfig<SummonOptions>('SUMMON_ENTITY_CONFIG') || {
         entityName: 'tnt_minecart',
         locationType: 'random',
@@ -83,6 +110,14 @@ export default class TntCoinSettings {
             playSoundOnSummon: true,
             sound: 'kururin',
         }
+    };
+
+
+    // Jail settings
+    private _jailSettings: JailConfigInterface = this.configManager.getConfig<JailConfigInterface>('JAIL_CONFIG') || {
+        size: 5,
+        jailTime: 10,
+        enableEffects: true
     };
 
     public getTntCoinSettings(): TntCoinSettingsInterface {
@@ -98,13 +133,17 @@ export default class TntCoinSettings {
             fillSettings: this._structure.fillSettings,
             giftGoalSettings: this._giftGoal.settings,
             summonEntitySettings: this._summonEntityFormSettings,
+            jailSettings: this._jailSettings,
         };
     }
-
+    
     /**
      * Updates all settings from a settings object
      */
     public updateTntCoinSettings(settings: TntCoinSettingsInterface): void {
+        console.warn('§aUpdating TNT Coin Settings...');
+        this._giftGoal.settings = settings.giftGoalSettings;
+        this._summonEntityFormSettings = settings.summonEntitySettings;
         this.doesCameraRotate = settings.doesCameraRotate;
         this.useBarriers = settings.useBarriers;
         this.randomizeBlocks = settings.randomizeBlocks;
@@ -114,16 +153,16 @@ export default class TntCoinSettings {
         this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
         this._countdown.tickInterval = settings.countdownTickInterval;
         this._structure.fillSettings = settings.fillSettings;
-        this._giftGoal.settings = settings.giftGoalSettings;
-        this._summonEntityFormSettings = settings.summonEntitySettings;
+        this._jailSettings = settings.jailSettings;
         this.updateConfigManager();
+        console.warn('§aTNT Coin Settings updated.');
     }
 
     /**
      * Update config manager with current settings
      */
     private updateConfigManager(): void {
-        const tntCoinConfig = {
+        const tntCoinSettings = {
             useBarriers: this.useBarriers,
             doesCameraRotate: this.doesCameraRotate,
             randomizeBlocks: this.randomizeBlocks,
@@ -131,23 +170,11 @@ export default class TntCoinSettings {
             maxWins: this._winTracker.getMaxWins(),
             timerDuration: this._timer.getTimerDuration(),
             defaultCountdownTime: this._countdown.defaultCountdownTime,
-            countdownTickInterval: this._countdown.tickInterval
+            countdownTickInterval: this._countdown.tickInterval,
+            fillSettings: this._structure.fillSettings,
+            jailSettings: this._jailSettings
         };
-
-        this.configManager.setConfig('TNT_COIN_CONFIG', tntCoinConfig);
-        this.configManager.setConfig('SUMMON_ENTITY_CONFIG', this._summonEntityFormSettings);
-    }
-
-    // Entity settings
-    get summonEntitySettings(): SummonOptions {
-        return this._summonEntityFormSettings;
-    }
-
-    set summonEntitySettings(settings: SummonOptions) {
-        this._summonEntityFormSettings = {
-            ...this._summonEntityFormSettings,
-            ...settings
-        };
+        this.configManager.setConfig('TNT_COIN_SETTINGS', tntCoinSettings);
         this.configManager.setConfig('SUMMON_ENTITY_CONFIG', this._summonEntityFormSettings);
     }
 }

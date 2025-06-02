@@ -23,7 +23,7 @@ config.setConfig("BLOCKS", [
     "minecraft:yellow_wool",
 ]);
 
-config.setConfig('TNT_COIN_CONFIG', {
+config.setConfig('TNT_COIN_SETTINGS', {
     useBarriers: false,
     doesCameraRotate: true,
     randomizeBlocks: true,

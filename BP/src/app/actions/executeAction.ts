@@ -35,8 +35,14 @@ export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T
             break;
         case 'Screen Subtitle':
             tntcoin.feedback.setSubtitle(action.screenSubtitle);
+            break;
         case 'Run Command':
             tntcoin.player.runCommand(action.command);
+            break;
+        case 'Jail':
+            if (action.jailOptions) {
+                tntcoin.jailPlayer(action.jailOptions.duration, action.jailOptions.enableEffects);
+            }
             break;
     }
 }

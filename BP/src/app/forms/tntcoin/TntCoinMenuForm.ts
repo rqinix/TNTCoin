@@ -55,9 +55,19 @@ export class TntCoinMenuForm extends BaseForm {
                 this.structure.fillConfig.isActive ? 'textures/ui/button_red.png' : 'textures/ui/filledBar.png'
             )
             if (blocksPlaced > 0) {
-                menuForm.button('§cClear Blocks', this.structure.clearBlocks.bind(this.structure), 'textures/ui/hud_mob_effect_background.png');
+                menuForm.button('§c§kii§r§c§o§lClear Blocks§r§c§kii§r', this.structure.clearBlocks.bind(this.structure), 'textures/ui/hud_mob_effect_background.png');
             }
-            menuForm.button('Teleport', () => this.tntcoin.teleportPlayer(this.structure.structureHeight), 'textures/gui/newgui/mob_effects/invisibility_effect.png')
+
+            menuForm.button(
+                this.tntcoin.isPlayerJailed ? '§c§kii§r§c§o§lTeleport Disabled§r§c§kii§r' : 'Teleport Player',
+                this.tntcoin.isPlayerJailed ? undefined : () => this.tntcoin.teleportPlayer(this.structure.structureHeight),
+                'textures/gui/newgui/mob_effects/invisibility_effect.png'
+            )
+            .button(
+                this.tntcoin.isPlayerJailed ? '§a§kii§r§a§o§lRelease from Jail§r§a§kii§r' : 'Jail Player',
+                this.tntcoin.isPlayerJailed ? this.tntcoin.releasePlayerFromJail.bind(this.tntcoin) : () => this.tntcoin.jailPlayer(),
+                this.tntcoin.isPlayerJailed ? 'textures/ui/confirm.png' : 'textures/blocks/iron_bars.png'
+            )
             .button('Timer', () => this.timerForm.show(), 'textures/ui/timer.png')
             .button('§2§kii§r§8Goals§2§kii§r', () => this.giftGoalForm.show(), 'textures/tnt-coin/gui/buttons/goals.png')
             .button('§2§kii§r§8Event Actions§2§kii§r', () => this.eventActionsForm.show(), 'textures/ui/icon_bell.png')

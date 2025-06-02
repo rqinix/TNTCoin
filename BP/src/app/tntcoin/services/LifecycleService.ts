@@ -22,6 +22,7 @@ export class LifeCycleService {
             tntcoin.actionbar.start();
             tntcoin.checkStatus();
             tntcoin.autoSaveSession();
+            tntcoin.jailService.loadJailState();
             tntcoin.feedback.playSound('random.anvil_use');
             tntcoin.feedback.playSound('random.levelup');
         } catch (error) {
@@ -84,6 +85,9 @@ export class LifeCycleService {
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownInterrupted);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownEnded);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onTntCoinTimerEnded);
+        if (tntcoin.jailService.isPlayerJailed) {
+            tntcoin.jailService.releasePlayer();
+        }
         CameraUtils.clearTaskCamera(tntcoin.player, `rotateCamera360`);
         tntcoin.clearTasks();
         tntcoin.structure.stopFilling();

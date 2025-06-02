@@ -13,7 +13,7 @@ import { TikTokGiftGoal } from "lib/ScreenDisplay/TikTokGiftGoal";
 import { PlayerPropertiesManager } from "lib/Player/PlayerPropertiesManager";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 import TntCoinSettings from "./TntCoinSettings";
-import { LifeCycleService, PlayerActionService, AutoSaveService } from "./services/index";
+import { LifeCycleService, PlayerActionService, AutoSaveService, JailService } from "./services/index";
 
 /**
  * Main class for the TNT Coin
@@ -30,6 +30,7 @@ export class TntCoin {
     private readonly _lifecycleService: LifeCycleService;
     private readonly _playerActionService: PlayerActionService;
     private readonly _autoSaveService: AutoSaveService;
+    public readonly jailService: JailService;
     public readonly feedback: Feedback;
     public readonly propertiesManager: PlayerPropertiesManager;
     public readonly event: EventEmitter;
@@ -64,7 +65,8 @@ export class TntCoin {
         this.timer = new Timer(player, 180, this.actionbar, "Time Left", "TNT Coin Timer");
         this.wins = new WinTracker(10, this.actionbar);
         this.giftGoal = new TikTokGiftGoal(player, this.actionbar);
-        this.settings = new TntCoinSettings(this.structure, this.countdown, this.timer, this.wins, this.giftGoal);
+        this.jailService = new JailService(player, this.actionbar, this.structure.blocksManager);
+        this.settings = new TntCoinSettings(this.structure, this.countdown, this.timer, this.wins, this.giftGoal, this.jailService);
         this.propertiesManager = new PlayerPropertiesManager(player);
         this._lifecycleService = new LifeCycleService();
         this.progressManager = new TntCoinProgressManager();
@@ -165,5 +167,34 @@ export class TntCoin {
      */
     public summonTNT(): void {
         this._playerActionService.summonTNT(this);
+    }
+
+    /**
+     * Jail the player with optional duration and effects
+     * @param duration Duration in seconds (optional)
+     * @param enableEffects Whether to enable jail effects (optional)
+     */
+    public jailPlayer(duration?: number, enableEffects?: boolean): void {
+        const structureCenter = this.structure.structureCenter;
+        this.jailService.jailConfig = {
+            jailTime: duration || this.jailService.jailConfig.jailTime,
+            enableEffects: enableEffects ?? this.jailService.jailConfig.enableEffects,
+            size: this.jailService.jailConfig.size
+        };
+        this.jailService.jailPlayer(structureCenter, duration);
+    }
+
+    /**
+     * Release the player from jail
+     */
+    public releasePlayerFromJail(): void {
+        this.jailService.releasePlayer();
+    }
+
+    /**
+     * Check if player is currently jailed
+     */
+    public get isPlayerJailed(): boolean {
+        return this.jailService.isPlayerJailed;
     }
 }

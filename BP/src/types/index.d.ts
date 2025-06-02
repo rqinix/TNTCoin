@@ -46,6 +46,7 @@ interface TntCoinSettingsInterface {
     fillSettings: FillSettings;
     giftGoalSettings: GiftGoalSettings;
     summonEntitySettings: SummonOptions;
+    jailSettings: JailConfigInterface;
 }
 
 interface TntCoinSession {
@@ -79,7 +80,7 @@ interface GiftGoalSettings {
     isEnabled: boolean;
 }
 
-type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command';
+type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail';
 
 interface EventAction {
     eventKey: string;
@@ -89,6 +90,12 @@ interface EventAction {
     screenTitle?: string;
     screenSubtitle?: string;
     command?: string;
+    jailOptions?: JailActionOptions;
+}
+
+interface JailActionOptions {
+    duration: number;
+    enableEffects: boolean;
 }
 
 interface EventDefinitionInterface<T = any> {
@@ -105,18 +112,11 @@ interface GiftAction extends EventAction { giftName: string; giftId?: number; gi
 interface MemberAction extends EventAction {}
 interface FollowAction extends EventAction {}
 interface ShareAction extends EventAction {}
-interface ShareAction extends EventAction {}
 interface LikeAction extends EventAction { likeCount: number; }
 interface ChatAction extends EventAction { chat: string; }
 
 interface ChatProps { 
     uniqueId: string, 
-    nickname: string,
-    comment: string
-}
-
-interface ChatProps { 
-    username: string, 
     nickname: string,
     comment: string
 }
@@ -169,4 +169,10 @@ interface FormComponent {
     step?: number;
     callback?: (value: any) => Promise<void> | void;
     textfieldType?: 'string' | 'number';
+}
+
+interface JailConfigInterface { 
+    size: number;
+    jailTime: number;
+    enableEffects: boolean;
 }
