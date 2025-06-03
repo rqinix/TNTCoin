@@ -9,6 +9,7 @@ import { Player } from "@minecraft/server";
 import { TntCoin, TntCoinStructure } from "app/tntcoin";
 import { TntCoinForm } from "../TntCoinForm";
 import { TntCoinRainForm } from "./TntCoinRainForm";
+import { TntCoinRocketForm } from "./TntCoinRocketForm";
 
 export class TntCoinMenuForm extends BaseForm {
     private summonEntityForm: SummonEntityForm;
@@ -17,6 +18,7 @@ export class TntCoinMenuForm extends BaseForm {
     private eventActionsForm: EventActionsForm;
     private tntCoinSettingsForm: TntCoinSettingsForm;
     private tntCoinRainForm: TntCoinRainForm;
+    private tntCoinRocketForm: TntCoinRocketForm;
 
     constructor(
         player: Player,
@@ -31,6 +33,7 @@ export class TntCoinMenuForm extends BaseForm {
         this.eventActionsForm = new EventActionsForm(player, tntcoin, structure, form);
         this.tntCoinSettingsForm = new TntCoinSettingsForm(player, tntcoin, structure, form);
         this.tntCoinRainForm = new TntCoinRainForm(player, tntcoin, structure, form);
+        this.tntCoinRocketForm = new TntCoinRocketForm(player, tntcoin, structure, form);
     }
 
     show(): void {
@@ -45,6 +48,7 @@ export class TntCoinMenuForm extends BaseForm {
         this.giftGoalForm.setParentForm(menuForm);
         this.eventActionsForm.setParentForm(menuForm);
         this.tntCoinSettingsForm.setParentForm(menuForm);
+        this.tntCoinRocketForm.setParentForm(menuForm);
         menuForm.body(
                 `§aWelcome§f to §cTNT §eCoin§f!\n` +
                 `§bWins§f: ${wins < 0 ? '§c' : '§a'}${wins}§f/§a${maxWin}§f\n` +
@@ -53,6 +57,11 @@ export class TntCoinMenuForm extends BaseForm {
             .button('Summon Entity', () => this.summonEntityForm.show(), 'textures/tnt-coin/gui/buttons/npc.png')
             .button('Summon TNT', this.tntcoin.summonTNT.bind(this.tntcoin), 'textures/tnt-coin/gui/buttons/tnt.png')
             .button('§c§kii§r§c§o§lTNT COIN RAIN§r§c§kii§r', () => this.tntCoinRainForm.show(), 'textures/blocks/tnt_bottom.png')
+            .button(
+                this.tntcoin.isTntRocketFlying ? '§c§kii§r§c§o§lAbort TNT Rocket§r§c§kii§r' : '§2§kii§r§2§o§lLaunch TNT Rocket§r§2§kii§r',
+                () => this.tntCoinRocketForm.show(),
+                this.tntcoin.isTntRocketFlying ? 'textures/ui/button_red.png' : 'textures/items/fireworks.png'
+            )
             .button(
                 this.structure.fillConfig.isActive ? '§c§kii§r§c§o§lStop Filling§r§c§kii§r' : 'Fill Blocks',
                 this.structure.fillConfig.isActive ? this.structure.stopFilling.bind(this.structure) : this.structure.fill.bind(this.structure),

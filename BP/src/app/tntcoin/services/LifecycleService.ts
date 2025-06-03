@@ -42,6 +42,7 @@ export class LifeCycleService {
     public async load(tntcoin: TntCoin): Promise<void> {
         try {
             this.stopTntRain(tntcoin);
+            tntcoin.tntRocketService.abort();
             tntcoin.clearTasks();
             const properties = tntcoin.propertiesManager.getProperty(tntcoin.key) as string;
             const session = JSON.parse(properties) as TntCoinSession;
@@ -66,6 +67,10 @@ export class LifeCycleService {
         if (this.isTntRainActive()) {
             tntcoin.feedback.warning('Stopping active TNT Rain...', { sound: 'mob.wither.spawn' });
             this.stopTntRain(tntcoin);
+        }
+        if (tntcoin.isTntRocketFlying) {
+            tntcoin.feedback.warning('Aborting TNT Rocket flight...', { sound: 'random.break' });
+            tntcoin.tntRocketService.abort();
         }
         try {
             await this.clean(tntcoin);
@@ -95,6 +100,7 @@ export class LifeCycleService {
      */
     public async clean(tntcoin: TntCoin): Promise<void> {
         this.cleanupTntRainService(tntcoin);
+        tntcoin.tntRocketService.abort();
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownInterrupted);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onCountdownEnded);
         tntcoin.event.unsubscribe(tntcoin.eventMap.onTntCoinTimerEnded);

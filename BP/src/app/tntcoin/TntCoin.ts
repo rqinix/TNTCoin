@@ -13,7 +13,7 @@ import { TikTokGiftGoal } from "lib/ScreenDisplay/TikTokGiftGoal";
 import { PlayerPropertiesManager } from "lib/Player/PlayerPropertiesManager";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 import TntCoinSettings from "./TntCoinSettings";
-import { LifeCycleService, PlayerActionService, AutoSaveService, JailService } from "./services/index";
+import { LifeCycleService, PlayerActionService, AutoSaveService, JailService, TntRocketService } from "./services/index";
 
 /**
  * Main class for the TNT Coin
@@ -31,6 +31,7 @@ export class TntCoin {
     private readonly _playerActionService: PlayerActionService;
     private readonly _autoSaveService: AutoSaveService;
     public readonly jailService: JailService;
+    public readonly tntRocketService: TntRocketService;
     public readonly feedback: Feedback;
     public readonly propertiesManager: PlayerPropertiesManager;
     public readonly event: EventEmitter;
@@ -66,6 +67,7 @@ export class TntCoin {
         this.wins = new WinTracker(10, this.actionbar);
         this.giftGoal = new TikTokGiftGoal(player, this.actionbar);
         this.jailService = new JailService(player, this.actionbar, this.structure.blocksManager);
+        this.tntRocketService = new TntRocketService();
         this.settings = new TntCoinSettings(this.structure, this.countdown, this.timer, this.wins, this.giftGoal, this.jailService);
         this.propertiesManager = new PlayerPropertiesManager(player);
         this._lifecycleService = new LifeCycleService();
@@ -196,5 +198,29 @@ export class TntCoin {
      */
     public get isPlayerJailed(): boolean {
         return this.jailService.isPlayerJailed;
+    }
+
+    /**
+     * Start TNT Rocket flight
+     * @returns {boolean} True if rocket started successfully, false if already flying
+     */
+    public startTntRocket(): boolean {
+        return this.tntRocketService.launch(this.player, this);
+    }
+
+    /**
+     * Abort TNT Rocket flight
+     * @returns {boolean} True if rocket aborted successfully, false if not flying
+     */
+    public abortTntRocket(): boolean {
+        return this.tntRocketService.abort();
+    }
+
+    /**
+     * Check if player is currently flying with TNT Rocket
+     * @returns {boolean} True if flying, false otherwise
+     */
+    public get isTntRocketFlying(): boolean {
+        return this.tntRocketService.isPlayerFlying();
     }
 }

@@ -81,7 +81,7 @@ interface GiftGoalSettings {
     isEnabled: boolean;
 }
 
-type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail' | 'Win Action' | 'TNT Rain';
+type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail' | 'Win Action' | 'TNT Rain' | 'TNT Rocket';
 
 interface EventAction {
     eventKey: string;
@@ -94,6 +94,7 @@ interface EventAction {
     jailOptions?: JailActionOptions;
     winOptions?: WinActionOptions;
     tntRainOptions?: TntRainOptions;
+    tntRocketOptions?: TntRocketOptions;
 }
 
 interface JailActionOptions {
@@ -112,6 +113,13 @@ interface TntRainOptions {
     entityType: string;
     enableCameraShake: boolean;
     rainCoin: boolean;
+}
+
+interface TntRocketOptions {
+    duration: number;
+    entityType: string;
+    particles: string[];
+    amplifier: number;
 }
 
 interface EventDefinitionInterface<T = any> {

@@ -83,5 +83,10 @@ export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T
                 }
             }
             break;
+        case 'TNT Rocket':
+            if (action.tntRocketOptions) {
+                tntcoin.tntRocketService.launch(tntcoin.player, tntcoin);
+            }
+            break;
     }
 }

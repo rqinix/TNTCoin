@@ -41,14 +41,14 @@ export class EventActionForm<T extends EventAction> {
      */
     public showActionSelectionForm(action: T, actionOptions: ActionType[], parentForm?: ActionForm | ModalForm): void {
         const form = new ActionForm(this._player, `${this.COLORS.TITLE}Choose Action Type`);
-        
+
         // Store the parent form for this form
         if (parentForm) {
             form.setParent(parentForm);
         } else if (this._parentForm) {
             form.setParent(this._parentForm);
         }
-        
+
         actionOptions.forEach(actionOption => {
             form.button(`${actionOption}`, () => {
                 this.showActionConfigForm({
@@ -57,7 +57,7 @@ export class EventActionForm<T extends EventAction> {
                 }, false, undefined, form); // Pass form as parent
             });
         });
-        
+
         form.show();
     }
 
@@ -96,6 +96,9 @@ export class EventActionForm<T extends EventAction> {
             case 'TNT Rain':
                 this.showTntRainForm(action, isEdit, index, parentForm);
                 break;
+            case 'TNT Rocket':
+                this.showTntRocketForm(action, isEdit, index, parentForm);
+                break;
         }
     }
 
@@ -117,7 +120,7 @@ export class EventActionForm<T extends EventAction> {
         }
         if (action.screenSubtitle) {
             formBody += `${this.COLORS.LABEL}Screen Subtitle: ${this.COLORS.VALUE}${action.screenSubtitle}\n`;
-        } 
+        }
         if (action.command) {
             formBody += `${this.COLORS.LABEL}Command: ${this.COLORS.VALUE}${action.command}\n`;
         }
@@ -157,16 +160,58 @@ export class EventActionForm<T extends EventAction> {
             form.button(`${this.COLORS.NORMAL}Edit Action`, () => this.showActionConfigForm(action, true, index, form));
         }
         form.button(`${this.COLORS.ERROR}Delete Action`, () => this.showClearActionConfirmationForm(action, index, form));
-        
+
         // Maintain parent hierarchy for back navigation
         if (parentForm) {
             form.setParent(parentForm);
         } else if (this._parentForm) {
             form.setParent(this._parentForm);
-        }     
-        
+        }
+
         form.show();
     }
+
+    // ----- Action Forms -----
+
+    /**
+     * Form for configuring TNT rocket options
+     */
+    private showTntRocketForm(action: T, isEdit: boolean, index?: number, parentForm?: ActionForm): void {
+        if (action.actionType !== 'TNT Rocket') return;
+        const tntRocketOptions = action.tntRocketOptions || {
+            entityType: 'minecraft:tnt',
+            duration: 15,
+            amplifier: 10,
+        };
+        const formTitle = this.createActionFormTitle('TNT Rocket', isEdit, index);
+        const form = new ModalForm(this._player, formTitle)
+            .textField('string', `${this.COLORS.LABEL}Entity Type`, 'Entity Type (e.g., minecraft:tnt)', tntRocketOptions.entityType)
+            .textField('number', `${this.COLORS.LABEL}Duration (seconds)`, 'Flight duration (5-60 seconds)', tntRocketOptions.duration.toString())
+            .textField('number', `${this.COLORS.LABEL}Speed`, 'Speed', tntRocketOptions.amplifier.toString())
+            .submitButton('Confirm');
+        if (parentForm) {
+            form.setParent(parentForm);
+        } else if (this._parentForm) {
+            form.setParent(this._parentForm);
+        }
+        form.show(response => {
+            const entityType = response[0] as string;
+            const duration = Math.max(5, Math.min(60, response[1] as number));
+            const speed = Math.max(1, Math.min(20, response[2] as number));
+            const updatedTntRocketOptions: TntRocketOptions = {
+                entityType: entityType.trim(),
+                duration: duration,
+                amplifier: speed,
+                particles: ['minecraft:white_smoke_particle', 'tntcoin:rocket_smoke']
+            }
+            const updatedAction: T = {
+                ...action,
+                tntRocketOptions: updatedTntRocketOptions
+            };
+            this.handleActionSubmission(action, updatedAction, isEdit, index);
+        });
+    }
+
 
     /**
      * Form for configuring TNT rain options
@@ -366,7 +411,7 @@ export class EventActionForm<T extends EventAction> {
                 this.showSuccessMessage(`Clear Blocks action added`);
                 this._player.playSound('random.orb');
             })
-            .button(`${this.COLORS.ERROR}Cancel`);   
+            .button(`${this.COLORS.ERROR}Cancel`);
         if (parentForm) {
             form.setParent(parentForm);
         } else if (this._parentForm) {
@@ -387,7 +432,7 @@ export class EventActionForm<T extends EventAction> {
                 this.showSuccessMessage(`Fill action added`);
                 this._player.playSound('random.orb');
             })
-            .button(`${this.COLORS.ERROR}Cancel`);   
+            .button(`${this.COLORS.ERROR}Cancel`);
         if (parentForm) {
             form.setParent(parentForm);
         } else if (this._parentForm) {
@@ -405,7 +450,7 @@ export class EventActionForm<T extends EventAction> {
         const formTitle = this.createActionFormTitle('Screen Title', isEdit, index);
         const form = new ModalForm(this._player, formTitle)
             .textField('string', `${this.COLORS.LABEL}Title Text`, 'Title Text', screenTitle)
-            .submitButton('Confirm');   
+            .submitButton('Confirm');
         if (parentForm) {
             form.setParent(parentForm);
         } else if (this._parentForm) {
@@ -467,6 +512,8 @@ export class EventActionForm<T extends EventAction> {
             this.handleActionSubmission(action, updatedAction, isEdit, index);
         });
     }
+
+    // ----- Confirmation Forms -----
 
     /**
      * Form to confirm clearing all actions from an event
@@ -531,7 +578,7 @@ export class EventActionForm<T extends EventAction> {
         }
         form.show();
     }
-    
+
     /**
      * Handles action submission for both edit and create modes
      */

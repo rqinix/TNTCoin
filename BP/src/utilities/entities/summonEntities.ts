@@ -49,7 +49,7 @@ export function summonEntities(game: TntCoin, options: SummonOptions): void {
                 if (clearBlocksAfterSummon) BlockUtils.clearBlocks(game.player.dimension, [location], 100);
                 onSummon();
             } catch (error) {
-                game.feedback.error(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`, { sound: "item.shield.block" });
+                console.warn(`Failed to summon ${entityName} at location: ${JSON.stringify(location)}`);
             }
         },
         { delayInTicks: batchDelay }
