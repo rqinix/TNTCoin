@@ -1,5 +1,5 @@
 {
     "ui_defs": [
-        "ui/gifts.json"
+        "ui/overlay.json"
     ]
 }

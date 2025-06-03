@@ -1,0 +1,22 @@
+{
+  "namespace": "overlay",
+
+  "overlay_panel": {
+    "type": "panel",
+    "size": ["100%", "100%"],
+    "anchor_from": "top_left",
+    "anchor_to": "top_left",
+    "controls": [
+      {
+        "fullscreen_overlay": {
+          "type": "image",
+          "texture": "textures/overlay.png",
+          "size": ["100%", "100%"],
+          "anchor_from": "top_left",
+          "anchor_to": "top_left",
+          "layer": 1
+        }
+      }
+    ]
+  }
+}

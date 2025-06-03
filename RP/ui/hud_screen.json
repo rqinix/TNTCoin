@@ -7,7 +7,7 @@
         "array_name": "controls",
         "operation": "insert_front",
         "value": [
-          { "gifts@gifts.panel": {} },
+          { "overlay@overlay.overlay_panel": {} },
           { "watermark@hud.watermark": {} }
         ]
       }
