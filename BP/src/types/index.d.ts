@@ -41,8 +41,10 @@ interface TntCoinSettingsInterface {
     randomizeBlocks: boolean;
     wins: number;
     maxWins: number;
-    defaultCountdownTime: number;
+    countdownDefaultTime: number;
     countdownTickInterval: number;
+    countdownSlowModeInterval: number;
+    countdownSlowCount: number;
     timerDuration: number;
     fillSettings: FillSettings;
     giftGoalSettings: GiftGoalSettings;

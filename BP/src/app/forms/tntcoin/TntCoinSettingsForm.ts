@@ -64,12 +64,38 @@ export class TntCoinSettingsForm extends BaseForm {
                 "number", 
                 '[§eCOUNTDOWN§r] Starting count:', 
                 'Enter the starting count for the countdown', 
-                oldSettings.defaultCountdownTime.toString(), 
+                oldSettings.countdownDefaultTime.toString(), 
                 (updatedValue) => {
                     if (updatedValue as number <= 0) {
                         this.feedback.error('Countdown time must be greater than zero', { sound: 'item.shield.block' });
                     } else {
-                        newSettings.defaultCountdownTime = updatedValue as number;
+                        newSettings.countdownDefaultTime = updatedValue as number;
+                    }
+                }
+            )
+            .textField(
+                "number", 
+                '[§eCOUNTDOWN§r] Slow in:', 
+                'Slow the countdown when it reaches this value', 
+                oldSettings.countdownSlowCount.toString(), 
+                (updatedValue) => {
+                    if (updatedValue as number <= 0) {
+                        this.feedback.error('Slow in value must be greater than zero', { sound: 'item.shield.block' });
+                    } else {
+                        newSettings.countdownSlowCount = updatedValue as number;
+                    }
+                }
+            )
+            .textField(
+                "number", 
+                '[§eCOUNTDOWN§r] Slow Tick Interval:', 
+                'Slow the countdown when it reaches this value', 
+                oldSettings.countdownSlowModeInterval.toString(), 
+                (updatedValue) => {
+                    if (updatedValue as number <= 0) {
+                        this.feedback.error('Slow tick interval must be greater than zero', { sound: 'item.shield.block' });
+                    } else {
+                        newSettings.countdownSlowModeInterval = updatedValue as number;
                     }
                 }
             )
@@ -150,7 +176,6 @@ export class TntCoinSettingsForm extends BaseForm {
             .show(() => {
                 const isSettingsChanged = JSON.stringify(oldSettings) !== JSON.stringify(newSettings);
                 console.warn('§e[TNT COIN SETTINGS] Settings changed:', isSettingsChanged);
-                
                 if (isSettingsChanged) {
                     console.warn('§a[TNT COIN SETTINGS] Updating settings...');
                     this.tntcoin.settings.updateTntCoinSettings(newSettings);

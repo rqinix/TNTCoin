@@ -14,6 +14,8 @@ export class Countdown {
     private _timeoutId: string | undefined;
     public isCountingDown: boolean = false;
     public tickInterval: number = 20;
+    public slowThreshold: number = 3;
+    public slowTickInterval: number = 50;
 
     constructor(defaultCountdown: number, player: Player) {
         this._player = player;
@@ -50,6 +52,12 @@ export class Countdown {
             return;
         }
 
+        if (this._countdownTime <= this.slowThreshold) {
+            this.tickInterval = this.slowTickInterval;
+        } else {
+            this.tickInterval = 20;
+        }
+
         this._displayCountdown();
 
         if (this._countdownTime === 0) {
@@ -61,6 +69,7 @@ export class Countdown {
         this._countdownTime--;
 
         this._timeoutId = `${this._player.name}:countdown`;
+
         taskManager.addTask(this._timeoutId, () => this._countdownStep(), this.tickInterval);
     }
 

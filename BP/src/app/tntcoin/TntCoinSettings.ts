@@ -141,8 +141,10 @@ export default class TntCoinSettings {
             wins: this._winTracker.getCurrentWins(),
             maxWins: this._winTracker.getMaxWins(),
             timerDuration: this._timer.getTimerDuration(),
-            defaultCountdownTime: this._countdown.defaultCountdownTime,
+            countdownDefaultTime: this._countdown.defaultCountdownTime,
             countdownTickInterval: this._countdown.tickInterval,
+            countdownSlowCount: this._countdown.slowThreshold,
+            countdownSlowModeInterval: this._countdown.slowTickInterval,
             fillSettings: this._structure.fillSettings,
             jailSettings: this._jailSettings,
         };
@@ -162,8 +164,9 @@ export default class TntCoinSettings {
         this._winTracker.setWins(settings.wins);
         this._winTracker.setMaxWins(settings.maxWins);
         this._timer.setTimerDuration(settings.timerDuration);
-        this._countdown.defaultCountdownTime = settings.defaultCountdownTime;
+        this._countdown.defaultCountdownTime = settings.countdownDefaultTime;
         this._countdown.tickInterval = settings.countdownTickInterval;
+        this._countdown.slowThreshold = settings.countdownSlowCount;
         this._structure.fillSettings = settings.fillSettings;
         this._jailSettings = settings.jailSettings;
         this.updateConfigManager();
