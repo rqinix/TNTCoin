@@ -4,7 +4,7 @@
 
 # TNT Coin
 
-Experience the Minecraft TNT Challenge with TNT Coin!
+THE ULTIMATE INTERACTIVE TNT CHALLENGE FOR MINECRAFT BEDROCK AND POCKET EDITION
 
 ![license](https://img.shields.io/github/license/rqinix/TNTCoin?color=lightgreen&logo=open-source-initiative)
 ![release](https://img.shields.io/github/v/release/rqinix/TNTCoin?color=purple&logo=github)
@@ -16,44 +16,42 @@ TNT Coin is a Minecraft BE/PE add-on designed to make it easy for players to set
 
 # Overview
 
-- **[🌟 Core Features](#-core-features)**
-  - [Save, Load, and Reload Game State](#save-load-and-reload-game-state)
-  - [Graphical User Interface (GUI)](#graphical-user-interface-gui)
-  - [Structure Creation](#structure-creation)
+- [🌟 Core Features](#-core-features)
+  - [TNT Coin Menu](#tnt-coin-menu)
+  - [TNT Box](#tnt-box)
   - [Gift Goal](#gift-goal)
-  - [Events](#events)
-  - [Event Actions](#event-actions)
+  - [Events and Actions](#events-and-actions)
   - [Countdown](#countdown)
   - [Timer](#timer)
+  - [TNT Coin Rain](#tnt-coin-rain)
+  - [TNT Rocket](#tnt-coin-rocket)
+  - [Jail](#tnt-coin-jail)
+  - [Structure Builder Mode](#structure-builder-mode)
   - [Summon Entities](#summon-entities)
-  - [Settings](#settings)
-  - [Barrier Generation](#barrier-generation)
-  - [Block Filling](#block-filling)
-  - [Clearing Blocks](#clearing-blocks)
+  - [Structure Barriers](#structure-barriers)
+  - [Filling Structure](#filling-structure)
   - [Randomized Block Placement](#randomized-block-placement)
-- **[Adding Custom Sounds](#adding-custom-sounds)**
-- **[Adding Images or Gifts](#adding-images-or-gifts)**
-- **[TikTok Gifts Emoji](#tiktok-gifts-emoji)**
-- **[Download](#download)**
-- **[Bridging TikTok Live and Minecraft with TikTokLiveMCBE](#bridging-your-tiktok-live-and-minecraft-with-tiktoklivemcbe)**
-- **[Contributing](#contributing)**
-- **[License](#license)**
+- [Adding Custom Sounds](#adding-custom-sounds)
+- [Custom Overlay](#overlay)
+- [TikTok Gifts Emoji](#tiktok-gifts-emoji)
+- [Download](#download)
+- [Bridging TikTok Live and Minecraft with BedrockLive](#bridging-your-tiktok-live-and-minecraft-with-bedrocklive)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## 🌟 Core Features
 
-### Save, Load, and Reload Game State
+### TNT Coin Menu
 
-### Graphical User Interface (GUI)
-
-- Simply open your inventory, navigate to the Items tab, and search for "TNT Coin", and right click to open the GUI.
+Simply open your inventory, navigate to the Items tab, and search for "TNT Coin", and right click to open the GUI.
 
 ![img2](./docs/images/image_2.png)
 
 ![img3](./docs/images/image_3.png)
 
-### Structure Creation
+### TNT Box
 
-- Players can select the base and side block types for the structure.
+- Players can select the base, side, corner block types for the structure.
 - The width and height of the structure can be customized.
 
 ![TNT Coin Structure Configuration](./docs/images/image_1.png)
@@ -71,20 +69,51 @@ The Gift Goal System in TNT Coin allows you to set specific gift targets for you
 
 ![Gift Goal Actionbar](./docs/images/gift_goal_actionbar.png)
 
-### Events
+### Events and Actions
 
-- The game listens for specific script events (e.g., `tntcoin:join`) received from the WebSocket server.
-- Players can enable or disable specific event actions.
+TNT Coin listens for specific script events (e.g., `tntcoin:join`) received from the [BedrockLive](https://www.npmjs.com/package/bedrocklive)
+
+#### TNT Coin currently handles six TikTok events
+
+1. Member
+2. Follow
+3. Share
+4. Chat
+5. Like
+6. Gift
+
+TNT Coin display messages when these events got triggered by default. You can disable them in TNT Coin Settings.
 
 ![TikTok Events](./docs/images/events.png)
 
-### Event Actions
+#### Actions available that you can assign to events
 
-Players can assign custom actions (e.g., **Summon**, **Fill**, **Clear Blocks**, **Play Sound**, **Screen Title**, **Screen Subtitle**) to specific events, such as receiving a gift or a follow.
+1. Summon
+2. Fill
+3. Clear Blocks
+4. Play Sound
+5. Screen Title
+6. Screen Subtitle
+7. Run Command
+8. Jail
+9. TNT Coin Rain
+10. TNT Rocket
 
-![Event Actions Button](./docs/images/event-actions-button.png)
+### TNT Coin Rain
 
-![Event Actions](./docs/images/event-actions.png)
+Activate TNT Coin Rain through the TNT Coin Menu. You can configure the rain's intensity to reduce the number of particles and TNTs spawned, and you have the option to change which entities TNT Rain will summon. By default, TNT Coin Rain spawns TikTok coin particles and shakes your camera - both effects can be disabled during TNT Coin Rain configuration. TNT Coin Rain can be stopped at any time during the rain event and can also be used as an event action.
+
+![TNT Coin Rain](./docs/images/tntrain.png)
+
+### TNT Coin Rocket
+
+TNT Coin rocket makes you fly like a rocket in a specified duration while it summons TNT. TNT Rocket can also be use as event action. You can also configure its speed before launching.
+
+![TNT Coin Rocket](./docs/images/tntrocket.jpeg)
+
+### TNT Coin Jail
+
+TNT Coin jail locks you in a cage that prevents you from placing blocks in specified amount of time. You get blindness effect by default, this can also be disable in TNT Coin Settings. TNT Coin Jail can also be use as event action.
 
 ### Countdown
 
@@ -106,47 +135,42 @@ Players can assign custom actions (e.g., **Summon**, **Fill**, **Clear Blocks**,
 - Summon any entities within the structure.
 - Summon TNT
 
-### Settings
+### Structure Builder Mode
 
-![Game Settings](./docs/images/settings.png)
+With structure builder mode being enable, you can modify or destroy the blocks of TNT Coin Box. Enable it by unlocking the Structure in TNT Coin Menu.
 
-### Barrier Generation
+### Structure Barriers
 
-- Enable/Disable Barriers in settings.
+Enable/Disable Barriers in TNT Coin Menu.
 
 ![Barriers](./docs/images/barriers.png)
 
-### Block Filling
+### Filling Structure
 
-- Players can specify which block type should be used for filling in settings.
-- Players can start and stop the block filling process at any time.
-- Players can modify the speed of filling process in settings.
-
-### Clearing Blocks
+Players can also fill the structure through TNT Coin Menu. Fill action can also be use as event action. All Fill configurations can be fount in TNT Coin Settings.
 
 ### Randomized Block Placement
 
 - This feature allows players to place a random block from a predefined list whenever they use a specific item in the game.
 - Update the `RANDOM_BLOCK_ITEM` to the desired item ID.
-- Modify the `BLOCKS` array from `scripts/config/config.js` file to include any block IDs you want to be randomly selected when the specified `RANDOM_BLOCK_ITEM` is used.
+- Modify the `BLOCKS` array from `scripts/config/tiktok.js` file to include any block IDs you want to be randomly selected when the specified `RANDOM_BLOCK_ITEM` is used.
 
 ```ts
 /**
  * The item that will be used to place random block.
  */
-export const RANDOM_BLOCK_ITEM = 'minecraft:amethyst_block';
+config.setConfig("RANDOM_BLOCK_ITEM", "minecraft:amethyst_block");
 
 /**
  * List of possible blocks when placing random blocks.
  */
-export const BLOCKS = [
+config.setConfig("BLOCKS", [
     "minecraft:pink_wool",
     "minecraft:magenta_wool",
     "minecraft:orange_wool",
     "minecraft:lime_wool",
     "minecraft:yellow_wool",
-    // ... add more blocks here`
-];
+]);
 ```
 
 ## Adding Custom Sounds
@@ -170,53 +194,24 @@ Below is an example of how to structure your custom sounds:
 }
 ```
 
-## Adding Images or Gifts
+## Overlay
 
-To add new images or gifts to your screen, place your image files (e.g., `gift-new.png`, `360px x 360px`) in the `textures/tnt-coin/gifts/` folder.
+Replace the `overlay.png` file located at `TNTCoinRP/textures/tnt-coin/overlay.png` with your own custom overlay image. Ensure they still have the same file name `overlay`.
 
-After adding your images, reference them in the `gifts.json` file located in the `ui/` folder. This file controls how the images are displayed on the screen.
-
-Each gift occupies `10%` of the total width, allowing a maximum of 10 gifts to be displayed horizontally at once.
-
-```json
-{
-  "namespace": "gifts",
-
-  "stack_panel": {
-    "type": "stack_panel",
-    "orientation": "horizontal",
-    "size": ["100%", "100%"],
-    "controls": [
-
-      {
-        "gift_1@gifts.template": {
-          "texture": "textures/tnt-coin/gifts/gift-rose.png"
-        }
-      },
-
-      {
-        "MY_GIFT@gifts.template": {
-          "texture": "textures/tnt-coin/gifts/MY-GIFT.png"
-        }
-      }
-
-    ]
-  },
-
-  "template": {
-    "type": "image",
-    "size": ["10%", "100%"],
-    "layer": 1,
-    "texture": ""
-  }
-}
+```
+tnt-coin/
+┣ gui/
+┃ ┗ buttons/
+┣ items/
+┣ particles/
+┗ overlay.png
 ```
 
 ## TikTok Gifts Emoji
 
 ![TikTok Gifts](./RP/font/glyph_E3.png)
 
-Below are some of the TikTok gifts that have emoji. Each gift comes with its own emoji and coin value. 
+Below are some of the TikTok gifts that have emoji. Each gift comes with its own emoji and coin value.
 
 | Gift Name                 | Emoji | Coins |
 |---------------------------|-------|-------|
@@ -307,20 +302,19 @@ Below are some of the TikTok gifts that have emoji. Each gift comes with its own
 > [!IMPORTANT]
 >
 > **Requirement:** Enable "Beta APIs" in your world settings for this add-on to function correctly.
->
 > **Version:** This add-on is designed for Minecraft BE/PE version **1.21.22+**. Ensure your game is updated to this version or later for the best experience.
 
 **_Show your support by giving it a ⭐!_**
 
 - [Download TNT Coin](https://github.com/rqinix/TNTCoin/releases)
 
-> **Note:** After importing the TNT Coin Resource Pack and Behavior Pack into Minecraft, move them from the `resource_packs` and `behavior_packs` folders to the `development_resource_packs` and `development_behavior_packs` folders inside the `com.mojang` directory. This step ensures that any changes or modifications you make to the TNT Coin packs are applied globally.
+> **Optional:** After importing the TNT Coin Resource Pack and Behavior Pack into Minecraft, move them from the `resource_packs` and `behavior_packs` folders to the `development_resource_packs` and `development_behavior_packs` folders inside the `com.mojang` directory. This step ensures that any changes or modifications you make to the TNT Coin packs are applied to any of your worlds.
 
-## Bridging your TikTok Live and Minecraft with TikTokLiveMCBE
+## Bridging your TikTok Live and Minecraft with BedrockLive
 
-If you want to connect your TikTok live stream to Minecraft and trigger in-game actions like automatically dropping TNT when someone sends a gift you'll need to set up a WebSocket server. 
+If you want to connect your TikTok live stream to Minecraft and trigger in-game actions like automatically dropping TNT when someone sends a gift you'll need to setup [BedrockLive](https://github.com/rqinix/BedrockLive).
 
-See here: [TikTokLiveMCBE](https://github.com/rqinix/TikTokLiveMCBE)
+See here: [BedrockLive](https://github.com/rqinix/BedrockLive)
 
 ## Contributing
 
