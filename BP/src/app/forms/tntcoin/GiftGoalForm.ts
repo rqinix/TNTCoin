@@ -12,11 +12,11 @@ export interface GiftGoalSettings {
 export class GiftGoalForm extends BaseForm {
     show(): void {
         const giftGoalSettings = this.tntcoin.settings.getTntCoinSettings().giftGoalSettings as GiftGoalSettings;
-        const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].id !== null && TIKTOK_GIFT[giftName].emoji !== '');
+        const availableGifts = Object.keys(TIKTOK_GIFT).filter(giftName => TIKTOK_GIFT[giftName].id !== null);
         const giftOptions = availableGifts.map(giftName => {
             const gift = TIKTOK_GIFT[giftName];
             const giftEmoji = gift.emoji || DEFAULT_GIFT;
-            return `${giftEmoji} ${giftName}`;
+            return `${giftEmoji} ${giftName} (${gift.coins})`;
         });
         const selectedGiftIndex = availableGifts.findIndex(gift => gift === giftGoalSettings.giftName);
         
