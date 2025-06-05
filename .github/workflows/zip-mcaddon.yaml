@@ -49,36 +49,20 @@ jobs:
           cp -r RP/sounds TNTCoin-RP/
           cp -r RP/textures TNTCoin-RP/
           cp -r RP/ui TNTCoin-RP/
+          cp -r RP/particles TNTCoin-RP/
           cp RP/manifest.json TNTCoin-RP/
           cp RP/pack_icon.png TNTCoin-RP/
           cp LICENSE TNTCoin-RP/
 
       - name: Create .mcaddon file
         run: |
-          mkdir -p TNTCoin-addon
-          zip -r TNTCoin-BP.zip TNTCoin-BP
-          zip -r TNTCoin-RP.zip TNTCoin-RP
-          cd TNTCoin-addon
-          zip -r ../TNTCoin.v${{ steps.get_version.outputs.VERSION }}.mcaddon .
-          cd ..
+          zip -r TNTCoin.v${{ steps.get_version.outputs.VERSION }}.mcaddon TNTCoin-BP TNTCoin-RP
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release and Upload Asset
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.get_version.outputs.VERSION }}
-          release_name: v${{ steps.get_version.outputs.VERSION }}
+          name: v${{ steps.get_version.outputs.VERSION }}
+          files: TNTCoin.v${{ steps.get_version.outputs.VERSION }}.mcaddon
           draft: false
           prerelease: false
-
-      - name: Upload .mcaddon File
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./TNTCoin.v${{ steps.get_version.outputs.VERSION }}.mcaddon
-          asset_name: TNTCoin.v${{ steps.get_version.outputs.VERSION }}.mcaddon
-          asset_content_type: application/zip
+          generate_release_notes: true
