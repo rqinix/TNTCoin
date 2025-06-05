@@ -1,4 +1,5 @@
 import { ActionFormData, ModalFormData } from "@minecraft/server-ui";
+import { FormComponent } from "types/FormComponent";
 
 export default class FormComponentBuilder {
     /**
