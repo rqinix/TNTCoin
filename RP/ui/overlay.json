@@ -10,7 +10,7 @@
       {
         "fullscreen_overlay": {
           "type": "image",
-          "texture": "textures/overlay.png",
+          "texture": "textures/tnt-coin/overlay.png",
           "size": ["100%", "100%"],
           "anchor_from": "top_left",
           "anchor_to": "top_left",
