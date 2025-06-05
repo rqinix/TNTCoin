@@ -50,6 +50,7 @@ interface TntCoinSettingsInterface {
     giftGoalSettings: GiftGoalSettings;
     summonEntitySettings: SummonOptions;
     jailSettings: JailConfigInterface;
+    eventDisplaySettings: EventDisplaySettings;
 }
 
 interface TntCoinSession {
@@ -201,4 +202,13 @@ interface JailConfigInterface {
     size: number;
     jailTime: number;
     enableEffects: boolean;
+}
+
+interface EventDisplaySettings {
+    showChatMessages: boolean;
+    showGiftMessages: boolean;
+    showFollowMessages: boolean;
+    showShareMessages: boolean;
+    showLikeMessages: boolean;
+    showMemberMessages: boolean;
 }

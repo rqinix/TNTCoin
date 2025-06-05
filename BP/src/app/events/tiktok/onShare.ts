@@ -9,7 +9,9 @@ import ServiceRegistry from "lib/System/ServiceRegistry";
  */
 export function onShare(tntcoin: TntCoin, data: ShareProps): void {
     try {
-        screenDisplay(tntcoin, data);
+        if (tntcoin.settings.eventDisplaySettings.showShareMessages) {
+            screenDisplay(tntcoin, data);
+        }
         executeActions(tntcoin, data);
     } catch (error) {
         console.error(`Error in onShare handler: ${error.message}`);

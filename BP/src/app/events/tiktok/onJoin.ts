@@ -9,7 +9,9 @@ import ServiceRegistry from "lib/System/ServiceRegistry";
  */
 export function onJoin(tntcoin: TntCoin, data: JoinProps): void {
     try {
-        screenDisplay(tntcoin, data);
+        if (tntcoin.settings.eventDisplaySettings.showMemberMessages) {
+            screenDisplay(tntcoin, data);
+        }
         executeActions(tntcoin, data);
     } catch (error) {
         console.error(`Error in onJoin handler: ${error}`);

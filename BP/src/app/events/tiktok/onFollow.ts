@@ -9,7 +9,9 @@ import ServiceRegistry from "lib/System/ServiceRegistry";
  */
 export function onFollow(tntcoin: TntCoin, data: FollowProps): void {
     try {
-        screenDisplay(tntcoin, data);
+        if (tntcoin.settings.eventDisplaySettings.showFollowMessages) {
+            screenDisplay(tntcoin, data);
+        }
         executeActions(tntcoin, data);
     } catch (error) {
         console.error(`Error in onFollow handler: ${error}`);

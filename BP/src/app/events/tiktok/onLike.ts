@@ -17,7 +17,9 @@ const userLikesMap = new Map<string, {
 export function onLike(tntcoin: TntCoin, data: LikeProps): void {
     try {
         const totalLikes = trackUserLikes(data);
-        screenDisplay(tntcoin, data, totalLikes);
+        if (tntcoin.settings.eventDisplaySettings.showLikeMessages) {
+            screenDisplay(tntcoin, data, totalLikes);
+        }
         executeActions(tntcoin, data, totalLikes);
     } catch (error) {
         console.error(`Error in onLike handler: ${error}`);

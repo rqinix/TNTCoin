@@ -10,7 +10,9 @@ import ServiceRegistry from "lib/System/ServiceRegistry";
  */
 export function onGift(tntcoin: TntCoin, data: GiftProps): void {
     try {
-        screenDisplay(tntcoin, data);
+        if (tntcoin.settings.eventDisplaySettings.showGiftMessages) {
+            screenDisplay(tntcoin, data);
+        }
         updateGiftGoals(tntcoin, data);
         executeActions(tntcoin, data);
     } catch (error) {

@@ -25,6 +25,7 @@ export default class TntCoinSettings {
         const tntCoinSettings = this.configManager.getConfig<any>('TNT_COIN_SETTINGS');
         const summonEntityConfig = this.configManager.getConfig<SummonOptions>('SUMMON_ENTITY_CONFIG');
         const jailConfig = this.configManager.getConfig<JailConfigInterface>('JAIL_CONFIG');
+        const eventDisplayConfig = this.configManager.getConfig<EventDisplaySettings>('EVENT_DISPLAY_CONFIG');
 
         if (tntCoinSettings) {
             this._winTracker.setWins(tntCoinSettings.wins || 0);
@@ -43,6 +44,10 @@ export default class TntCoinSettings {
             if (this._jailService && this._jailService.jailConfig) {
                 this._jailService.jailConfig = jailConfig;
             }
+        }
+
+        if (eventDisplayConfig) {
+            this._eventDisplaySettings = { ...eventDisplayConfig };
         }
 
         console.warn('§aTNT Coin Settings initialized.');
@@ -122,13 +127,31 @@ export default class TntCoinSettings {
         }
     };
 
-
-    // Jail settings
+    // --- Jail settings ---
     private _jailSettings: JailConfigInterface = this.configManager.getConfig<JailConfigInterface>('JAIL_CONFIG') || {
         size: 5,
         jailTime: 10,
         enableEffects: true
     };
+
+    // --- Event display settings ---
+    private _eventDisplaySettings: EventDisplaySettings = this.configManager.getConfig<EventDisplaySettings>('EVENT_DISPLAY_CONFIG') || {
+        showChatMessages: true,
+        showGiftMessages: true,
+        showFollowMessages: true,
+        showShareMessages: true,
+        showLikeMessages: true,
+        showMemberMessages: true
+    };
+
+    get eventDisplaySettings(): EventDisplaySettings {
+        return this._eventDisplaySettings;
+    }
+
+    set eventDisplaySettings(settings: EventDisplaySettings) {
+        this._eventDisplaySettings = { ...settings };
+        this.configManager.setConfig('EVENT_DISPLAY_CONFIG', this._eventDisplaySettings);
+    }
 
     public getTntCoinSettings(): TntCoinSettingsInterface {
         return {
@@ -147,6 +170,7 @@ export default class TntCoinSettings {
             countdownSlowModeInterval: this._countdown.slowTickInterval,
             fillSettings: this._structure.fillSettings,
             jailSettings: this._jailSettings,
+            eventDisplaySettings: this._eventDisplaySettings,
         };
     }
     
@@ -169,6 +193,7 @@ export default class TntCoinSettings {
         this._countdown.slowThreshold = settings.countdownSlowCount;
         this._structure.fillSettings = settings.fillSettings;
         this._jailSettings = settings.jailSettings;
+        this._eventDisplaySettings = settings.eventDisplaySettings;
         this.updateConfigManager();
         console.warn('§aTNT Coin Settings updated.');
     }
@@ -191,5 +216,6 @@ export default class TntCoinSettings {
         };
         this.configManager.setConfig('TNT_COIN_SETTINGS', tntCoinSettings);
         this.configManager.setConfig('SUMMON_ENTITY_CONFIG', this._summonEntityFormSettings);
+        this.configManager.setConfig('EVENT_DISPLAY_CONFIG', this._eventDisplaySettings);
     }
 }

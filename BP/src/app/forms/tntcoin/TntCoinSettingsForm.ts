@@ -15,7 +15,8 @@ export class TntCoinSettingsForm extends BaseForm {
             fillSettings: { ...oldSettings.fillSettings },
             giftGoalSettings: { ...oldSettings.giftGoalSettings },
             summonEntitySettings: { ...oldSettings.summonEntitySettings },
-            jailSettings: { ...oldSettings.jailSettings }
+            jailSettings: { ...oldSettings.jailSettings },
+            eventDisplaySettings: { ...oldSettings.eventDisplaySettings }
         };
 
         new ModalForm(this.player, 'TNT Coin Settings')
@@ -170,6 +171,36 @@ export class TntCoinSettingsForm extends BaseForm {
                 '[§cJAIL§r] Enable Jail Effects', 
                 oldSettings.jailSettings.enableEffects, 
                 (updatedValue) => newSettings.jailSettings.enableEffects = updatedValue as boolean
+            )
+            .toggle(
+                '[§dEVENTS§r] Show Chat Messages', 
+                oldSettings.eventDisplaySettings.showChatMessages, 
+                (updatedValue) => newSettings.eventDisplaySettings.showChatMessages = updatedValue as boolean
+            )
+            .toggle(
+                '[§dEVENTS§r] Show Gift Messages', 
+                oldSettings.eventDisplaySettings.showGiftMessages, 
+                (updatedValue) => newSettings.eventDisplaySettings.showGiftMessages = updatedValue as boolean
+            )
+            .toggle(
+                '[§dEVENTS§r] Show Follow Messages', 
+                oldSettings.eventDisplaySettings.showFollowMessages, 
+                (updatedValue) => newSettings.eventDisplaySettings.showFollowMessages = updatedValue as boolean
+            )
+            .toggle(
+                '[§dEVENTS§r] Show Share Messages', 
+                oldSettings.eventDisplaySettings.showShareMessages, 
+                (updatedValue) => newSettings.eventDisplaySettings.showShareMessages = updatedValue as boolean
+            )
+            .toggle(
+                '[§dEVENTS§r] Show Like Messages', 
+                oldSettings.eventDisplaySettings.showLikeMessages, 
+                (updatedValue) => newSettings.eventDisplaySettings.showLikeMessages = updatedValue as boolean
+            )
+            .toggle(
+                '[§dEVENTS§r] Show Member Join Messages', 
+                oldSettings.eventDisplaySettings.showMemberMessages, 
+                (updatedValue) => newSettings.eventDisplaySettings.showMemberMessages = updatedValue as boolean
             )
             .submitButton("Update Settings")
             .setParent(this.parentForm)

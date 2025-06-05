@@ -9,7 +9,9 @@ import ServiceRegistry from "lib/System/ServiceRegistry";
  */
 export function onChat(tntcoin: TntCoin, data: ChatProps): void {
     try {
-        screenDisplay(tntcoin, data);
+        if (tntcoin.settings.eventDisplaySettings.showChatMessages) {
+            screenDisplay(tntcoin, data);
+        }
         executeActions(tntcoin, data);
     } catch (error) {
         console.error(`Error in onChat handler: ${error}`);
