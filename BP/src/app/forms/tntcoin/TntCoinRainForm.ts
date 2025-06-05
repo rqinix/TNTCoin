@@ -5,15 +5,18 @@ import { TntRainService } from "app/tntcoin/services/TntRainService";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 
 export class TntCoinRainForm extends BaseForm {
-    show(): void {
-        const isActive = ServiceRegistry.getInstance().get<TntRainService>('TntRainService')?.isRainActive || false;
-        new ActionForm(this.player, '§c§lTNT Coin Rain')
-            .button(
-                isActive ? '§c§lStop TNT Rain' : '§2§lStart TNT Coin Rain',
-                isActive ? this.stopRain.bind(this) : this.showRainConfigForm.bind(this),
-            )
-            .setParent(this.parentForm)
-            .show();
+    public show(): void {
+        const isActive = this.isActive();
+        if (!isActive) {
+            this.showRainConfigForm();
+        } else {
+            this.stopRain();
+        }
+    }
+
+    public isActive(): boolean {
+        const rainService = ServiceRegistry.getInstance().get<TntRainService>('TntRainService');
+        return rainService ? rainService.isRainActive : false;
     }
 
     private showRainConfigForm(): void {
@@ -109,7 +112,7 @@ export class TntCoinRainForm extends BaseForm {
         }
     }
 
-    private stopRain(): void {
+    public stopRain(): void {
         try {
             const serviceRegistry = ServiceRegistry.getInstance();
             const rainService = serviceRegistry.get('TntRainService') as TntRainService;

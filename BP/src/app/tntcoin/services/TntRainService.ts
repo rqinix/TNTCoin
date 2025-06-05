@@ -325,7 +325,7 @@ export class TntRainService {
             } catch (error) {
                 console.warn(`Failed to spawn particles: ${error}`);
             }
-            const particleRate = this._rainState.phase === 'bombard' ? 20 : 10;
+            const particleRate = this._rainState.phase === 'bombard' ? 30 : 10;
             taskManager.addTask(this._particleTaskId, particleSpawning, particleRate);
         };
         taskManager.addTask(this._particleTaskId, particleSpawning, 80);

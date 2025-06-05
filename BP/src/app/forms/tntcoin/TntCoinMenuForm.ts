@@ -56,7 +56,11 @@ export class TntCoinMenuForm extends BaseForm {
             )
             .button('Summon Entity', () => this.summonEntityForm.show(), 'textures/tnt-coin/gui/buttons/npc.png')
             .button('Summon TNT', this.tntcoin.summonTNT.bind(this.tntcoin), 'textures/tnt-coin/gui/buttons/tnt.png')
-            .button('§c§kii§r§c§o§lTNT COIN RAIN§r§c§kii§r', () => this.tntCoinRainForm.show(), 'textures/blocks/tnt_bottom.png')
+            .button(
+                this.tntCoinRainForm.isActive() ? '§c§kii§r§c§o§lStop TNT Coin Rain§r§c§kii§r' : '§2§kii§r§2§o§lStart TNT Coin Rain§r§2§kii§r',
+                this.tntCoinRainForm.show.bind(this.tntCoinRainForm),
+                this.tntCoinRainForm.isActive() ? 'textures/ui/button_red.png' : 'textures/blocks/tnt_bottom.png'
+            )
             .button(
                 this.tntcoin.isTntRocketFlying ? '§c§kii§r§c§o§lAbort TNT Rocket§r§c§kii§r' : '§2§kii§r§2§o§lLaunch TNT Rocket§r§2§kii§r',
                 () => this.tntCoinRocketForm.show(),
@@ -67,6 +71,7 @@ export class TntCoinMenuForm extends BaseForm {
                 this.structure.fillConfig.isActive ? this.structure.stopFilling.bind(this.structure) : this.structure.fill.bind(this.structure),
                 this.structure.fillConfig.isActive ? 'textures/ui/button_red.png' : 'textures/ui/filledBar.png'
             )
+
             if (blocksPlaced > 0) {
                 menuForm.button('§c§kii§r§c§o§lClear Blocks§r§c§kii§r', this.structure.clearBlocks.bind(this.structure), 'textures/ui/hud_mob_effect_background.png');
             }
@@ -113,7 +118,7 @@ export class TntCoinMenuForm extends BaseForm {
                     if (this.tntcoin.settings.structureEditMode) {
                         this.tntcoin.actionbar.addTask(`StructureEditMode:${this.player.name}`, {
                             id: `StructureEditMode:${this.player.name}`,
-                            callback: () => ['§c§lStructure Edit Mode is ON!§r']
+                            callback: () => ['§c§lStructure Builder Mode is ON!§r']
                         });
                     } else {
                         this.tntcoin.actionbar.removeTasks([`StructureEditMode:${this.player.name}`]);
