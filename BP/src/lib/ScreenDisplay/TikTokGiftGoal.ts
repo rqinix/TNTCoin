@@ -1,6 +1,7 @@
 import { Player } from "@minecraft/server";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from 'lang/tiktokGifts';
 import { Actionbar } from "./Actionbar";
+import { GiftGoalSettings, TikTokGift } from "types";
 
 export class TikTokGiftGoal {
     private _player: Player;

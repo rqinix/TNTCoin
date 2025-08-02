@@ -5,6 +5,7 @@ import ActionForm from "lib/Forms/ActionForm";
 import { EventActionForm } from "app/forms/EventActionForm";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "lang/tiktokGifts";
 import { EventActionFormBase } from "./EventActionFormBase";
+import { GiftAction } from "types";
 
 export class GiftActionForm extends EventActionFormBase<GiftAction> {
 

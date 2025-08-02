@@ -3,6 +3,7 @@ import { EventActionForm } from "app/forms/EventActionForm";
 import ActionForm from "lib/Forms/ActionForm";
 import { EventActionManager } from "lib/Events/EventActionManager";
 import { EventActionFormBase } from "./EventActionFormBase";
+import { ChatAction } from "types";
 
 export class ChatActionForm extends EventActionFormBase<ChatAction> {
 

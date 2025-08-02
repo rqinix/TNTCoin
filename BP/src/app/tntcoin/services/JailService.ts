@@ -5,6 +5,7 @@ import { PlayerPropertiesManager } from "lib/Player/PlayerPropertiesManager";
 import { StructureBlocksManager } from "app/structure/managers/StructureBlocksManager";
 import EventEmitter from "lib/Events/EventEmitter";
 import { TntCoinConfigManager } from "app/tntcoin/TntCoinConfigManager";
+import { JailConfigInterface, TntCoinSettingsInterface } from "types";
 
 export interface JailState {
     isJailed: boolean;

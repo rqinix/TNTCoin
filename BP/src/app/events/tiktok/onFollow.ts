@@ -2,6 +2,7 @@ import { TntCoin } from "app/tntcoin/index";
 import { EventActionManager } from "lib/Events/EventActionManager";
 import { executeAction } from "app/actions/executeAction";
 import ServiceRegistry from "lib/System/ServiceRegistry";
+import { FollowAction, FollowProps } from "types";
 
 /**
  * Handles the follow event from TikTok.

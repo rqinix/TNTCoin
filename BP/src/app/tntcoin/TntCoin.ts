@@ -14,6 +14,7 @@ import { PlayerPropertiesManager } from "lib/Player/PlayerPropertiesManager";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 import TntCoinSettings from "./TntCoinSettings";
 import { LifeCycleService, PlayerActionService, AutoSaveService, JailService, TntRocketService } from "./services/index";
+import { SummonOptions } from "types";
 
 /**
  * Main class for the TNT Coin

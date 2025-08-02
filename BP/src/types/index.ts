@@ -1,17 +1,17 @@
-interface FeedbackOptions {
+export interface FeedbackOptions {
     sound?: string;
     title?: string;
     subtitle?: string;
     actionBar?: string;
 }
 
-interface Vec3 {
+export interface Vec3 {
     x: number;
     y: number;
     z: number;
 }
 
-interface SummonOptions {
+export interface SummonOptions {
     entityName: string;
     amount?: number;
     locationType?: 'random' | 'center';
@@ -28,13 +28,13 @@ interface SummonOptions {
     }
 }
 
-interface TikTokGift {
+export interface TikTokGift {
     emoji: string;
     coins: number;
     id: number | null;
 }
 
-interface TntCoinSettingsInterface {
+export interface TntCoinSettingsInterface {
     editStructure: boolean;
     doesCameraRotate: boolean;
     useBarriers: boolean;
@@ -53,19 +53,19 @@ interface TntCoinSettingsInterface {
     eventDisplaySettings: EventDisplaySettings;
 }
 
-interface TntCoinSession {
+export interface TntCoinSession {
     isPlayerInGame: boolean;
     structureProperties: StructureProperties;
     settings: TntCoinSettingsInterface;
 }
 
-interface FillSettings {
+export interface FillSettings {
     blockName: string;
     tickInterval: number;
     blocksPerTick: number;
 }
 
-interface StructureProperties {
+export interface StructureProperties {
     centerLocation: Vec3;
     width: number;
     height: number;
@@ -76,7 +76,7 @@ interface StructureProperties {
     };
 }
 
-interface GiftGoalSettings {
+export interface GiftGoalSettings {
     giftName: string;
     maxCount: number;
     currentCount: number;
@@ -84,9 +84,9 @@ interface GiftGoalSettings {
     isEnabled: boolean;
 }
 
-type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail' | 'Win Action' | 'TNT Rain' | 'TNT Rocket';
+export type ActionType = 'Summon' | 'Clear Blocks' | 'Fill' | 'Play Sound' | 'Screen Title' | 'Screen Subtitle' | 'Run Command' | 'Jail' | 'Win Action' | 'TNT Rain' | 'TNT Rocket';
 
-interface EventAction {
+export interface EventAction {
     eventKey: string;
     actionType?: ActionType;
     playSound?: string | null;
@@ -100,17 +100,17 @@ interface EventAction {
     tntRocketOptions?: TntRocketOptions;
 }
 
-interface JailActionOptions {
+export interface JailActionOptions {
     duration: number;
     enableEffects: boolean;
 }
 
-interface WinActionOptions {
+export interface WinActionOptions {
     operation: 'increment' | 'decrement';
     amount: number;
 }
 
-interface TntRainOptions {
+export interface TntRainOptions {
     duration: number;
     intensity: number;
     entityType: string;
@@ -118,37 +118,37 @@ interface TntRainOptions {
     rainCoin: boolean;
 }
 
-interface TntRocketOptions {
+export interface TntRocketOptions {
     duration: number;
     entityType: string;
     particles: string[];
     amplifier: number;
 }
 
-interface EventDefinitionInterface<T = any> {
+export interface EventDefinitionInterface<T = any> {
     name: string;
     description?: string;
 }
 
-interface ActionbarTask {
+export interface ActionbarTask {
     id: string;
     callback: () => (string | number | undefined)[] | Promise<(string | number | undefined)[]>;
 }
 
-interface GiftAction extends EventAction { giftName: string; giftId?: number; giftEmoji: string; }
-interface MemberAction extends EventAction {}
-interface FollowAction extends EventAction {}
-interface ShareAction extends EventAction {}
-interface LikeAction extends EventAction { likeCount: number; }
-interface ChatAction extends EventAction { chat: string; }
+export interface GiftAction extends EventAction { giftName: string; giftId?: number; giftEmoji: string; }
+export interface MemberAction extends EventAction {}
+export interface FollowAction extends EventAction {}
+export interface ShareAction extends EventAction {}
+export interface LikeAction extends EventAction { likeCount: number; }
+export interface ChatAction extends EventAction { chat: string; }
 
-interface ChatProps { 
+export interface ChatProps { 
     uniqueId: string, 
     nickname: string,
     comment: string
 }
 
-interface GiftProps {
+export interface GiftProps {
     username: string,
     nickname: string,
     giftName: string,
@@ -159,40 +159,58 @@ interface GiftProps {
     repeatEnd: number,
 }
 
-interface LikeProps {
+export interface LikeProps {
     username: string;
     nickname: string;
     likeCount: number;
     totalLiveLikeCount: number;
 }
 
-interface FollowProps {
+export interface FollowProps {
     username: string, 
     nickname: string 
 }
 
-interface JoinProps {
+export interface JoinProps {
     username: string, 
     nickname: string 
 }
 
-interface ShareProps {
+export interface ShareProps {
     username: string, 
     nickname: string 
 }
 
-
-interface JailConfigInterface { 
+export interface JailConfigInterface { 
     size: number;
     jailTime: number;
     enableEffects: boolean;
 }
 
-interface EventDisplaySettings {
+export interface EventDisplaySettings {
     showChatMessages: boolean;
     showGiftMessages: boolean;
     showFollowMessages: boolean;
     showShareMessages: boolean;
     showLikeMessages: boolean;
     showMemberMessages: boolean;
+}
+
+import { RawMessage } from '@minecraft/server';
+
+/**
+ * Interface for form component types
+ */
+export interface FormComponent {
+    type: 'button' | 'textField' | 'dropdown' | 'slider' | 'toggle' | 'submitButton' | 'divider' | 'header' | 'label';
+    label?: string | RawMessage;
+    iconPath?: string;
+    placeholder?: string | RawMessage;
+    defaultValue?: string | number | boolean;
+    options?: string[] | RawMessage[];
+    min?: number;
+    max?: number;
+    step?: number;
+    callback?: (value: any) => Promise<void> | void;
+    textfieldType?: 'string' | 'number';
 }

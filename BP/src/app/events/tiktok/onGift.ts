@@ -3,6 +3,7 @@ import { executeAction } from "../../actions/executeAction";
 import { DEFAULT_GIFT, TIKTOK_GIFT } from "../../../lang/tiktokGifts";
 import { TntCoin } from "app/tntcoin/index";
 import ServiceRegistry from "lib/System/ServiceRegistry";
+import { GiftAction, GiftProps } from "types";
 
 /**
  * Handles the gift event from TikTok.

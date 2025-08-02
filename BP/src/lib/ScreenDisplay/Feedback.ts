@@ -1,4 +1,5 @@
 import { Player } from "@minecraft/server";
+import { FeedbackOptions } from "types";
 
 export class Feedback {
     private player: Player;

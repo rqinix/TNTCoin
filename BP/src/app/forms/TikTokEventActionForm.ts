@@ -8,6 +8,7 @@ import { ShareActionForm } from "app/forms/actions/ShareAction";
 import { MemberActionForm } from "app/forms/actions/MemberAction";
 import { LikeActionForm } from "app/forms/actions/LikeAction";
 import { ChatActionForm } from "app/forms/actions/ChatAction";
+import { ChatAction, FollowAction, GiftAction, LikeAction, MemberAction, ShareAction } from "types";
 
 export interface TikTokEventActionFormInterface {
     createGiftActionForm(player: Player): EventActionFormBase<GiftAction>;

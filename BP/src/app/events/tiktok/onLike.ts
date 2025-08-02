@@ -3,6 +3,7 @@ import { executeAction } from "app/actions/executeAction";
 import { EventActionManager } from "lib/Events/EventActionManager";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 import { taskManager } from "lib/Managers/TaskManager";
+import { LikeAction, LikeProps } from "types";
 
 const userLikesMap = new Map<string, {
     totalLikes: number,

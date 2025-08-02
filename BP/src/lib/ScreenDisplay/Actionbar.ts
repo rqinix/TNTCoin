@@ -1,5 +1,6 @@
 import { Player } from "@minecraft/server";
 import { taskManager } from "../Managers/TaskManager";
+import { ActionbarTask } from "types";
 
 /**
  * Class for managing and updating the action bar display for a player.

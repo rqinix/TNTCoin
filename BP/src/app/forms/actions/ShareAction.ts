@@ -4,6 +4,7 @@ import { EventActionForm } from "app/forms/EventActionForm";
 import ModalForm from "lib/Forms/ModalForm";
 import ActionForm from "lib/Forms/ActionForm";
 import { EventActionFormBase } from "./EventActionFormBase";
+import { ShareAction } from "types";
 
 export class ShareActionForm extends EventActionFormBase<ShareAction> {
     private readonly _eventKey: string = 'share';

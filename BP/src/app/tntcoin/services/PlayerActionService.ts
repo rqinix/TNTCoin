@@ -2,6 +2,7 @@ import { Vector3 } from "@minecraft/server";
 import { TntCoin } from "../index";
 import { summonEntities } from "utilities/entities/summonEntities";
 import { batch } from "utilities/batch";
+import { SummonOptions } from "types";
 
 export class PlayerActionService {
     /**

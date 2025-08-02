@@ -1,5 +1,6 @@
 import { taskManager } from "lib/Managers/TaskManager";
 import { TntCoin } from "../index";
+import { TntCoinSession } from "types";
 
 export class AutoSaveService {
     /**

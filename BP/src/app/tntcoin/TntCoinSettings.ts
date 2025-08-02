@@ -5,6 +5,12 @@ import { WinTracker } from "lib/System/WinTracker";
 import { TikTokGiftGoal } from "lib/ScreenDisplay/TikTokGiftGoal";
 import { TntCoinConfigManager } from "./TntCoinConfigManager";
 import { JailService } from "./services";
+import { 
+    SummonOptions, 
+    JailConfigInterface, 
+    EventDisplaySettings, 
+    TntCoinSettingsInterface 
+} from "types";
 
 export default class TntCoinSettings {
     private readonly configManager = TntCoinConfigManager.getInstance();

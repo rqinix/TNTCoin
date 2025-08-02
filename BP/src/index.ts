@@ -16,6 +16,7 @@ import { TntCoinConfigManager } from "app/tntcoin/TntCoinConfigManager";
 import MathUtils from "utilities/math/MathUtils";
 import BlockUtils from "utilities/blocks/BlockUtils";
 import "config/tntcoin";
+import { TntCoinSession } from "types";
 
 const config = TntCoinConfigManager.getInstance();
 

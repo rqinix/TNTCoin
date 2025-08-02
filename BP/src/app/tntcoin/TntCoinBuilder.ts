@@ -5,6 +5,14 @@ import TikTokEventActionFormFactory from "app/forms/TikTokEventActionForm";
 import { Feedback } from "lib/ScreenDisplay/Feedback";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 import { EventActionManager } from "lib/Events/EventActionManager";
+import { 
+    GiftAction, 
+    FollowAction, 
+    ShareAction, 
+    MemberAction, 
+    LikeAction, 
+    ChatAction 
+} from "types";
 
 export default class TntCoinBuilder {
     public static createTntCoin(player: Player): TntCoin {

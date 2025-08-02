@@ -1,4 +1,4 @@
-export type TikTokGifts = keyof typeof TIKTOK_GIFT;
+import { TikTokGift } from "types";
 
 export const DEFAULT_GIFT = '';
 

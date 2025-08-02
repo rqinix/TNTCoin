@@ -2,6 +2,7 @@ import { Player } from "@minecraft/server";
 import { EventActionForm } from "app/forms/EventActionForm";
 import ModalForm from "lib/Forms/ModalForm";
 import ActionForm from "lib/Forms/ActionForm";
+import { ActionType, EventAction } from "types";
 
 export abstract class EventActionFormBase<T extends EventAction> {
     protected readonly _player: Player;

@@ -4,6 +4,7 @@ import ServiceRegistry from "lib/System/ServiceRegistry";
 import BlockUtils from "utilities/blocks/BlockUtils";
 import { StructureBlocksManager, StructurePropertiesManager } from "./managers/index";
 import { StructureProperties } from "./interfaces";
+import { FillSettings } from "types";
 
 
 export default class TntCoinStructure {

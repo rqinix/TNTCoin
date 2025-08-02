@@ -7,6 +7,7 @@ import { onTntCoinTimerEnded } from "app/events/tntcoin/onTntCoinTimerEnded";
 import { onCountdownInterrupted } from "app/events/tntcoin/onCountdownInterrupted";
 import { onCountdownEnded } from "app/events/tntcoin/onCountdownEnded";
 import { TimerEventData } from "lib/System/Timer";
+import { ChatProps, FollowProps, GiftProps, JoinProps, LikeProps, ShareProps } from "types";
 
 export default class TntCoinEventDispatcher {
     private _tntcoin: TntCoin;

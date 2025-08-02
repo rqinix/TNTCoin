@@ -4,6 +4,7 @@ import { EventActionForm } from "app/forms/EventActionForm";
 import ModalForm from "lib/Forms/ModalForm";
 import ActionForm from "lib/Forms/ActionForm";
 import { EventActionFormBase } from "./EventActionFormBase";
+import { MemberAction } from "types";
 
 export class MemberActionForm extends EventActionFormBase<MemberAction> {
     private readonly _eventKey: string = 'member';

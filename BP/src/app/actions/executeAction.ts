@@ -1,6 +1,7 @@
 import { TntCoin } from "../tntcoin/TntCoin";
 import { TntRainService } from "../tntcoin/services/TntRainService";
 import ServiceRegistry from "lib/System/ServiceRegistry";
+import { EventAction } from "types";
 
 export function executeAction<T extends EventAction>(tntcoin: TntCoin, action: T): void {
     switch(action.actionType) {

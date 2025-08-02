@@ -1,6 +1,6 @@
 import { Player, RawMessage } from "@minecraft/server";
 import ActionForm from "./ActionForm";
-import { FormComponent } from "types/FormComponent";
+import { FormComponent } from "types";
 
 export default abstract class AbstractForm {
     protected components: FormComponent[];

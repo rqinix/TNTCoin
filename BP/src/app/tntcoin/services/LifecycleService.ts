@@ -3,6 +3,7 @@ import TntCoinPlayerRegistry from "../TntCoinPlayerRegistry";
 import CameraUtils from "utilities/camera/CameraUtils";
 import ServiceRegistry from "lib/System/ServiceRegistry";
 import { TntRainService } from "./TntRainService";
+import { TntCoinSession } from "types";
 
 /**
  * Manages the core TNT Coin lifecycle methods for the TNT Coin

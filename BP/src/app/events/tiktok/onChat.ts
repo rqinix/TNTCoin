@@ -2,6 +2,7 @@ import { TntCoin } from "app/tntcoin";
 import { executeAction } from "app/actions/executeAction";
 import { EventActionManager } from "lib/Events/EventActionManager";
 import ServiceRegistry from "lib/System/ServiceRegistry";
+import { ChatAction, ChatProps } from "types";
 
 /**
  * Handles the chat event from TikTok.

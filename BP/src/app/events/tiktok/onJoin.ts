@@ -2,6 +2,7 @@ import { TntCoin } from "app/tntcoin";
 import { EventActionManager } from "lib/Events/EventActionManager";
 import { executeAction } from "../../actions/executeAction";
 import ServiceRegistry from "lib/System/ServiceRegistry";
+import { JoinProps, MemberAction } from "types";
 
 /**
  * Handles the member join event from TikTok.

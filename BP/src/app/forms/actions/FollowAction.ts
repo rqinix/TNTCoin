@@ -4,6 +4,7 @@ import ModalForm from "lib/Forms/ModalForm";
 import ActionForm from "lib/Forms/ActionForm";
 import { EventActionForm } from "app/forms/EventActionForm";
 import { EventActionFormBase } from "./EventActionFormBase";
+import { FollowAction } from "types";
 
 export class FollowActionForm extends EventActionFormBase<FollowAction> {
     private readonly _eventKey: string = 'follow';

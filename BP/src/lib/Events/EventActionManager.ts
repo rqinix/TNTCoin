@@ -1,5 +1,6 @@
 import { Player } from "@minecraft/server";
 import { PlayerPropertiesManager } from "../Player/PlayerPropertiesManager";
+import { EventAction } from "types";
 
 export class EventActionManager<Action extends EventAction> {
     private _propertiesManager: PlayerPropertiesManager;

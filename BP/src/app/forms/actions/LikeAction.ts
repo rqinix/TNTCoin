@@ -4,6 +4,7 @@ import ModalForm from "lib/Forms/ModalForm";
 import ActionForm from "lib/Forms/ActionForm";
 import { EventActionManager } from "lib/Events/EventActionManager";
 import { EventActionFormBase } from "./EventActionFormBase";
+import { LikeAction } from "types";
 
 export class LikeActionForm extends EventActionFormBase<LikeAction> {
 
